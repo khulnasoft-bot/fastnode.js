@@ -1,7 +1,7 @@
 import "./_runtime_warn.ts";
 import { createStorage, type Storage } from "unstorage";
 
-import type { AssetMeta } from "nitro/types";
+import type { AssetMeta } from "fastnode/types";
 
 export const assets: Storage = createStorage();
 

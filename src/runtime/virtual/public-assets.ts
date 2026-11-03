@@ -1,5 +1,5 @@
 import "./_runtime_warn.ts";
-import type { PublicAsset } from "nitro/types";
+import type { PublicAsset } from "fastnode/types";
 
 export const publicAssetBases: string[] = [];
 

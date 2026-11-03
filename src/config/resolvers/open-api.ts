@@ -1,8 +1,8 @@
-import { runtimeDir } from "#nitro/meta";
-import type { NitroOptions } from "nitro/types";
+import { runtimeDir } from "#fastnode/meta";
+import type { FastnodeOptions } from "fastnode/types";
 import { join } from "pathe";
 
-export async function resolveOpenAPIOptions(options: NitroOptions) {
+export async function resolveOpenAPIOptions(options: FastnodeOptions) {
   // Check if the experimental.openAPI option is enabled
   if (!options.experimental.openAPI) {
     return;

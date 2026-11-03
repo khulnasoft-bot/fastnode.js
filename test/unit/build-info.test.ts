@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "pathe";
 import { rolldown } from "rolldown";
 import type { RollupOutput } from "rollup";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { writeBuildInfo } from "../../src/build/info.ts";
 
@@ -12,9 +12,9 @@ describe("writeBuildInfo", () => {
   let warn: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
-    rootDir = await realpath(await mkdtemp(join(tmpdir(), "nitro-build-info-")));
+    rootDir = await realpath(await mkdtemp(join(tmpdir(), "fastnode-build-info-")));
     warn = vi.fn();
-    await writeFile(join(rootDir, "server.ts"), `export const server = "nitro server";\n`);
+    await writeFile(join(rootDir, "server.ts"), `export const server = "fastnode server";\n`);
     await writeFile(join(rootDir, "server.js"), `export const server = "unrelated entry";\n`);
     await writeFile(join(rootDir, "exposed.ts"), `export const exposed = "exposed";\n`);
   });
@@ -23,7 +23,7 @@ describe("writeBuildInfo", () => {
     await rm(rootDir, { recursive: true, force: true });
   });
 
-  function createNitro() {
+  function createFastnode() {
     return {
       logger: { warn },
       options: {
@@ -36,7 +36,7 @@ describe("writeBuildInfo", () => {
         },
         commands: {},
       },
-    } as unknown as Nitro;
+    } as unknown as Fastnode;
   }
 
   async function buildInfoFor(entries: { fileName: string; facadeModuleId: string | null }[]) {
@@ -44,13 +44,13 @@ describe("writeBuildInfo", () => {
       output: entries.map((entry) => ({ type: "chunk", isEntry: true, ...entry })),
     } as unknown as RollupOutput;
 
-    const info = await writeBuildInfo(createNitro(), output);
-    const saved = JSON.parse(await readFile(join(rootDir, ".output/nitro.json"), "utf8"));
+    const info = await writeBuildInfo(createFastnode(), output);
+    const saved = JSON.parse(await readFile(join(rootDir, ".output/fastnode.json"), "utf8"));
     expect(saved.serverEntry).toBe(info.serverEntry);
     return info;
   }
 
-  it("records Nitro's entry when another entry chunk appears first", async () => {
+  it("records Fastnode's entry when another entry chunk appears first", async () => {
     const info = await buildInfoFor([
       { fileName: "_chunks/app.mjs", facadeModuleId: join(rootDir, "app/app.ts") },
       { fileName: "index.mjs", facadeModuleId: join(rootDir, "server.ts") },
@@ -59,7 +59,7 @@ describe("writeBuildInfo", () => {
     expect(warn).not.toHaveBeenCalled();
   });
 
-  it("uses Nitro's entry even when the output name is customized", async () => {
+  it("uses Fastnode's entry even when the output name is customized", async () => {
     const info = await buildInfoFor([
       { fileName: "_chunks/app.mjs", facadeModuleId: join(rootDir, "app/app.ts") },
       { fileName: "worker.mjs", facadeModuleId: join(rootDir, "server.ts") },
@@ -76,7 +76,7 @@ describe("writeBuildInfo", () => {
     expect(warn).toHaveBeenCalledOnce();
   });
 
-  it("selects Nitro's entry from real Rolldown output with another entry first", async () => {
+  it("selects Fastnode's entry from real Rolldown output with another entry first", async () => {
     const build = await rolldown({
       input: [join(rootDir, "exposed.ts"), join(rootDir, "server.ts")],
     });
@@ -89,7 +89,7 @@ describe("writeBuildInfo", () => {
     const entries = output.output.filter((item) => item.type === "chunk" && item.isEntry);
     expect(entries.map((item) => item.fileName)).toEqual(["exposed.mjs", "server.mjs"]);
 
-    const info = await writeBuildInfo(createNitro(), output);
+    const info = await writeBuildInfo(createFastnode(), output);
     expect(info.serverEntry).toBe("server/server.mjs");
   });
 
@@ -112,7 +112,7 @@ describe("writeBuildInfo", () => {
       join(rootDir, "server.ts"),
     ]);
 
-    const info = await writeBuildInfo(createNitro(), output);
+    const info = await writeBuildInfo(createFastnode(), output);
     expect(info.serverEntry).toBe("server/b.mjs");
   });
 });

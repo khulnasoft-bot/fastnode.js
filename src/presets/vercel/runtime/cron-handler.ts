@@ -1,6 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
-import { defineHandler, HTTPError } from "nitro/h3";
-import { runCronTasks, runTask } from "#nitro/runtime/task";
+import { defineHandler, HTTPError } from "fastnode/h3";
+import { runCronTasks, runTask } from "#fastnode/runtime/task";
 import { SCHEDULE_EVENT_TYPE } from "./schedule-handler.ts";
 
 /**

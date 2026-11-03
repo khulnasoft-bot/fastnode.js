@@ -1,8 +1,8 @@
 import fsp from "node:fs/promises";
-import { defineNitroPreset } from "../_utils/preset.ts";
+import { defineFastnodePreset } from "../_utils/preset.ts";
 import { join } from "pathe";
 
-const _static = defineNitroPreset(
+const _static = defineFastnodePreset(
   {
     static: true,
     output: {
@@ -22,7 +22,7 @@ const _static = defineNitroPreset(
   }
 );
 
-const githubPages = defineNitroPreset(
+const githubPages = defineFastnodePreset(
   {
     extends: "static",
     commands: {
@@ -36,8 +36,8 @@ const githubPages = defineNitroPreset(
       ],
     },
     hooks: {
-      async compiled(nitro) {
-        await fsp.writeFile(join(nitro.options.output.publicDir, ".nojekyll"), "");
+      async compiled(fastnode) {
+        await fsp.writeFile(join(fastnode.options.output.publicDir, ".nojekyll"), "");
       },
     },
   },
@@ -47,7 +47,7 @@ const githubPages = defineNitroPreset(
   }
 );
 
-const gitlabPages = defineNitroPreset(
+const gitlabPages = defineFastnodePreset(
   {
     extends: "static",
     prerender: {

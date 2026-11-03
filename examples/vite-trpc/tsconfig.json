@@ -1,4 +1,4 @@
 {
-  "extends": "nitro/tsconfig",
+  "extends": "fastnode/tsconfig",
   "compilerOptions": {}
 }

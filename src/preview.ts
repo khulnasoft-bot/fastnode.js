@@ -37,16 +37,16 @@ export async function startPreview(opts: PreviewOptions): Promise<PreviewInstanc
 
   if (!buildInfo) {
     throw new Error(
-      "Cannot load nitro build info. Make sure to build first, or use `nitro start` to run the sources without a build."
+      "Cannot load fastnode build info. Make sure to build first, or use `fastnode start` to run the sources without a build."
     );
   }
 
   const info = [
     ["Build Directory:", prettyPath(outputDir)],
     ["Date:", buildInfo.date && new Date(buildInfo.date).toLocaleString()],
-    ["Nitro Version:", buildInfo.versions.nitro],
-    ["Nitro Preset:", buildInfo.preset],
-    buildInfo.framework?.name !== "nitro" && [
+    ["Fastnode Version:", buildInfo.versions.fastnode],
+    ["Fastnode Preset:", buildInfo.preset],
+    buildInfo.framework?.name !== "fastnode" && [
       "Framework:",
       buildInfo.framework?.name +
         (buildInfo.framework?.version ? ` (v${buildInfo.framework.version})` : ""),
@@ -77,7 +77,9 @@ export async function startPreview(opts: PreviewOptions): Promise<PreviewInstanc
   // Currently cloudflare preset strictly requires preview command
   if (buildInfo.preset.includes("cloudflare")) {
     if (!buildInfo.commands?.preview) {
-      throw new Error(`No nitro build preview command found for the "${buildInfo.preset}" preset.`);
+      throw new Error(
+        `No fastnode build preview command found for the "${buildInfo.preset}" preset.`
+      );
     }
     return await runPreviewCommand({
       command: buildInfo.commands.preview,
@@ -173,7 +175,7 @@ async function runPreviewCommand(opts: {
 
   child.once("exit", (code) => {
     if (code && code !== 0) {
-      consola.error(`[nitro] Preview server exited with code ${code}`);
+      consola.error(`[fastnode] Preview server exited with code ${code}`);
     }
   });
 
@@ -192,18 +194,18 @@ async function runPreviewCommand(opts: {
   };
 }
 
-/** Warn when the Nitro config changed after the build (e.g. switched to `builder: false`). */
+/** Warn when the Fastnode config changed after the build (e.g. switched to `builder: false`). */
 async function warnOutdatedBuild(rootDir: string, buildDate: string) {
   const buildTime = new Date(buildDate).getTime();
   for (const ext of [".ts", ".mts", ".cts", ".js", ".mjs", ".cjs"]) {
-    const configPath = join(rootDir, `nitro.config${ext}`);
+    const configPath = join(rootDir, `fastnode.config${ext}`);
     const mtime = await stat(configPath).then(
       (s) => s.mtimeMs,
       () => undefined
     );
     if (mtime !== undefined && mtime > buildTime) {
       consola.warn(
-        `\`${basename(configPath)}\` changed after this build. Run \`nitro build\` again, or \`nitro start\` to run the sources without a build.`
+        `\`${basename(configPath)}\` changed after this build. Run \`fastnode build\` again, or \`fastnode start\` to run the sources without a build.`
       );
       return;
     }

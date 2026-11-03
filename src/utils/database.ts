@@ -1,5 +1,5 @@
 import type { ConnectorName } from "db0";
-import type { NitroDepsOptions, NitroOptions } from "nitro/types";
+import type { FastnodeDepsOptions, FastnodeOptions } from "fastnode/types";
 import { importDep } from "./dep.ts";
 import type { LibDep } from "./dep.ts";
 
@@ -22,7 +22,7 @@ export interface DatabaseConnection {
 
 /** Resolve database connections that will be used for the current build (`db0` is imported on demand). */
 export async function resolveDatabaseConnections(
-  options: NitroOptions
+  options: FastnodeOptions
 ): Promise<DatabaseConnection[]> {
   if (!options.experimental.database) {
     return [];
@@ -52,7 +52,7 @@ export async function resolveDatabaseConnections(
 /** Import `db0` from the project, installing it on demand. */
 export function importDb0(opts: {
   dir: string;
-  deps?: NitroDepsOptions;
+  deps?: FastnodeDepsOptions;
   reason: string;
 }): Promise<typeof import("db0")> {
   return importDep({ id: "db0", ...opts });

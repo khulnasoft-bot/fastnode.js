@@ -1,6 +1,6 @@
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
 export default defineConfig({
-  plugins: [!process.env.TEST && nitro()],
+  plugins: [!process.env.TEST && fastnode()],
 });

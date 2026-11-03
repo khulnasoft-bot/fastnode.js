@@ -1,20 +1,20 @@
 import type { Plugin as VitePlugin } from "vite";
 import { isBuiltin } from "node:module";
 
-const FACADE_PREFIX = "\0nitro-require-external:";
+const FACADE_PREFIX = "\0fastnode-require-external:";
 
 /**
- * Service environments (e.g. SSR) keep their dependencies external, and Nitro bundles them in
+ * Service environments (e.g. SSR) keep their dependencies external, and Fastnode bundles them in
  * its own build. A `require()` of one of them from bundled CommonJS would be emitted as a
- * runtime `createRequire()` call that the Nitro build cannot follow, leaving it unresolved (or
+ * runtime `createRequire()` call that the Fastnode build cannot follow, leaving it unresolved (or
  * loading a second instance) at runtime. It is turned into an ESM import instead, the same way
  * as rolldown's `esmExternalRequirePlugin` but for any dependency Vite resolves as external.
  */
-export function nitroRequireExternals(): VitePlugin {
+export function fastnodeRequireExternals(): VitePlugin {
   return {
-    name: "nitro:require-externals",
+    name: "fastnode:require-externals",
     apply: "build",
-    applyToEnvironment: (env) => env.name !== "nitro" && env.config.consumer === "server",
+    applyToEnvironment: (env) => env.name !== "fastnode" && env.config.consumer === "server",
 
     resolveId: {
       order: "pre",
@@ -35,7 +35,7 @@ export function nitroRequireExternals(): VitePlugin {
     },
 
     load: {
-      filter: { id: /^\0nitro-require-external:/ },
+      filter: { id: /^\0fastnode-require-external:/ },
       handler(id) {
         const source = JSON.stringify(id.slice(FACADE_PREFIX.length));
         return [

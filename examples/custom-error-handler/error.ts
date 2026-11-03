@@ -1,4 +1,4 @@
-import { defineErrorHandler } from "nitro";
+import { defineErrorHandler } from "fastnode";
 
 export default defineErrorHandler((error, _event) => {
   return new Response(`Custom Error Handler: ${error.message}`, {

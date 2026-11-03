@@ -3,10 +3,10 @@ import { readdir, rm } from "node:fs/promises";
 import { join } from "pathe";
 import type { ViteDevServer } from "vite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { build, createNitro, prepare } from "nitro/builder";
+import { build, createFastnode, prepare } from "fastnode/builder";
 
 const { createServer } = (await import(
-  process.env.NITRO_VITE_PKG || "vite"
+  process.env.FASTNODE_VITE_PKG || "vite"
 )) as typeof import("vite");
 
 const rootDir = fileURLToPath(new URL("./asset-url-fixture", import.meta.url));
@@ -57,18 +57,18 @@ describe("vite: files referenced with `new URL(..., import.meta.url)`", () => {
       const originalCwd = process.cwd();
       process.chdir(rootDir);
       try {
-        const nitro = await createNitro({
+        const fastnode = await createFastnode({
           rootDir,
           output: { dir: outDir },
           builder: "vite",
           // @ts-expect-error for testing
-          __vitePkg__: process.env.NITRO_VITE_PKG,
+          __vitePkg__: process.env.FASTNODE_VITE_PKG,
         });
         try {
-          await prepare(nitro);
-          await build(nitro);
+          await prepare(fastnode);
+          await build(fastnode);
         } finally {
-          await nitro.close();
+          await fastnode.close();
         }
       } finally {
         process.chdir(originalCwd);

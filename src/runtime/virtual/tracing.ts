@@ -1,8 +1,8 @@
 import "./_runtime_warn.ts";
 
-import type { NitroAppPlugin } from "nitro/types";
+import type { FastnodeAppPlugin } from "fastnode/types";
 
-declare const plugin: NitroAppPlugin;
+declare const plugin: FastnodeAppPlugin;
 export default plugin;
 
 export declare const tracingSrvxPlugins: Array<() => any>;

@@ -1,4 +1,4 @@
-import { defineHandler, defineLazyEventHandler } from "nitro/h3";
+import { defineHandler, defineLazyEventHandler } from "fastnode/h3";
 
 // @ts-ignore
 import init, { sum } from "./sum.wasm";

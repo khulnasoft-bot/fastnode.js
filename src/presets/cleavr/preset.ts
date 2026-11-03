@@ -1,6 +1,6 @@
-import { defineNitroPreset } from "../_utils/preset.ts";
+import { defineFastnodePreset } from "../_utils/preset.ts";
 
-const cleavr = defineNitroPreset(
+const cleavr = defineFastnodePreset(
   {
     extends: "node-server",
     serveStatic: true,

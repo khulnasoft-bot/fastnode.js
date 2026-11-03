@@ -1,12 +1,12 @@
-import type { NitroPluginContext } from "./types.ts";
+import type { FastnodePluginContext } from "./types.ts";
 import type { Plugin as VitePlugin } from "vite";
 import { readFile } from "node:fs/promises";
 import { join, resolve } from "pathe";
 
 // Written next to each service output so a later build that skips it (`isBuilt`) finds its entry.
-export const SERVICE_MANIFEST_FILE = "nitro-service.json";
+export const SERVICE_MANIFEST_FILE = "fastnode-service.json";
 
-// Without a manifest (e.g. output of an older Nitro), the output dir itself is imported (`index.{mjs,js}`).
+// Without a manifest (e.g. output of an older Fastnode), the output dir itself is imported (`index.{mjs,js}`).
 export async function readBuiltServiceEntry(outDir: string): Promise<string | undefined> {
   try {
     const { entry } = JSON.parse(await readFile(join(outDir, SERVICE_MANIFEST_FILE), "utf8"));
@@ -16,18 +16,18 @@ export async function readBuiltServiceEntry(outDir: string): Promise<string | un
   }
 }
 
-export function viteServicesTemplate(ctx: NitroPluginContext): string {
+export function viteServicesTemplate(ctx: FastnodePluginContext): string {
   const serviceNames = Object.keys(ctx.services);
 
   // Dev worker registers the services. Vitest runs without it: entries are imported from the
-  // nitro environment instead.
-  if (ctx.nitro!.options.dev && !ctx._isVitest) {
+  // fastnode environment instead.
+  if (ctx.fastnode!.options.dev && !ctx._isVitest) {
     return /* js */ `
 export const viteServices = {
 ${serviceNames
   .map(
     (name) =>
-      `  get [${JSON.stringify(name)}]() { return globalThis.__nitro_vite_envs__[${JSON.stringify(name)}] }`
+      `  get [${JSON.stringify(name)}]() { return globalThis.__fastnode_vite_envs__[${JSON.stringify(name)}] }`
   )
   .join(",\n")}
 };
@@ -37,7 +37,7 @@ ${serviceNames
   const serviceEntries = serviceNames.map((name) => {
     const entry = ctx._isVitest
       ? _resolveServiceEntry(ctx, ctx.services[name].entry)
-      : resolve(ctx.nitro!.options.buildDir, "vite/services", name, ctx._entryPoints[name]);
+      : resolve(ctx.fastnode!.options.buildDir, "vite/services", name, ctx._entryPoints[name]);
     return [name, entry];
   });
 
@@ -51,7 +51,7 @@ function lazyService(name, loader) {
         promise = loader().then(_mod => {
           const m = typeof _mod.default?.fetch === "function" ? _mod.default : _mod
           if (typeof m.fetch !== "function") {
-            throw new TypeError(\`[nitro] Vite service "\${name}" entry does not export a \\\`fetch\\\` handler.\`)
+            throw new TypeError(\`[fastnode] Vite service "\${name}" entry does not export a \\\`fetch\\\` handler.\`)
           }
           return (mod = m)
         })
@@ -72,40 +72,40 @@ ${serviceEntries
   `;
 }
 
-// Service environments (e.g. SSR) must not bundle their own copy of `nitro/*`
-// runtime modules. In dev, imports are proxied to the Nitro environment via
+// Service environments (e.g. SSR) must not bundle their own copy of `fastnode/*`
+// runtime modules. In dev, imports are proxied to the Fastnode environment via
 // __VITE_ENVIRONMENT_RUNNER_IMPORT__. In prod, they are externalized (see createServiceEnvironment).
-const NITRO_PROXY_PREFIX = "\0nitro-env-proxy:";
-// Vitest runs no dev worker to proxy to: test files import `nitro/*` from the nitro environment.
-export function nitroDevServiceProxy(ctx: NitroPluginContext): VitePlugin {
+const FASTNODE_PROXY_PREFIX = "\0fastnode-env-proxy:";
+// Vitest runs no dev worker to proxy to: test files import `fastnode/*` from the fastnode environment.
+export function fastnodeDevServiceProxy(ctx: FastnodePluginContext): VitePlugin {
   return {
-    name: "nitro:dev-service-proxy",
+    name: "fastnode:dev-service-proxy",
     enforce: "pre",
     applyToEnvironment: (env) =>
-      !ctx._isVitest && env.name !== "nitro" && env.config.consumer === "server",
+      !ctx._isVitest && env.name !== "fastnode" && env.config.consumer === "server",
     apply: (_config, configEnv) => configEnv.command === "serve",
 
     resolveId: {
-      filter: { id: /^nitro(\/|$)/ },
+      filter: { id: /^fastnode(\/|$)/ },
       handler(id) {
-        if (id === "nitro" || id.startsWith("nitro/")) {
-          return { id: NITRO_PROXY_PREFIX + id, moduleSideEffects: false };
+        if (id === "fastnode" || id.startsWith("fastnode/")) {
+          return { id: FASTNODE_PROXY_PREFIX + id, moduleSideEffects: false };
         }
       },
     },
 
     load: {
-      filter: { id: /^\0nitro-env-proxy:/ },
+      filter: { id: /^\0fastnode-env-proxy:/ },
       handler(id) {
-        if (!id.startsWith(NITRO_PROXY_PREFIX)) {
+        if (!id.startsWith(FASTNODE_PROXY_PREFIX)) {
           return;
         }
-        const originalId = id.slice(NITRO_PROXY_PREFIX.length);
+        const originalId = id.slice(FASTNODE_PROXY_PREFIX.length);
         // __vite_ssr_exportAll__ is provided by the module runner execution context.
         // It re-exports all enumerable own properties (except "default") from the source module.
         return {
           code: [
-            `const _mod = await globalThis.__VITE_ENVIRONMENT_RUNNER_IMPORT__("nitro", ${JSON.stringify(originalId)});`,
+            `const _mod = await globalThis.__VITE_ENVIRONMENT_RUNNER_IMPORT__("fastnode", ${JSON.stringify(originalId)});`,
             `__vite_ssr_exportAll__(_mod);`,
             `export default _mod.default;`,
           ].join("\n"),
@@ -116,6 +116,6 @@ export function nitroDevServiceProxy(ctx: NitroPluginContext): VitePlugin {
   };
 }
 
-function _resolveServiceEntry(ctx: NitroPluginContext, entry: string): string {
-  return entry.startsWith(".") ? resolve(ctx.nitro!.options.rootDir, entry) : entry;
+function _resolveServiceEntry(ctx: FastnodePluginContext, entry: string): string {
+  return entry.startsWith(".") ? resolve(ctx.fastnode!.options.rootDir, entry) : entry;
 }

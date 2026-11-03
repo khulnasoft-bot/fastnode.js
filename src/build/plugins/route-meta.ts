@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { isAbsolute } from "pathe";
 import type { Expression, Literal } from "estree";
-import type { Nitro, NitroEventHandler } from "nitro/types";
+import type { Fastnode, FastnodeEventHandler } from "fastnode/types";
 import type { Plugin } from "rollup";
 import type { Plugin as VitePlugin } from "vite";
 import { viteDepPaths } from "../vite/_import.ts";
@@ -9,17 +9,17 @@ import { importOXC } from "../../utils/oxc.ts";
 import { escapeRegExp } from "../../utils/regex.ts";
 import { chain } from "../../utils/sync.ts";
 
-const PREFIX = "\0nitro:route-meta:";
+const PREFIX = "\0fastnode:route-meta:";
 
-export async function routeMeta(nitro: Nitro) {
-  let oxc = await importOXC({ dir: nitro.options.rootDir, paths: viteDepPaths(nitro) });
+export async function routeMeta(fastnode: Fastnode) {
+  let oxc = await importOXC({ dir: fastnode.options.rootDir, paths: viteDepPaths(fastnode) });
   return {
-    name: "nitro:route-meta",
-    // With `nitro/vite`, the running `vite` is only known once its config is resolved
+    name: "fastnode:route-meta",
+    // With `fastnode/vite`, the running `vite` is only known once its config is resolved
     // (Vite only runs `buildStart` of the `client` environment in dev by default)
     perEnvironmentStartEndDuringDev: true,
     async buildStart() {
-      oxc = await importOXC({ dir: nitro.options.rootDir, paths: viteDepPaths(nitro) });
+      oxc = await importOXC({ dir: fastnode.options.rootDir, paths: viteDepPaths(fastnode) });
     },
     resolveId: {
       order: "pre",
@@ -56,7 +56,7 @@ export async function routeMeta(nitro: Nitro) {
       },
       handler(code, id) {
         const { parseSync, transformSync } = oxc;
-        let meta: NitroEventHandler["meta"] | null = null;
+        let meta: FastnodeEventHandler["meta"] | null = null;
 
         try {
           const transformRes = transformSync(id, code, { tsconfig: false });
@@ -86,7 +86,7 @@ export async function routeMeta(nitro: Nitro) {
             }
           }
         } catch (error) {
-          nitro.logger.warn(`[handlers-meta] Cannot extra route meta for: ${id}: ${error}`);
+          fastnode.logger.warn(`[handlers-meta] Cannot extra route meta for: ${id}: ${error}`);
         }
 
         return {

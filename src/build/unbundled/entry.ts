@@ -1,13 +1,13 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 
 import { pathToFileURL } from "node:url";
 import { resolveModulePath } from "exsolve";
-import { pkgDir } from "#nitro/meta";
+import { pkgDir } from "#fastnode/meta";
 import { join, resolve } from "pathe";
 import { baseBuildConfig } from "../config.ts";
 import { virtualTemplates } from "../virtual/_all.ts";
 
-export const NITRO_VIRTUAL_PREFIX = "#nitro/virtual/";
+export const FASTNODE_VIRTUAL_PREFIX = "#fastnode/virtual/";
 
 export interface UnbundledApp {
   /** Path of the (virtual) entry the runner loads. */
@@ -21,39 +21,39 @@ export interface UnbundledApp {
 /**
  * Prepare the entry and virtual modules to run the server sources without a builder.
  *
- * `#nitro/virtual/*` modules are keyed by the file path the Nitro package maps them to
+ * `#fastnode/virtual/*` modules are keyed by the file path the Fastnode package maps them to
  * (`dist/runtime/virtual/*.mjs`), so env-runner serves them as that file and their imports
- * (`#nitro/runtime/*`, runtime dependencies) resolve from the Nitro package, like real files.
- * Each of them has a stub file there, so runtimes resolve `#nitro/virtual/*` natively.
+ * (`#fastnode/runtime/*`, runtime dependencies) resolve from the Fastnode package, like real files.
+ * Each of them has a stub file there, so runtimes resolve `#fastnode/virtual/*` natively.
  *
- * Also exposes the rendered virtual templates as `nitro.vfs` for the `/_vfs` debug endpoint
+ * Also exposes the rendered virtual templates as `fastnode.vfs` for the `/_vfs` debug endpoint
  * (and synchronous raw imports of them).
  */
-export async function prepareUnbundledApp(nitro: Nitro): Promise<UnbundledApp> {
-  const { env, extensions } = await baseBuildConfig(nitro);
+export async function prepareUnbundledApp(fastnode: Fastnode): Promise<UnbundledApp> {
+  const { env, extensions } = await baseBuildConfig(fastnode);
 
-  // Rendered once (some templates read files), so the runner and `nitro.vfs` see the same sources
+  // Rendered once (some templates read files), so the runner and `fastnode.vfs` see the same sources
   const rendered = await Promise.all(
-    virtualTemplates(nitro, [...env.polyfills]).map(
+    virtualTemplates(fastnode, [...env.polyfills]).map(
       async (t) =>
         [t.id, typeof t.template === "function" ? await t.template() : t.template] as const
     )
   );
-  nitro.vfs = new Map(rendered.map(([id, code]) => [id, { render: () => code }]));
+  fastnode.vfs = new Map(rendered.map(([id, code]) => [id, { render: () => code }]));
 
   const virtual: Record<string, string> = Object.fromEntries(
     rendered.map(([id, code]) => [
-      id.startsWith(NITRO_VIRTUAL_PREFIX) ? nitroVirtualPath(id) : id,
+      id.startsWith(FASTNODE_VIRTUAL_PREFIX) ? fastnodeVirtualPath(id) : id,
       code,
     ])
   );
 
-  const entry = resolve(nitro.options.output.serverDir, "index.mjs");
+  const entry = resolve(fastnode.options.output.serverDir, "index.mjs");
   const appEntry = pathToFileURL(
-    resolveModulePath(nitro.options.entry, { from: nitro.options.rootDir, extensions })
+    resolveModulePath(fastnode.options.entry, { from: fastnode.options.rootDir, extensions })
   ).href;
   virtual[entry] = /* js */ `
-globalThis.__nitro_main__ = import.meta.url;
+globalThis.__fastnode_main__ = import.meta.url;
 export * from ${JSON.stringify(appEntry)};
 export { default } from ${JSON.stringify(appEntry)};
 `.trimStart();
@@ -62,11 +62,11 @@ export { default } from ${JSON.stringify(appEntry)};
 }
 
 /**
- * File path the Nitro package maps a `#nitro/virtual/*` id to (`dist/runtime/virtual/*.mjs`).
+ * File path the Fastnode package maps a `#fastnode/virtual/*` id to (`dist/runtime/virtual/*.mjs`).
  *
  * Without an id, the directory of these files.
  */
-export function nitroVirtualPath(id: string): string {
+export function fastnodeVirtualPath(id: string): string {
   const dir = join(pkgDir, "dist/runtime/virtual/");
-  return id ? join(dir, `${id.slice(NITRO_VIRTUAL_PREFIX.length)}.mjs`) : dir;
+  return id ? join(dir, `${id.slice(FASTNODE_VIRTUAL_PREFIX.length)}.mjs`) : dir;
 }

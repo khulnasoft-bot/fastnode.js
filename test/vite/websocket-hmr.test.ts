@@ -3,12 +3,12 @@ import type { InlineConfig, ViteDevServer } from "vite";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
 const { createServer } = (await import(
-  process.env.NITRO_VITE_PKG || "vite"
+  process.env.FASTNODE_VITE_PKG || "vite"
 )) as typeof import("vite");
 
 const rootDir = fileURLToPath(new URL("./websocket-hmr-fixture", import.meta.url));
 
-// Nitro skipped every `vite-*` upgrade, so one on a path Vite does not claim (e.g. the HMR socket
+// Fastnode skipped every `vite-*` upgrade, so one on a path Vite does not claim (e.g. the HMR socket
 // of an upstream Vite proxied by a route) was answered by nobody and hung forever.
 describe.each<[string, InlineConfig["server"], string]>([
   ["default", {}, "/"],
@@ -29,10 +29,10 @@ describe.each<[string, InlineConfig["server"], string]>([
     await server?.close();
   });
 
-  test("`vite-hmr` upgrade on a nitro route reaches nitro", async () => {
+  test("`vite-hmr` upgrade on a fastnode route reaches fastnode", async () => {
     expect(await firstMessage(`${wsURL}/ws`, "vite-hmr")).toEqual({
       protocol: "vite-hmr",
-      message: "nitro",
+      message: "fastnode",
       clean: true,
     });
   }, 30_000);

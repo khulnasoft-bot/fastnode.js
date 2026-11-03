@@ -3,12 +3,12 @@ import { Miniflare } from "miniflare";
 import { resolve } from "pathe";
 import { describe, expect, it } from "vitest";
 
-import { setupTest, testNitro } from "../tests.ts";
+import { setupTest, testFastnode } from "../tests.ts";
 import { testBuiltinImports } from "./_builtin-imports.ts";
 
 const presetFixturesDir = resolve(import.meta.dirname, "fixtures");
 
-describe("nitro:preset:cloudflare-module", async () => {
+describe("fastnode:preset:cloudflare-module", async () => {
   const ctx = await setupTest("cloudflare-module", {
     config: {
       features: { websocket: true },
@@ -16,7 +16,7 @@ describe("nitro:preset:cloudflare-module", async () => {
     },
   });
 
-  testNitro(
+  testFastnode(
     ctx,
     () => {
       const mf = new Miniflare({
@@ -54,17 +54,17 @@ describe("nitro:preset:cloudflare-module", async () => {
         expect(status).toBe(200);
         expect(data.keys).toEqual(["h3.mjs"]);
         // Embedded module text is data: it must come back byte for byte, in both
-        // string and template form (https://github.com/nitrojs/nitro/issues/4526)
+        // string and template form (https://github.com/khulnasoft/fastnode/issues/4526)
         expect(data.values[0]).toBe(
           "const _require = createRequire(import.meta.url);\nexport default _require;"
         );
         expect(data.source).toContain('import "node:fs";');
         expect(data.source).toContain("const _require = createRequire(import.meta.url);");
-        expect(data.source).toContain("nitro4526marker");
+        expect(data.source).toContain("fastnode4526marker");
         expect(data.escaped).toBe("<\\/script> quoted");
         // The real call site in the same chunk is guarded, so `createRequire` did
         // not throw on `import.meta.url` being undefined
-        // (https://github.com/nitrojs/nitro/issues/4132)
+        // (https://github.com/khulnasoft/fastnode/issues/4132)
         expect(data.require).toBe("function");
       });
     }
@@ -187,7 +187,7 @@ describe("nitro:preset:cloudflare-module", async () => {
     // Embedded data is preserved...
     expect(code).toContain("const _require = createRequire(import.meta.url);");
     expect(code).toContain('import "node:fs";');
-    expect(code).toContain("nitro4526marker");
+    expect(code).toContain("fastnode4526marker");
     // ...while real call sites in the same chunks are still rewritten
     expect(code).toContain('createRequire(import.meta.url || "file:///")');
   });

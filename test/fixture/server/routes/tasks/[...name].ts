@@ -1,5 +1,5 @@
-import { defineHandler, getQuery } from "nitro/h3";
-import { runTask } from "nitro/task";
+import { defineHandler, getQuery } from "fastnode/h3";
+import { runTask } from "fastnode/task";
 
 export default defineHandler(async (event) => {
   const name = event.context.params!.name;

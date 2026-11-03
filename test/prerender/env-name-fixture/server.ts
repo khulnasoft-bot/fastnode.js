@@ -1,4 +1,4 @@
-import { useRuntimeConfig } from "nitro/runtime-config";
+import { useRuntimeConfig } from "fastnode/runtime-config";
 
 export default {
   fetch() {

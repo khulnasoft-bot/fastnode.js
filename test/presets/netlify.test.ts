@@ -4,16 +4,16 @@ import type { Context as FunctionContext } from "@netlify/functions";
 import { execa, execaSync } from "execa";
 import { join, resolve } from "pathe";
 import { describe, expect, it } from "vitest";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import {
   generateNetlifyEdgeFunction,
   getStaticPaths,
   writeConfig,
 } from "../../src/presets/netlify/utils.ts";
-import { getPresetTmpDir, setupTest, testNitro } from "../tests.ts";
+import { getPresetTmpDir, setupTest, testFastnode } from "../tests.ts";
 import { testBuiltinImports } from "./_builtin-imports.ts";
 
-describe("nitro:preset:netlify", async () => {
+describe("fastnode:preset:netlify", async () => {
   const ctx = await setupTest("netlify", {
     config: {
       output: {
@@ -28,7 +28,7 @@ describe("nitro:preset:netlify", async () => {
       },
     },
   });
-  testNitro(
+  testFastnode(
     ctx,
     async () => {
       const { default: handler } = (await import(resolve(ctx.outDir, "server/main.mjs"))) as {
@@ -56,8 +56,8 @@ describe("nitro:preset:netlify", async () => {
           /rules/redirect	/base	302
           /rules/redirect/legacy/*	/:splat	302
           /rules/redirect/wildcard-query/*	/target?param=:splat	301
-          /rules/redirect/wildcard/*	https://nitro.build/:splat	302
-          /rules/redirect/obj	https://nitro.build/	301
+          /rules/redirect/wildcard/*	https://fastnode.khulnasoft.com/:splat	302
+          /rules/redirect/obj	https://fastnode.khulnasoft.com/	301
           "
         `);
       });
@@ -106,7 +106,7 @@ describe("nitro:preset:netlify", async () => {
           "export { default } from "./main.mjs";
           export const config = {
             name: "server handler",
-            generator: "nitro@3.x",
+            generator: "fastnode@3.x",
             path: "/*",
             nodeBundler: "none",
             includedFiles: ["**"],
@@ -154,7 +154,7 @@ describe("nitro:preset:netlify", async () => {
         expect((headers as Record<string, string>)["netlify-cdn-cache-control"]).not.toBeDefined();
       });
 
-      // Regression test for https://github.com/nitrojs/nitro/issues/2431
+      // Regression test for https://github.com/khulnasoft/fastnode/issues/2431
       it("matches paths with a query string", async () => {
         const { headers } = await callHandler({
           url: "/rules/isr-ttl?foo=bar",
@@ -217,18 +217,18 @@ describe("nitro:preset:netlify", async () => {
 
   describe("generateNetlifyEdgeFunction", () => {
     it("inlines the edge function config with static paths excluded", () => {
-      const nitro = {
+      const fastnode = {
         options: {
           baseURL: "/",
-          framework: { name: "nitro", version: "3.x" },
+          framework: { name: "fastnode", version: "3.x" },
           publicAssets: [{ baseURL: "build", dir: "build-dir", maxAge: 0 }],
         },
-      } as unknown as Nitro;
-      expect(generateNetlifyEdgeFunction(nitro)).toMatchInlineSnapshot(`
+      } as unknown as Fastnode;
+      expect(generateNetlifyEdgeFunction(fastnode)).toMatchInlineSnapshot(`
         "export { default } from "./main.mjs";
         export const config = {
           name: "edge server handler",
-          generator: "nitro@3.x",
+          generator: "fastnode@3.x",
           path: "/*",
           excludedPath: ["/.netlify/*","/build/*"],
         };"
@@ -238,17 +238,17 @@ describe("nitro:preset:netlify", async () => {
 
   describe("writeConfig", () => {
     it("removes stale config.json when config is empty", async () => {
-      const dir = await fsp.mkdtemp(join(tmpdir(), "nitro-netlify-config-"));
+      const dir = await fsp.mkdtemp(join(tmpdir(), "fastnode-netlify-config-"));
       const configPath = join(dir, "config.json");
       await fsp.writeFile(configPath, JSON.stringify({ redirects: [] }));
-      await writeConfig({ options: { netlify: {} } } as unknown as Nitro, configPath);
+      await writeConfig({ options: { netlify: {} } } as unknown as Fastnode, configPath);
       expect(existsSync(configPath)).toBe(false);
       await fsp.rm(dir, { recursive: true, force: true });
     });
   });
 });
 
-describe("nitro:preset:netlify-edge", async () => {
+describe("fastnode:preset:netlify-edge", async () => {
   const ctx = await setupTest("netlify-edge", {
     config: {
       minify: false,
@@ -273,7 +273,7 @@ describe("nitro:preset:netlify-edge", async () => {
         const res = await handler(new Request("http://localhost/cjs-builtins"), {});
         console.log(await res.text());`,
       ],
-      { cwd: ctx.nitro!.options.output.serverDir }
+      { cwd: ctx.fastnode!.options.output.serverDir }
     );
     expect(stdout).toBe("ok");
   });

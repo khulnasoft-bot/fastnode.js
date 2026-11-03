@@ -1,6 +1,6 @@
-import { defineNitroPreset } from "../_utils/preset.ts";
+import { defineFastnodePreset } from "../_utils/preset.ts";
 
-const renderCom = defineNitroPreset(
+const renderCom = defineFastnodePreset(
   {
     extends: "node-server",
     serveStatic: true,

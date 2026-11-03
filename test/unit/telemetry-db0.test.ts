@@ -6,8 +6,8 @@ import { TRACED_CHANNELS } from "../../src/runtime/internal/telemetry/channels.t
 import { subscribeTracedChannels } from "../../src/runtime/internal/telemetry/subscribe.ts";
 import { useDatabase } from "../../src/runtime/internal/database.ts";
 
-// What `#nitro/virtual/database` generates with `tracingChannel.db0` enabled.
-vi.mock("#nitro/virtual/database", async () => ({
+// What `#fastnode/virtual/database` generates with `tracingChannel.db0` enabled.
+vi.mock("#fastnode/virtual/database", async () => ({
   traceDatabase: (await import("db0/tracing")).withTracing,
   connectionConfigs: {
     default: {

@@ -6,14 +6,14 @@ icon: i-simple-icons-fastify
 
 # Fastify
 
-> Integrate Fastify with Nitro using the server entry.
+> Integrate Fastify with Fastnode using the server entry.
 
 <!-- automd:ui-code-tree src="../../examples/fastify" default="server.node.ts" ignore="README.md,GUIDE.md" expandAll -->
 
 ::code-tree{defaultValue="server.node.ts" expandAll}
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({});
 ```
@@ -22,12 +22,12 @@ export default defineConfig({});
 {
   "type": "module",
   "scripts": {
-    "build": "nitro build",
-    "dev": "nitro dev"
+    "build": "fastnode build",
+    "dev": "fastnode dev"
   },
   "devDependencies": {
     "fastify": "^5.12.7",
-    "nitro": "latest",
+    "fastnode": "latest",
     "rolldown": "latest"
   }
 }
@@ -38,7 +38,7 @@ import Fastify from "fastify";
 
 const app = Fastify();
 
-app.get("/", () => "Hello, Fastify with Nitro!");
+app.get("/", () => "Hello, Fastify with Fastnode!");
 
 await app.ready();
 
@@ -47,15 +47,15 @@ export default app.routing;
 
 ```json [tsconfig.json]
 {
-  "extends": "nitro/tsconfig"
+  "extends": "fastnode/tsconfig"
 }
 ```
 
 ```ts [vite.config.ts]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
-export default defineConfig({ plugins: [nitro()] });
+export default defineConfig({ plugins: [fastnode()] });
 ```
 
 ::
@@ -71,16 +71,16 @@ import Fastify from "fastify";
 
 const app = Fastify();
 
-app.get("/", () => "Hello, Fastify with Nitro!");
+app.get("/", () => "Hello, Fastify with Fastnode!");
 
 await app.ready();
 
 export default app.routing;
 ```
 
-Nitro auto-detects `server.node.ts` in your project root and uses it as the server entry.
+Fastnode auto-detects `server.node.ts` in your project root and uses it as the server entry.
 
-Call `await app.ready()` to initialize all registered plugins before exporting. Export `app.routing` (not `app`) to provide Nitro with the request handler function.
+Call `await app.ready()` to initialize all registered plugins before exporting. Export `app.routing` (not `app`) to provide Fastnode with the request handler function.
 
 ::note
 The `.node.ts` suffix indicates this entry is Node.js specific and won't work in other runtimes like Cloudflare Workers or Deno.

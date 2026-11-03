@@ -1,5 +1,5 @@
-import { definePlugin } from "nitro";
-import type { NitroApp, NitroAppPlugin } from "nitro/types";
+import { definePlugin } from "fastnode";
+import type { FastnodeApp, FastnodeAppPlugin } from "fastnode/types";
 import type { IAnyValue, IKeyValue, SpanInfo } from "./types.ts";
 import { Span } from "./span.ts";
 import { subscribeTracedChannels } from "./subscribe.ts";
@@ -23,7 +23,7 @@ interface RequestTrace {
  * Built-in telemetry sink that renders each request's tracing-channel spans as a
  * console timeline (waterfall), enabled via `experimental.tracingLogger`. A
  * dependency-free, platform-agnostic alternative to a vendor sink (e.g. the
- * Vercel exporter) — useful for local development and seeing what Nitro spends
+ * Vercel exporter) — useful for local development and seeing what Fastnode spends
  * time on per request.
  *
  * Spans are grouped per request via async context: a collector is seeded on the
@@ -32,7 +32,7 @@ interface RequestTrace {
  * request's collector, isolated from other in-flight requests. The timeline is
  * flushed on the `response` hook.
  */
-const plugin: NitroAppPlugin = definePlugin((nitroApp: NitroApp) => {
+const plugin: FastnodeAppPlugin = definePlugin((fastnodeApp: FastnodeApp) => {
   const proc = globalThis.process;
   const diagnostics = proc?.getBuiltinModule?.("node:diagnostics_channel");
   const asyncHooks = proc?.getBuiltinModule?.("node:async_hooks");
@@ -40,7 +40,7 @@ const plugin: NitroAppPlugin = definePlugin((nitroApp: NitroApp) => {
   // Without async context (or the request hooks) there's no reliable way to
   // group spans per request — storage operations carry no request reference —
   // so fall back to a flat line per completed span.
-  if (!diagnostics?.subscribe || !asyncHooks?.AsyncLocalStorage || !nitroApp?.hooks) {
+  if (!diagnostics?.subscribe || !asyncHooks?.AsyncLocalStorage || !fastnodeApp?.hooks) {
     subscribeTracedChannels(logFlat);
     return;
   }
@@ -50,7 +50,7 @@ const plugin: NitroAppPlugin = definePlugin((nitroApp: NitroApp) => {
   // Seed a per-request collector. `enterWith` binds it to the request's async
   // context, so the traced operations below (and their `asyncEnd` continuations)
   // observe the same collector until the response is sent.
-  nitroApp.hooks.hook("request", (event) => {
+  fastnodeApp.hooks.hook("request", (event) => {
     als.enterWith({
       start: BigInt(Span.nowUnixNano()),
       method: event.req.method,
@@ -73,7 +73,7 @@ const plugin: NitroAppPlugin = definePlugin((nitroApp: NitroApp) => {
     });
   });
 
-  nitroApp.hooks.hook("response", () => {
+  fastnodeApp.hooks.hook("response", () => {
     const trace = als.getStore();
     if (trace) {
       console.log(renderTimeline(trace, BigInt(Span.nowUnixNano())));

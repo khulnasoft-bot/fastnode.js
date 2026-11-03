@@ -1,7 +1,7 @@
-import type { NitroOptions } from "nitro/types";
+import type { FastnodeOptions } from "fastnode/types";
 import { withLeadingSlash, withTrailingSlash } from "ufo";
 
-export async function resolveURLOptions(options: NitroOptions) {
+export async function resolveURLOptions(options: FastnodeOptions) {
   options.baseURL = withLeadingSlash(withTrailingSlash(options.baseURL));
 
   if (options.buildAssetsDir !== undefined) {

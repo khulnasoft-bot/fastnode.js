@@ -13,7 +13,7 @@ icon: i-lucide-alert-circle
 ::code-tree{defaultValue="error.ts" expandAll}
 
 ```ts [error.ts]
-import { defineErrorHandler } from "nitro";
+import { defineErrorHandler } from "fastnode";
 
 export default defineErrorHandler((error, _event) => {
   return new Response(`Custom Error Handler: ${error.message}`, {
@@ -23,8 +23,8 @@ export default defineErrorHandler((error, _event) => {
 });
 ```
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 // import errorHandler from "./error";
 
 export default defineConfig({
@@ -37,18 +37,18 @@ export default defineConfig({
 {
   "type": "module",
   "scripts": {
-    "dev": "nitro dev",
-    "build": "nitro build"
+    "dev": "fastnode dev",
+    "build": "fastnode build"
   },
   "devDependencies": {
-    "nitro": "latest",
+    "fastnode": "latest",
     "rolldown": "latest"
   }
 }
 ```
 
 ```ts [server.ts]
-import { defineHandler, HTTPError } from "nitro";
+import { defineHandler, HTTPError } from "fastnode";
 
 export default defineHandler(() => {
   throw new HTTPError("Example Error!", { status: 500 });
@@ -57,15 +57,15 @@ export default defineHandler(() => {
 
 ```json [tsconfig.json]
 {
-  "extends": "nitro/tsconfig"
+  "extends": "fastnode/tsconfig"
 }
 ```
 
 ```ts [vite.config.ts]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
-export default defineConfig({ plugins: [nitro()] });
+export default defineConfig({ plugins: [fastnode()] });
 ```
 
 ::
@@ -74,14 +74,14 @@ export default defineConfig({ plugins: [nitro()] });
 
 <!-- automd:file src="../../examples/custom-error-handler/README.md" -->
 
-This example shows how to intercept all errors and return a custom response format. When any route throws an error, Nitro calls your error handler instead of returning the default error page.
+This example shows how to intercept all errors and return a custom response format. When any route throws an error, Fastnode calls your error handler instead of returning the default error page.
 
 ## Error Handler
 
 Create an `error.ts` file in your project root to define the global error handler:
 
 ```ts [error.ts]
-import { defineErrorHandler } from "nitro";
+import { defineErrorHandler } from "fastnode";
 
 export default defineErrorHandler((error, _event) => {
   return new Response(`Custom Error Handler: ${error.message}`, {
@@ -98,7 +98,7 @@ The handler receives the thrown error and the H3 event object. You can use the e
 The main handler throws an error to demonstrate the custom error handler:
 
 ```ts [server.ts]
-import { defineHandler, HTTPError } from "nitro";
+import { defineHandler, HTTPError } from "fastnode";
 
 export default defineHandler(() => {
   throw new HTTPError("Example Error!", { status: 500 });

@@ -1,11 +1,11 @@
 import consola from "consola";
 import { isAbsolute, resolve } from "pathe";
-import type { NitroOptions } from "nitro/types";
+import type { FastnodeOptions } from "fastnode/types";
 import { importUnstorage, resolveKVMounts } from "../../utils/storage.ts";
 
 const cacheDrivers = new Set(["memory", "fs", "kv"]);
 
-export async function resolveCacheOptions(options: NitroOptions) {
+export async function resolveCacheOptions(options: FastnodeOptions) {
   options.cache ??= {};
   if (typeof options.cache !== "object") {
     throw new TypeError(
@@ -37,7 +37,7 @@ export async function resolveCacheOptions(options: NitroOptions) {
       );
     }
     const dir = options.cache.fs?.dir || ".data/cache";
-    const isDevOrPrerender = options.dev || options.preset === "nitro-prerender";
+    const isDevOrPrerender = options.dev || options.preset === "fastnode-prerender";
     options.cache.fs = {
       ...options.cache.fs,
       dir: isDevOrPrerender && !isAbsolute(dir) ? resolve(options.rootDir, dir) : dir,
@@ -45,7 +45,7 @@ export async function resolveCacheOptions(options: NitroOptions) {
   }
 }
 
-function hasCacheKVMount(options: NitroOptions): boolean {
+function hasCacheKVMount(options: FastnodeOptions): boolean {
   return resolveKVMounts(options).some(({ path }) => {
     const base = path.replace(/[/\\]/g, ":").replace(/^:+/, "");
     return base === "cache" || base.startsWith("cache:");

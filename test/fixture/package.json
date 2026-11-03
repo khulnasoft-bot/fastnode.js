@@ -1,14 +1,14 @@
 {
-  "name": "nitro-test-fixture",
+  "name": "fastnode-test-fixture",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build": "nitro build",
-    "preview": "nitro preview",
-    "dev": "nitro dev"
+    "build": "fastnode build",
+    "preview": "fastnode preview",
+    "dev": "fastnode dev"
   },
   "devDependencies": {
-    "mono-jsx": "latest",
-    "nitro": "workspace:*"
+    "fastnode": "workspace:*",
+    "mono-jsx": "latest"
   }
 }

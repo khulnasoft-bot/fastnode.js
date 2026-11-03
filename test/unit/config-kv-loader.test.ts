@@ -8,9 +8,9 @@ import { resolveKVMounts } from "../../src/utils/storage.ts";
 const tempDirs: string[] = [];
 
 async function createFixture(config: string) {
-  const rootDir = await mkdtemp(join(tmpdir(), "nitro-config-kv-"));
+  const rootDir = await mkdtemp(join(tmpdir(), "fastnode-config-kv-"));
   tempDirs.push(rootDir);
-  await writeFile(join(rootDir, "nitro.config.ts"), `export default ${config}\n`);
+  await writeFile(join(rootDir, "fastnode.config.ts"), `export default ${config}\n`);
   return rootDir;
 }
 
@@ -46,7 +46,7 @@ describe("kv config loader", () => {
       $production: { kv: { prod: { driver: "memory" } } },
       $prerender: { kv: { db: { driver: "fs", base: "./.data/db" } } },
     }`);
-    const options = await loadOptions({ rootDir, preset: "nitro-prerender" });
+    const options = await loadOptions({ rootDir, preset: "fastnode-prerender" });
     expect(options.kv).toEqual({
       db: { driver: "fs", base: "./.data/db" },
       prod: { driver: "memory" },
@@ -70,7 +70,7 @@ describe("kv config loader", () => {
     const rootDir = await createFixture(`{}`);
     const options = await loadOptions({
       rootDir,
-      preset: "nitro-prerender",
+      preset: "fastnode-prerender",
       kv: { db: { driver: "redis", host: "prod.example.com" } },
       $development: { kv: { dev: { driver: "memory" } } },
       $production: { kv: { prod: { driver: "memory" } } },
@@ -87,7 +87,7 @@ describe("kv config loader", () => {
       kv: { db: { driver: "memory" } },
       devStorage: { cache: { driver: "fs", base: "./.data/cache" } },
     }`);
-    const options = await loadOptions({ rootDir, preset: "nitro-prerender" });
+    const options = await loadOptions({ rootDir, preset: "fastnode-prerender" });
     const mounts = Object.fromEntries(resolveKVMounts(options).map((m) => [m.path, m.name]));
     expect(mounts).toEqual({ db: "memory", cache: "fs" });
   });

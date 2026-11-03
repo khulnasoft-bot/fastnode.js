@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { Nitro, NitroOptions } from "nitro/types";
+import type { Fastnode, FastnodeOptions } from "fastnode/types";
 
 import {
   getVercelBuildOutputSchedules,
@@ -12,7 +12,7 @@ import { setupVercelSchedulesDev } from "../../src/presets/vercel/dev.ts";
 
 const task = { handler: "./task.ts" };
 
-function options(overrides: Partial<NitroOptions> = {}): NitroOptions {
+function options(overrides: Partial<FastnodeOptions> = {}): FastnodeOptions {
   return {
     experimental: { tasks: true },
     tasks: {},
@@ -20,7 +20,7 @@ function options(overrides: Partial<NitroOptions> = {}): NitroOptions {
     scheduler: {},
     vercel: {},
     ...overrides,
-  } as NitroOptions;
+  } as FastnodeOptions;
 }
 
 describe("getVercelTaskSchedules", () => {
@@ -85,7 +85,7 @@ describe("getVercelSchedulesMode", () => {
   it("prefers the vercel.schedules option", () => {
     expect(
       getVercelSchedulesMode(options({ vercel: { schedules: false } }), {
-        NITRO_VERCEL_SCHEDULES: "private",
+        FASTNODE_VERCEL_SCHEDULES: "private",
       })
     ).toBe(false);
   });
@@ -94,20 +94,22 @@ describe("getVercelSchedulesMode", () => {
     expect(getVercelSchedulesMode(options({ vercel: { schedules: "private" } }), {})).toBe(
       "private"
     );
-    expect(getVercelSchedulesMode(options(), { NITRO_VERCEL_SCHEDULES: "private" })).toBe(
+    expect(getVercelSchedulesMode(options(), { FASTNODE_VERCEL_SCHEDULES: "private" })).toBe(
       "private"
     );
   });
 
   it("uses public path targets", () => {
     expect(getVercelSchedulesMode(options({ vercel: { schedules: "public" } }), {})).toBe("public");
-    expect(getVercelSchedulesMode(options(), { NITRO_VERCEL_SCHEDULES: "PUBLIC" })).toBe("public");
+    expect(getVercelSchedulesMode(options(), { FASTNODE_VERCEL_SCHEDULES: "PUBLIC" })).toBe(
+      "public"
+    );
   });
 
   it("is disabled without the opt-in", () => {
     expect(getVercelSchedulesMode(options(), {})).toBe(false);
-    expect(getVercelSchedulesMode(options(), { NITRO_VERCEL_SCHEDULES: "0" })).toBe(false);
-    expect(getVercelSchedulesMode(options(), { NITRO_VERCEL_SCHEDULES: "false" })).toBe(false);
+    expect(getVercelSchedulesMode(options(), { FASTNODE_VERCEL_SCHEDULES: "0" })).toBe(false);
+    expect(getVercelSchedulesMode(options(), { FASTNODE_VERCEL_SCHEDULES: "false" })).toBe(false);
   });
 
   it("rejects invalid values", () => {
@@ -115,16 +117,16 @@ describe("getVercelSchedulesMode", () => {
     expect(() => getVercelSchedulesMode(invalid, {})).toThrow(
       "Invalid `vercel.schedules` value: true"
     );
-    expect(() => getVercelSchedulesMode(options(), { NITRO_VERCEL_SCHEDULES: "1" })).toThrow(
-      'Invalid `NITRO_VERCEL_SCHEDULES` value: "1"'
+    expect(() => getVercelSchedulesMode(options(), { FASTNODE_VERCEL_SCHEDULES: "1" })).toThrow(
+      'Invalid `FASTNODE_VERCEL_SCHEDULES` value: "1"'
     );
   });
 });
 
-function createNitro(
+function createFastnode(
   schedules: "private" | "public" | false = "private",
-  overrides: Partial<NitroOptions> = {}
-): Nitro {
+  overrides: Partial<FastnodeOptions> = {}
+): Fastnode {
   return {
     options: options({
       tasks: { cleanup: task },
@@ -137,37 +139,37 @@ function createNitro(
       ...overrides,
     }),
     logger: { withTag: () => ({ info: vi.fn() }) },
-  } as unknown as Nitro;
+  } as unknown as Fastnode;
 }
 
 describe("getVercelBuildOutputSchedules", () => {
   it("targets the private function", () => {
-    expect(getVercelBuildOutputSchedules(createNitro())).toEqual({
+    expect(getVercelBuildOutputSchedules(createFastnode())).toEqual({
       cleanup: { schedule: "0 3 * * *", function: "_vercel/tasks" },
     });
   });
 
   it("targets the cron handler route in path mode", () => {
-    expect(getVercelBuildOutputSchedules(createNitro("public"))).toEqual({
+    expect(getVercelBuildOutputSchedules(createFastnode("public"))).toEqual({
       cleanup: { schedule: "0 3 * * *", path: "/_vercel/cron", requestMethod: "GET" },
     });
-    const nitro = createNitro("public", {
+    const fastnode = createFastnode("public", {
       vercel: { schedules: "public", cronHandlerRoute: "/api/cron" },
     });
-    expect(getVercelBuildOutputSchedules(nitro)).toEqual({
+    expect(getVercelBuildOutputSchedules(fastnode)).toEqual({
       cleanup: { schedule: "0 3 * * *", path: "/api/cron", requestMethod: "GET" },
     });
   });
 
   it("is empty without the opt-in", () => {
-    expect(getVercelBuildOutputSchedules(createNitro(false))).toEqual({});
+    expect(getVercelBuildOutputSchedules(createFastnode(false))).toEqual({});
   });
 
   it("includes the baseURL in function and path targets", () => {
-    expect(getVercelBuildOutputSchedules(createNitro("private", { baseURL: "/app/" }))).toEqual({
+    expect(getVercelBuildOutputSchedules(createFastnode("private", { baseURL: "/app/" }))).toEqual({
       cleanup: { schedule: "0 3 * * *", function: "app/_vercel/tasks" },
     });
-    expect(getVercelBuildOutputSchedules(createNitro("public", { baseURL: "/app/" }))).toEqual({
+    expect(getVercelBuildOutputSchedules(createFastnode("public", { baseURL: "/app/" }))).toEqual({
       cleanup: { schedule: "0 3 * * *", path: "/app/_vercel/cron", requestMethod: "GET" },
     });
   });
@@ -175,58 +177,58 @@ describe("getVercelBuildOutputSchedules", () => {
 
 describe("getVercelScheduleFunction", () => {
   it("describes the private function, with only it allowed to run tasks", () => {
-    const nitro = createNitro("private", {
+    const fastnode = createFastnode("private", {
       vercel: {
         schedules: "private",
         functionRules: { "/_vercel/tasks": { maxDuration: 60, environment: { FOO: "bar" } } },
       },
     });
-    expect(getVercelScheduleFunction(nitro)).toEqual({
+    expect(getVercelScheduleFunction(fastnode)).toEqual({
       functionPath: "_vercel/tasks",
       overrides: {
         maxDuration: 60,
         experimentalTriggers: [{ type: "schedule/v1beta" }],
-        environment: { FOO: "bar", NITRO_VERCEL_SCHEDULES_FUNCTION: "1" },
+        environment: { FOO: "bar", FASTNODE_VERCEL_SCHEDULES_FUNCTION: "1" },
       },
     });
   });
 
   it("is undefined in path mode, without the opt-in, or without scheduled tasks", () => {
-    expect(getVercelScheduleFunction(createNitro("public"))).toBeUndefined();
-    expect(getVercelScheduleFunction(createNitro(false))).toBeUndefined();
+    expect(getVercelScheduleFunction(createFastnode("public"))).toBeUndefined();
+    expect(getVercelScheduleFunction(createFastnode(false))).toBeUndefined();
     expect(
-      getVercelScheduleFunction(createNitro("private", { scheduledTasks: {} }))
+      getVercelScheduleFunction(createFastnode("private", { scheduledTasks: {} }))
     ).toBeUndefined();
   });
 });
 
 describe("setupVercelSchedules", () => {
   it("registers a private function with the schedule trigger", () => {
-    const nitro = createNitro("private", {
+    const fastnode = createFastnode("private", {
       vercel: {
         schedules: "private",
         functionRules: { "/_vercel/tasks": { maxDuration: 60 } },
       },
     });
-    setupVercelSchedules(nitro);
-    expect(nitro.options.handlers).toEqual([
+    setupVercelSchedules(fastnode);
+    expect(fastnode.options.handlers).toEqual([
       expect.objectContaining({
         route: "/_vercel/tasks",
-        handler: "#nitro/virtual/vercel-schedule-handler",
+        handler: "#fastnode/virtual/vercel-schedule-handler",
       }),
     ]);
     // The private function is written without a public route, not through `functionRules`
-    expect(nitro.options.vercel!.functionRules!["/_vercel/tasks"]).toEqual({ maxDuration: 60 });
-    const template = nitro.options.virtual[
-      "#nitro/virtual/vercel-schedule-handler"
+    expect(fastnode.options.vercel!.functionRules!["/_vercel/tasks"]).toEqual({ maxDuration: 60 });
+    const template = fastnode.options.virtual[
+      "#fastnode/virtual/vercel-schedule-handler"
     ] as () => string;
     expect(template()).toContain(
-      `createScheduleHandler({"cleanup":"cleanup"}, {"functionEnv":"NITRO_VERCEL_SCHEDULES_FUNCTION"})`
+      `createScheduleHandler({"cleanup":"cleanup"}, {"functionEnv":"FASTNODE_VERCEL_SCHEDULES_FUNCTION"})`
     );
   });
 
   it("rejects function rules with their own triggers", () => {
-    const nitro = createNitro("private", {
+    const fastnode = createFastnode("private", {
       vercel: {
         schedules: "private",
         functionRules: {
@@ -234,20 +236,22 @@ describe("setupVercelSchedules", () => {
         },
       },
     });
-    expect(() => setupVercelSchedules(nitro)).toThrow("cannot set `experimentalTriggers`");
+    expect(() => setupVercelSchedules(fastnode)).toThrow("cannot set `experimentalTriggers`");
   });
 
   it("serves the cron handler in path mode", () => {
-    const nitro = createNitro("public");
-    setupVercelSchedules(nitro);
-    expect(nitro.options.handlers).toEqual([expect.objectContaining({ route: "/_vercel/cron" })]);
-    expect(nitro.options.vercel!.functionRules).toBeUndefined();
+    const fastnode = createFastnode("public");
+    setupVercelSchedules(fastnode);
+    expect(fastnode.options.handlers).toEqual([
+      expect.objectContaining({ route: "/_vercel/cron" }),
+    ]);
+    expect(fastnode.options.vercel!.functionRules).toBeUndefined();
   });
 
   it("does nothing without scheduled tasks", () => {
-    const nitro = createNitro("private", { scheduledTasks: {} });
-    setupVercelSchedules(nitro);
-    expect(nitro.options.handlers).toEqual([]);
+    const fastnode = createFastnode("private", { scheduledTasks: {} });
+    setupVercelSchedules(fastnode);
+    expect(fastnode.options.handlers).toEqual([]);
   });
 });
 
@@ -258,46 +262,46 @@ describe("setupVercelSchedulesDev", () => {
 
   it("keeps the in-process scheduler without the vercel dev broker", () => {
     vi.stubEnv("VERCEL_SCHEDULE_DEV_API_VERSION", undefined);
-    const nitro = createNitro("private", { dev: true });
-    setupVercelSchedulesDev(nitro);
-    expect(nitro.options.scheduler.runner).toBeUndefined();
-    expect(nitro.options.handlers).toEqual([]);
+    const fastnode = createFastnode("private", { dev: true });
+    setupVercelSchedulesDev(fastnode);
+    expect(fastnode.options.scheduler.runner).toBeUndefined();
+    expect(fastnode.options.handlers).toEqual([]);
   });
 
   it("hands scheduling over to the vercel dev broker", async () => {
     vi.stubEnv("VERCEL_SCHEDULE_DEV_API_VERSION", "1");
-    const nitro = createNitro("private", { dev: true });
-    setupVercelSchedulesDev(nitro);
-    expect(nitro.options.scheduler.runner).toBe(false);
-    expect(nitro.options.scheduledTasks).toEqual({ "0 3 * * *": "cleanup" });
-    expect(nitro.options.handlers).toEqual([
+    const fastnode = createFastnode("private", { dev: true });
+    setupVercelSchedulesDev(fastnode);
+    expect(fastnode.options.scheduler.runner).toBe(false);
+    expect(fastnode.options.scheduledTasks).toEqual({ "0 3 * * *": "cleanup" });
+    expect(fastnode.options.handlers).toEqual([
       expect.objectContaining({
         route: "/_vercel/dev-manifest",
         method: "GET",
-        handler: "#nitro/virtual/vercel-dev-manifest",
+        handler: "#fastnode/virtual/vercel-dev-manifest",
       }),
       expect.objectContaining({
         route: "/_vercel/tasks",
-        handler: "#nitro/virtual/vercel-schedule-handler",
+        handler: "#fastnode/virtual/vercel-schedule-handler",
       }),
     ]);
-    const template = nitro.options.virtual[
-      "#nitro/virtual/vercel-schedule-handler"
+    const template = fastnode.options.virtual[
+      "#fastnode/virtual/vercel-schedule-handler"
     ] as () => string;
     expect(template()).toContain(`createScheduleHandler({"cleanup":"cleanup"}, {})`);
   });
 
   it("restricts the dev routes to local requests", () => {
     vi.stubEnv("VERCEL_SCHEDULE_DEV_API_VERSION", "1");
-    const nitro = createNitro("private", { baseURL: "/app/", dev: true });
-    setupVercelSchedulesDev(nitro);
-    expect(nitro.options.devHandlers.map((h) => [h.route, h.middleware])).toEqual([
+    const fastnode = createFastnode("private", { baseURL: "/app/", dev: true });
+    setupVercelSchedulesDev(fastnode);
+    expect(fastnode.options.devHandlers.map((h) => [h.route, h.middleware])).toEqual([
       ["/app/_vercel/dev-manifest", true],
       ["/app/_vercel/dev-manifest/**", true],
       ["/app/_vercel/tasks", true],
       ["/app/_vercel/tasks/**", true],
     ]);
-    const assertLocal = nitro.options.devHandlers[0].handler as (event: unknown) => void;
+    const assertLocal = fastnode.options.devHandlers[0].handler as (event: unknown) => void;
     const event = (ip: string) => ({
       req: Object.assign(new Request("http://localhost/app/_vercel/tasks"), { ip }),
       runtime: { node: { req: { socket: { remoteAddress: ip } } } },
@@ -308,9 +312,11 @@ describe("setupVercelSchedulesDev", () => {
 
   it("serves the dev manifest for vercel dev", () => {
     vi.stubEnv("VERCEL_SCHEDULE_DEV_API_VERSION", "1");
-    const nitro = createNitro("private", { dev: true });
-    setupVercelSchedulesDev(nitro);
-    const template = nitro.options.virtual["#nitro/virtual/vercel-dev-manifest"] as () => string;
+    const fastnode = createFastnode("private", { dev: true });
+    setupVercelSchedulesDev(fastnode);
+    const template = fastnode.options.virtual[
+      "#fastnode/virtual/vercel-dev-manifest"
+    ] as () => string;
     expect(template()).toContain(
       `export default () => (${JSON.stringify({
         functions: [
@@ -327,29 +333,31 @@ describe("setupVercelSchedulesDev", () => {
 
   it("serves an empty dev manifest without the opt-in", () => {
     vi.stubEnv("VERCEL_SCHEDULE_DEV_API_VERSION", "1");
-    const nitro = createNitro(false, { dev: true });
-    setupVercelSchedulesDev(nitro);
-    expect(nitro.options.scheduler.runner).toBeUndefined();
-    expect(nitro.options.handlers).toEqual([
+    const fastnode = createFastnode(false, { dev: true });
+    setupVercelSchedulesDev(fastnode);
+    expect(fastnode.options.scheduler.runner).toBeUndefined();
+    expect(fastnode.options.handlers).toEqual([
       expect.objectContaining({ route: "/_vercel/dev-manifest" }),
     ]);
-    const template = nitro.options.virtual["#nitro/virtual/vercel-dev-manifest"] as () => string;
+    const template = fastnode.options.virtual[
+      "#fastnode/virtual/vercel-dev-manifest"
+    ] as () => string;
     expect(template()).toContain(`export default () => ({"functions":[],"schedules":{}});`);
   });
 
   it("serves the cron handler for path targets", () => {
     vi.stubEnv("VERCEL_SCHEDULE_DEV_API_VERSION", "1");
-    const nitro = createNitro("public", { dev: true });
-    setupVercelSchedulesDev(nitro);
-    expect(nitro.options.scheduler.runner).toBe(false);
-    expect(nitro.options.handlers).toEqual([
+    const fastnode = createFastnode("public", { dev: true });
+    setupVercelSchedulesDev(fastnode);
+    expect(fastnode.options.scheduler.runner).toBe(false);
+    expect(fastnode.options.handlers).toEqual([
       expect.objectContaining({ route: "/_vercel/dev-manifest" }),
       expect.objectContaining({ route: "/_vercel/cron" }),
     ]);
-    const template = nitro.options.virtual[
-      "#nitro/virtual/vercel-schedule-handler"
+    const template = fastnode.options.virtual[
+      "#fastnode/virtual/vercel-schedule-handler"
     ] as () => string;
     expect(template()).toContain(`createCronHandler({"cleanup":"cleanup"}, {})`);
-    expect(nitro.options.devHandlers.map((h) => h.route)).toContain("/_vercel/cron");
+    expect(fastnode.options.devHandlers.map((h) => h.route)).toContain("/_vercel/cron");
   });
 });

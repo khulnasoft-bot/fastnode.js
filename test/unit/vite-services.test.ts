@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { pathToFileURL } from "node:url";
 import { join } from "pathe";
 import { describe, expect, it } from "vitest";
-import type { NitroPluginContext } from "../../src/build/vite/types.ts";
+import type { FastnodePluginContext } from "../../src/build/vite/types.ts";
 import { viteServicesTemplate } from "../../src/build/vite/services.ts";
 
 const entries = {
@@ -15,16 +15,16 @@ const entries = {
 };
 
 async function loadServices() {
-  const buildDir = mkdtempSync(join(tmpdir(), "nitro-vite-services-"));
+  const buildDir = mkdtempSync(join(tmpdir(), "fastnode-vite-services-"));
   for (const [name, code] of Object.entries(entries)) {
     mkdirSync(join(buildDir, "vite/services", name), { recursive: true });
     writeFileSync(join(buildDir, "vite/services", name, "index.mjs"), code);
   }
   const ctx = {
-    nitro: { options: { dev: false, buildDir } },
+    fastnode: { options: { dev: false, buildDir } },
     services: Object.fromEntries(Object.keys(entries).map((name) => [name, { entry: name }])),
     _entryPoints: Object.fromEntries(Object.keys(entries).map((name) => [name, "index.mjs"])),
-  } as unknown as NitroPluginContext;
+  } as unknown as FastnodePluginContext;
   const file = join(buildDir, "services.mjs");
   writeFileSync(file, viteServicesTemplate(ctx));
   const { viteServices } = await import(pathToFileURL(file).href);

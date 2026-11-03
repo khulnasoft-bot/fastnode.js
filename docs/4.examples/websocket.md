@@ -12,6 +12,16 @@ icon: i-lucide-radio
 
 ::code-tree{defaultValue="routes/_ws.ts" expandAll}
 
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
+
+export default defineConfig({
+  serverDir: "./",
+  renderer: { static: true },
+  features: { websocket: true },
+});
+```
+
 ```html [index.html]
 <html lang="en" data-theme="dark">
   <head>
@@ -185,25 +195,15 @@ icon: i-lucide-radio
 `
 ```
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
-
-export default defineConfig({
-  serverDir: "./",
-  renderer: { static: true },
-  features: { websocket: true },
-});
-```
-
 ```json [package.json]
 {
   "type": "module",
   "scripts": {
-    "dev": "nitro dev",
-    "build": "nitro build"
+    "dev": "fastnode dev",
+    "build": "fastnode build"
   },
   "devDependencies": {
-    "nitro": "latest",
+    "fastnode": "latest",
     "rolldown": "latest"
   }
 }
@@ -211,19 +211,19 @@ export default defineConfig({
 
 ```json [tsconfig.json]
 {
-  "extends": "nitro/tsconfig"
+  "extends": "fastnode/tsconfig"
 }
 ```
 
 ```ts [vite.config.ts]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
-export default defineConfig({ plugins: [nitro()] });
+export default defineConfig({ plugins: [fastnode()] });
 ```
 
 ```ts [routes/_ws.ts]
-import { defineWebSocketHandler } from "nitro";
+import { defineWebSocketHandler } from "fastnode";
 
 export default defineWebSocketHandler({
   open(peer) {
@@ -262,7 +262,7 @@ This example implements a simple chat room using WebSockets. Clients connect, se
 Create a WebSocket route using `defineWebSocketHandler`.
 
 ```ts [routes/_ws.ts]
-import { defineWebSocketHandler } from "nitro";
+import { defineWebSocketHandler } from "fastnode";
 
 export default defineWebSocketHandler({
   open(peer) {

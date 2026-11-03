@@ -1,13 +1,13 @@
 import consola from "consola";
-import type { Nitro, NitroDynamicConfig } from "nitro/types";
+import type { Fastnode, FastnodeDynamicConfig } from "fastnode/types";
 import { normalizeRouteRules } from "./resolvers/route-rules.ts";
 import { normalizeRuntimeConfig } from "./resolvers/runtime-config.ts";
 
-export async function updateNitroConfig(nitro: Nitro, config: NitroDynamicConfig) {
-  nitro.options.routeRules = normalizeRouteRules(config.routeRules ? config : nitro.options);
-  nitro.options.runtimeConfig = normalizeRuntimeConfig(
-    config.runtimeConfig ? config : nitro.options
+export async function updateFastnodeConfig(fastnode: Fastnode, config: FastnodeDynamicConfig) {
+  fastnode.options.routeRules = normalizeRouteRules(config.routeRules ? config : fastnode.options);
+  fastnode.options.runtimeConfig = normalizeRuntimeConfig(
+    config.runtimeConfig ? config : fastnode.options
   );
-  await nitro.hooks.callHook("build:reload");
-  consola.success("Nitro config hot reloaded!");
+  await fastnode.hooks.callHook("build:reload");
+  consola.success("Fastnode config hot reloaded!");
 }

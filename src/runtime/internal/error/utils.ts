@@ -1,7 +1,7 @@
 import type { H3Event, HTTPError, HTTPEvent } from "h3";
-import type { NitroErrorHandler } from "nitro/types";
+import type { FastnodeErrorHandler } from "fastnode/types";
 
-export function defineErrorHandler(handler: NitroErrorHandler): NitroErrorHandler {
+export function defineErrorHandler(handler: FastnodeErrorHandler): FastnodeErrorHandler {
   return handler;
 }
 

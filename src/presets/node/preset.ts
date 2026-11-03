@@ -1,7 +1,7 @@
-import { defineNitroPreset } from "../_utils/preset.ts";
+import { defineFastnodePreset } from "../_utils/preset.ts";
 import { nodeCluster } from "./cluster.ts";
 
-const nodeServer = defineNitroPreset(
+const nodeServer = defineFastnodePreset(
   {
     entry: "./node/runtime/node-server",
     serveStatic: true,
@@ -15,7 +15,7 @@ const nodeServer = defineNitroPreset(
   }
 );
 
-const nodeMiddleware = defineNitroPreset(
+const nodeMiddleware = defineFastnodePreset(
   {
     entry: "./node/runtime/node-middleware",
   },

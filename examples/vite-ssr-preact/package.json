@@ -8,7 +8,7 @@
   "devDependencies": {
     "@preact/preset-vite": "^2.10.6",
     "@tailwindcss/vite": "^4.3.3",
-    "nitro": "latest",
+    "fastnode": "latest",
     "preact": "^11.1.0",
     "preact-render-to-string": "^6.8.2",
     "tailwindcss": "^4.3.3",

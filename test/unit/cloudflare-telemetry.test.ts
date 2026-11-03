@@ -23,7 +23,7 @@ const harness = vi.hoisted(() => ({
   isTraced: true,
 }));
 
-vi.mock("nitro", () => ({ definePlugin: (def: unknown) => def }));
+vi.mock("fastnode", () => ({ definePlugin: (def: unknown) => def }));
 
 vi.mock("cloudflare:workers", () => ({
   tracing: {

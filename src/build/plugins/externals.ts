@@ -20,7 +20,7 @@ export type ExternalsOptions = {
   trace: false | Omit<ExternalsTraceOptions, "rootDir" | "exportConditions" | "traceOptions">;
 };
 
-const PLUGIN_NAME = "nitro:externals";
+const PLUGIN_NAME = "fastnode:externals";
 
 export function externals(opts: ExternalsOptions): Plugin {
   const resolved = opts.trace ? resolveTraceDeps(opts.include) : undefined;
@@ -352,9 +352,9 @@ export function resolveTraceDeps(
 
 // ---- Internal utils ----
 
-const TRACED_ID_PREFIX = "nitro:traced/";
+const TRACED_ID_PREFIX = "fastnode:traced/";
 
-const TRACED_ID_RE = /(?<=["'`])nitro:traced\/\d+\/[^"'`]+(?=["'`])/g;
+const TRACED_ID_RE = /(?<=["'`])fastnode:traced\/\d+\/[^"'`]+(?=["'`])/g;
 
 // `require()` in bundled CommonJS goes through Rolldown's shared `__require`
 // helper (`createRequire(import.meta.url)`), so relative ids resolve from the

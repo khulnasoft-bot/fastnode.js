@@ -1,29 +1,29 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import { isTest } from "std-env";
-import { nitro as nitroPlugin } from "nitro/vite";
+import { fastnode as fastnodePlugin } from "fastnode/vite";
 import { importVite, viteImportOptions } from "./_import.ts";
 
-export async function viteBuild(nitro: Nitro) {
-  if (nitro.options.dev) {
-    throw new Error("Nitro dev CLI does not supports vite. Please use `vite dev` instead.");
+export async function viteBuild(fastnode: Fastnode) {
+  if (fastnode.options.dev) {
+    throw new Error("Fastnode dev CLI does not supports vite. Please use `vite dev` instead.");
   }
 
   const { createBuilder } = await importVite({
-    ...viteImportOptions(nitro),
-    id: (nitro.options as any).__vitePkg__,
+    ...viteImportOptions(fastnode),
+    id: (fastnode.options as any).__vitePkg__,
   });
 
-  const pluginInstance = nitroPlugin({ _nitro: nitro });
+  const pluginInstance = fastnodePlugin({ _fastnode: fastnode });
 
-  (globalThis as any).__nitro_build__ = true;
+  (globalThis as any).__fastnode_build__ = true;
 
   const builder = await createBuilder({
-    root: nitro.options.rootDir,
+    root: fastnode.options.rootDir,
     plugins: [pluginInstance],
     logLevel: isTest ? "warn" : undefined,
   });
 
-  delete (globalThis as any).__nitro_build__;
+  delete (globalThis as any).__fastnode_build__;
 
   await builder.buildApp();
 }

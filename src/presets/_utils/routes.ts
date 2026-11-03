@@ -1,4 +1,4 @@
-import type { Nitro, NormalizedRouteRules } from "nitro/types";
+import type { Fastnode, NormalizedRouteRules } from "fastnode/types";
 import { addRoute, compareRoutes, createRouter, findOverlappingRoutes } from "rou3";
 
 const CATCH_ALL_RE = /\*\*(?::\w+)?/g;
@@ -47,14 +47,14 @@ export function parseRouteKey(key: string): { path: string; methods?: string[] }
  * too, so that the runtime handles all of their requests.
  */
 export function skipUnsupportedRoute(
-  nitro: Nitro,
+  fastnode: Fastnode,
   opts: { route: string; file: PlatformRouteFile; routes?: string[] }
 ): boolean {
   const { route, file } = opts;
   const reason = unsupportedReason(route, file);
   if (reason) {
-    nitro.logger.warn(
-      `Skipping route rule \`${route}\` in \`${file}\`, ${reason}. The Nitro runtime still applies it` +
+    fastnode.logger.warn(
+      `Skipping route rule \`${route}\` in \`${file}\`, ${reason}. The Fastnode runtime still applies it` +
         (file === "_headers" ? ", but not to static assets." : ".")
     );
     return true;
@@ -68,8 +68,8 @@ export function skipUnsupportedRoute(
   if (!shadowed) {
     return false;
   }
-  nitro.logger.warn(
-    `Skipping route rule \`${route}\` in \`${file}\`, as it would take precedence over the skipped route rule \`${shadowed}\`. The Nitro runtime still applies both.`
+  fastnode.logger.warn(
+    `Skipping route rule \`${route}\` in \`${file}\`, as it would take precedence over the skipped route rule \`${shadowed}\`. The Fastnode runtime still applies both.`
   );
   return true;
 }

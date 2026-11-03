@@ -1,6 +1,6 @@
 # DigitalOcean
 
-> Deploy Nitro apps to DigitalOcean.
+> Deploy Fastnode apps to DigitalOcean.
 
 **Preset:** `digital_ocean`
 
@@ -13,7 +13,7 @@
 1. Next, configure environment variables. In your app settings, ensure the following app-level environment variable is set:
 
    ```bash
-   NITRO_PRESET=digital_ocean
+   FASTNODE_PRESET=digital_ocean
    ```
 
    [More information](https://docs.digitalocean.com/products/app-platform/how-to/use-environment-variables/).

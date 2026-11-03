@@ -1,7 +1,7 @@
 import "./_runtime_warn.ts";
 import { createMemoryStorage } from "ocache";
 import type { StorageInterface } from "ocache";
-import type { CachedFunctionOptions, CachedHandlerOptions } from "nitro/types";
+import type { CachedFunctionOptions, CachedHandlerOptions } from "fastnode/types";
 
 export const cacheFunctionDefaults: Partial<CachedFunctionOptions> = {};
 

@@ -1,6 +1,6 @@
 # Cleavr
 
-> Deploy Nitro apps to Cleavr.
+> Deploy Fastnode apps to Cleavr.
 
 **Preset:** `cleavr`
 
@@ -12,11 +12,11 @@ Integration with this provider is possible with [zero configuration](/deploy#zer
 
 ## Set up your web app
 
-In your project, set the Nitro preset to `cleavr`.
+In your project, set the Fastnode preset to `cleavr`.
 
 ::code-group
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   preset: "cleavr",
@@ -24,7 +24,7 @@ export default defineConfig({
 ```
 ```ts [nuxt.config.ts]
 export default defineNuxtConfig({
-  nitro: {
+  fastnode: {
     preset: "cleavr",
   },
 });

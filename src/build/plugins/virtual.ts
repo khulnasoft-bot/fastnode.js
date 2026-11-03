@@ -1,6 +1,6 @@
 import type { Plugin, ResolvedId } from "rollup";
 import { pathRegExp } from "../../utils/regex.ts";
-import { runtimeDependencies, runtimeDir } from "#nitro/meta";
+import { runtimeDependencies, runtimeDir } from "#fastnode/meta";
 
 export type VirtualModule = {
   id: string;
@@ -18,15 +18,15 @@ export function virtual(input: VirtualModule[]): Plugin {
     modules.set(mod.id, { module: mod, render });
   }
 
-  const include: RegExp[] = [/^#nitro\/virtual/];
+  const include: RegExp[] = [/^#fastnode\/virtual/];
 
-  const extraIds = [...modules.keys()].filter((key) => !key.startsWith("#nitro/virtual"));
+  const extraIds = [...modules.keys()].filter((key) => !key.startsWith("#fastnode/virtual"));
   if (extraIds.length > 0) {
     include.push(new RegExp(`^(${extraIds.map((id) => pathRegExp(id)).join("|")})$`));
   }
 
   return {
-    name: "nitro:virtual",
+    name: "fastnode:virtual",
     api: {
       modules,
     },
@@ -64,15 +64,17 @@ export function virtualDeps(): Plugin {
   const cache = new Map<string, ResolvedId | null | Promise<ResolvedId | null>>();
 
   return {
-    name: "nitro:virtual-deps",
+    name: "fastnode:virtual-deps",
     resolveId: {
       order: "pre",
       filter: {
-        id: new RegExp(`^(#nitro|${runtimeDependencies.map((dep) => pathRegExp(dep)).join("|")})`),
+        id: new RegExp(
+          `^(#fastnode|${runtimeDependencies.map((dep) => pathRegExp(dep)).join("|")})`
+        ),
       },
       handler(id, importer) {
         // https://github.com/rolldown/rolldown/issues/7529
-        if (!importer || !importer.startsWith("#nitro/virtual")) {
+        if (!importer || !importer.startsWith("#fastnode/virtual")) {
           return;
         }
         let resolved = cache.get(id);

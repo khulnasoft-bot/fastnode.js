@@ -8,13 +8,13 @@ import { klona } from "klona/full";
 import type { PresetName } from "../presets/index.ts";
 import type {
   LoadConfigOptions,
-  NitroConfig,
-  NitroConfigLayer,
-  NitroOptions,
-  NitroPresetMeta,
-} from "nitro/types";
+  FastnodeConfig,
+  FastnodeConfigLayer,
+  FastnodeOptions,
+  FastnodePresetMeta,
+} from "fastnode/types";
 
-import { NitroDefaults } from "./defaults.ts";
+import { FastnodeDefaults } from "./defaults.ts";
 import { mergeConfig, mergeConfigHooks } from "./_merge.ts";
 
 // Resolvers
@@ -57,9 +57,9 @@ const configResolvers = [
 ] as const;
 
 export async function loadOptions(
-  configOverrides: NitroConfig = {},
+  configOverrides: FastnodeConfig = {},
   opts: LoadConfigOptions = {}
-): Promise<NitroOptions> {
+): Promise<FastnodeOptions> {
   const options = await _loadUserConfig(configOverrides, opts);
   for (const resolver of configResolvers) {
     await resolver(options);
@@ -68,20 +68,20 @@ export async function loadOptions(
 }
 
 async function _loadUserConfig(
-  configOverrides: NitroConfig = {},
+  configOverrides: FastnodeConfig = {},
   opts: LoadConfigOptions = {}
-): Promise<NitroOptions> {
+): Promise<FastnodeOptions> {
   // Load configuration and preset
   configOverrides = klona(configOverrides);
 
   // @ts-ignore
-  globalThis.defineNitroConfig = globalThis.defineNitroConfig || ((c) => c);
+  globalThis.defineFastnodeConfig = globalThis.defineFastnodeConfig || ((c) => c);
 
   // Compatibility date
   let compatibilityDate: CompatibilityDateSpec | undefined =
     configOverrides.compatibilityDate ||
     opts.compatibilityDate ||
-    ((process.env.NITRO_COMPATIBILITY_DATE ||
+    ((process.env.FASTNODE_COMPATIBILITY_DATE ||
       process.env.SERVER_COMPATIBILITY_DATE ||
       process.env.COMPATIBILITY_DATE) as CompatibilityDateSpec);
 
@@ -89,34 +89,34 @@ async function _loadUserConfig(
   const { resolvePreset } = await import("../presets/index.ts");
 
   // prettier-ignore
-  let preset: string | undefined = (configOverrides.preset as string) || process.env.NITRO_PRESET || process.env.SERVER_PRESET;
+  let preset: string | undefined = (configOverrides.preset as string) || process.env.FASTNODE_PRESET || process.env.SERVER_PRESET;
 
   // Inline `defaultPreset` object resolved during auto-detection (injected via `resolve`)
-  let inlineDefaultPreset: (NitroConfig & { _meta?: NitroPresetMeta }) | undefined;
+  let inlineDefaultPreset: (FastnodeConfig & { _meta?: FastnodePresetMeta }) | undefined;
 
   const _dotenv = opts.dotenv ?? { fileName: [".env", ".env.local"] };
   const envName =
     opts.c12?.envName ??
     (configOverrides.dev
       ? "development"
-      : configOverrides.preset === "nitro-prerender"
+      : configOverrides.preset === "fastnode-prerender"
         ? ["production", "prerender"]
         : "production");
   const loadedConfig = await (
     opts.watch
-      ? watchConfig<NitroConfig & { _meta?: NitroPresetMeta }>
-      : loadConfig<NitroConfig & { _meta?: NitroPresetMeta }>
+      ? watchConfig<FastnodeConfig & { _meta?: FastnodePresetMeta }>
+      : loadConfig<FastnodeConfig & { _meta?: FastnodePresetMeta }>
   )({
-    name: "nitro",
+    name: "fastnode",
     cwd: configOverrides.rootDir,
     dotenv: _dotenv,
     extend: { extendKey: ["extends", "preset"] },
-    defaults: NitroDefaults,
+    defaults: FastnodeDefaults,
     merger: mergeConfig,
     envMerger: mergeEnvConfig,
     async overrides({ rawConfigs }) {
       // prettier-ignore
-      const getConf = <K extends keyof NitroConfig>(key: K) => (configOverrides[key] ?? (rawConfigs.main as NitroConfig)?.[key] ?? (rawConfigs.rc as NitroConfig)?.[key] ?? (rawConfigs.packageJson as NitroConfig)?.[key]) as NitroConfig[K];
+      const getConf = <K extends keyof FastnodeConfig>(key: K) => (configOverrides[key] ?? (rawConfigs.main as FastnodeConfig)?.[key] ?? (rawConfigs.rc as FastnodeConfig)?.[key] ?? (rawConfigs.packageJson as FastnodeConfig)?.[key]) as FastnodeConfig[K];
 
       if (!compatibilityDate) {
         compatibilityDate = getConf("compatibilityDate");
@@ -128,17 +128,17 @@ async function _loadUserConfig(
 
       if (configOverrides.dev) {
         // Check if preset has compatible dev support
-        // Otherwise use default nitro-dev preset
+        // Otherwise use default fastnode-dev preset
         preset =
-          preset && preset !== "nitro-dev"
+          preset && preset !== "fastnode-dev"
             ? await resolvePreset(preset, {
                 static: getConf("static"),
                 dev: true,
                 compatibilityDate: compatibilityDate || "latest",
               })
-                .then((p) => p?._meta?.name || "nitro-dev")
-                .catch(() => "nitro-dev")
-            : "nitro-dev";
+                .then((p) => p?._meta?.name || "fastnode-dev")
+                .catch(() => "fastnode-dev")
+            : "fastnode-dev";
       } else if (!preset) {
         // Auto detect production preset (with user-defined `defaultPreset` fallback)
         const defaultPreset = getConf("defaultPreset");
@@ -179,7 +179,7 @@ async function _loadUserConfig(
     envName,
   });
 
-  const options = klona(loadedConfig.config) as NitroOptions;
+  const options = klona(loadedConfig.config) as FastnodeOptions;
 
   options._config = configOverrides;
   options._c12 = loadedConfig;
@@ -198,7 +198,7 @@ async function _loadUserConfig(
     options.compatibilityDate
   );
 
-  if (options.dev && options.preset !== "nitro-dev") {
+  if (options.dev && options.preset !== "fastnode-dev") {
     consola.info(`Using \`${options.preset}\` emulation in development mode.`);
   }
 
@@ -225,7 +225,7 @@ const mergeEnvConfig = createDefu((obj, key, value, namespace) => {
 }) as (...sources: any[]) => any;
 
 // c12 layers also include overrides, rc, package.json and preset layers, which have no `cwd`
-function resolveLayers(c12: ResolvedConfig<NitroConfig>): NitroConfigLayer[] {
+function resolveLayers(c12: ResolvedConfig<FastnodeConfig>): FastnodeConfigLayer[] {
   const c12Layers = c12.layers || [];
   const rootLayer = c12Layers.find((layer) => layer.cwd && !layer.source);
   return [

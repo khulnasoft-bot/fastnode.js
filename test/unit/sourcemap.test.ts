@@ -2,12 +2,12 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "pathe";
 import { describe, expect, it } from "vitest";
-import type { NitroConfig } from "nitro/types";
-import { createNitro } from "../../src/nitro.ts";
+import type { FastnodeConfig } from "fastnode/types";
+import { createFastnode } from "../../src/fastnode.ts";
 import { sourcemap } from "../../src/build/plugins/sourcemap.ts";
 import { getRolldownConfig } from "../../src/build/rolldown/config.ts";
 import { getBundlerConfig } from "../../src/build/vite/bundler.ts";
-import type { NitroPluginContext } from "../../src/build/vite/types.ts";
+import type { FastnodePluginContext } from "../../src/build/vite/types.ts";
 
 type BundleAsset = { type: "asset"; source: string };
 
@@ -128,20 +128,20 @@ describe("sourcemap", () => {
     const bundle = {
       "_chunks/app.mjs.map": createSourcemapAsset({
         sources: [
-          "../../../../workspace/app/#nitro/virtual/app",
+          "../../../../workspace/app/#fastnode/virtual/app",
           "../../../../workspace/app/#virtual-route",
-          "../../../../workspace/app/virtual:nitro:raw:/workspace/app/server/files/test.txt.js",
+          "../../../../workspace/app/virtual:fastnode:raw:/workspace/app/server/files/test.txt.js",
           "../../src/routes/index.ts",
         ],
       }),
     };
     const results = runPlugin(bundle, {
-      virtualIds: ["#nitro/virtual/app", "#virtual-route"],
+      virtualIds: ["#fastnode/virtual/app", "#virtual-route"],
     });
     expect(results["_chunks/app.mjs.map"].sources).toEqual([
-      "virtual:#nitro/virtual/app",
+      "virtual:#fastnode/virtual/app",
       "virtual:#virtual-route",
-      "virtual:nitro:raw:/workspace/app/server/files/test.txt.js",
+      "virtual:fastnode:raw:/workspace/app/server/files/test.txt.js",
       "../../src/routes/index.ts",
     ]);
   });
@@ -149,16 +149,16 @@ describe("sourcemap", () => {
   it("keeps sourcesContent when minify is disabled", () => {
     const bundle = {
       "index.mjs.map": createSourcemapAsset({
-        sources: ["../../workspace/app/#nitro/virtual/app"],
+        sources: ["../../workspace/app/#fastnode/virtual/app"],
         sourcesContent: ["export default 42;"],
       }),
     };
     const results = runPlugin(bundle, {
-      virtualIds: ["#nitro/virtual/app"],
+      virtualIds: ["#fastnode/virtual/app"],
       minify: false,
     });
     expect(results["index.mjs.map"].sourcesContent).toEqual(["export default 42;"]);
-    expect(results["index.mjs.map"].sources).toEqual(["virtual:#nitro/virtual/app"]);
+    expect(results["index.mjs.map"].sources).toEqual(["virtual:#fastnode/virtual/app"]);
   });
 
   it("leaves unchanged sourcemaps alone", () => {
@@ -184,24 +184,24 @@ describe("sourcemap", () => {
 });
 
 describe("sourcemapExcludeSources", () => {
-  const excludeSources = async (config: NitroConfig) => {
-    const nitro = await createNitro({
-      rootDir: mkdtempSync(join(tmpdir(), "nitro-sourcemap-")),
+  const excludeSources = async (config: FastnodeConfig) => {
+    const fastnode = await createFastnode({
+      rootDir: mkdtempSync(join(tmpdir(), "fastnode-sourcemap-")),
       compatibilityDate: "latest",
       ...config,
     });
-    const rolldown = await getRolldownConfig(nitro);
+    const rolldown = await getRolldownConfig(fastnode);
     const { rolldownConfig } = await getBundlerConfig({
-      nitro,
+      fastnode,
       _isRolldown: true,
-    } as unknown as NitroPluginContext);
+    } as unknown as FastnodePluginContext);
     return [
       (rolldown.output as { sourcemapExcludeSources?: boolean }).sourcemapExcludeSources,
       rolldownConfig!.output!.sourcemapExcludeSources,
     ];
   };
 
-  it("leaves out sourcesContent when nitro:sourcemap would remove it", async () => {
+  it("leaves out sourcesContent when fastnode:sourcemap would remove it", async () => {
     expect(await excludeSources({ sourcemap: true })).toEqual([true, true]);
   });
 
@@ -209,13 +209,13 @@ describe("sourcemapExcludeSources", () => {
     for (const config of [
       { sourcemap: false },
       { sourcemap: true, experimental: { sourcemapMinify: false } },
-    ] satisfies NitroConfig[]) {
+    ] satisfies FastnodeConfig[]) {
       expect((await excludeSources(config)).map(Boolean)).toEqual([false, false]);
     }
   });
 
   it("keeps an explicit value from user config", async () => {
-    const config: NitroConfig = {
+    const config: FastnodeConfig = {
       sourcemap: true,
       experimental: { sourcemapMinify: false },
       rolldownConfig: { output: { sourcemapExcludeSources: true } },

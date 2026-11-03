@@ -1,24 +1,24 @@
-Set up TanStack Router with React, Vite, and Nitro. This setup provides file-based routing with type-safe navigation and automatic code splitting.
+Set up TanStack Router with React, Vite, and Fastnode. This setup provides file-based routing with type-safe navigation and automatic code splitting.
 
 ## Overview
 
-1. Add the Nitro Vite plugin to your Vite config
+1. Add the Fastnode Vite plugin to your Vite config
 2. Create an HTML template with your app entry
 3. Create a main entry that initializes the router
 4. Define routes using file-based routing
 
 ## 1. Configure Vite
 
-Add the Nitro, React, and TanStack Router plugins to your Vite config:
+Add the Fastnode, React, and TanStack Router plugins to your Vite config:
 
 ```js [vite.config.mjs]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 import react from "@vitejs/plugin-react";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 
 export default defineConfig({
-  plugins: [tanstackRouter({ target: "react", autoCodeSplitting: true }), react(), nitro()],
+  plugins: [tanstackRouter({ target: "react", autoCodeSplitting: true }), react(), fastnode()],
 });
 ```
 
@@ -34,7 +34,7 @@ Create an HTML file that serves as your app shell:
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nitro + TanStack Router + React</title>
+    <title>Fastnode + TanStack Router + React</title>
   </head>
 
   <body>

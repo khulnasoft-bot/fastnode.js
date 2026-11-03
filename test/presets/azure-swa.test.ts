@@ -3,9 +3,9 @@ import { execa } from "execa";
 import { getRandomPort, waitForPort } from "get-port-please";
 import { resolve } from "pathe";
 import { describe, expect, it } from "vitest";
-import { setupTest, testNitro, type Context } from "../tests.ts";
+import { setupTest, testFastnode, type Context } from "../tests.ts";
 
-describe("nitro:preset:azure-swa", { timeout: 10_000 }, async () => {
+describe("fastnode:preset:azure-swa", { timeout: 10_000 }, async () => {
   const customConfig = {
     routes: [
       {
@@ -128,7 +128,7 @@ describe("nitro:preset:azure-swa", { timeout: 10_000 }, async () => {
   });
 });
 
-describe("nitro:preset:azure-swa (functions v3)", { timeout: 10_000 }, async () => {
+describe("fastnode:preset:azure-swa (functions v3)", { timeout: 10_000 }, async () => {
   const ctx = await setupTest("azure-swa", {
     outDirSuffix: "-v3",
     config: { azure: { functionsVersion: 3 } },
@@ -152,7 +152,7 @@ function testSWA(ctx: Context) {
   if (!process.env.TEST_AZURE) {
     return;
   }
-  testNitro(ctx, async () => {
+  testFastnode(ctx, async () => {
     const port = await getRandomPort();
     const apiPort = await getRandomPort(); // Avoids conflicts with other tests
     await new Promise((resolve) => setTimeout(resolve, 500)); // Make sure output is written to disk

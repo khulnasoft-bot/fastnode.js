@@ -1,9 +1,9 @@
 import { HTTPError, type H3Event, type HTTPEvent } from "h3";
 import { createErrorHeaders, type InternalHandlerResponse } from "./utils.ts";
 import { FastResponse } from "srvx";
-import type { NitroErrorHandler } from "nitro/types";
+import type { FastnodeErrorHandler } from "fastnode/types";
 
-const errorHandler: NitroErrorHandler = (error, event) => {
+const errorHandler: FastnodeErrorHandler = (error, event) => {
   const res = defaultHandler(error, event);
   return new FastResponse(
     typeof res.body === "string" ? res.body : JSON.stringify(res.body, null, 2),

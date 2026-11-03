@@ -1,5 +1,5 @@
-import type { Nitro, NitroOptions } from "nitro/types";
-import { presetsDir } from "#nitro/meta";
+import type { Fastnode, FastnodeOptions } from "fastnode/types";
+import { presetsDir } from "#fastnode/meta";
 import { join } from "pathe";
 import { joinURL, withoutLeadingSlash } from "ufo";
 import { hash } from "../../utils/hash.ts";
@@ -13,10 +13,10 @@ export const SCHEDULE_HANDLER_ROUTE = "/_vercel/tasks";
  * Set only in the environment of the private task function. The same handler is also bundled
  * into the public server function, where it must not run tasks.
  */
-export const SCHEDULE_FUNCTION_ENV = "NITRO_VERCEL_SCHEDULES_FUNCTION";
+export const SCHEDULE_FUNCTION_ENV = "FASTNODE_VERCEL_SCHEDULES_FUNCTION";
 
 const DEFAULT_CRON_HANDLER_ROUTE = "/_vercel/cron";
-const SCHEDULE_HANDLER_ID = "#nitro/virtual/vercel-schedule-handler";
+const SCHEDULE_HANDLER_ID = "#fastnode/virtual/vercel-schedule-handler";
 export const SCHEDULE_TRIGGER = { type: "schedule/v1beta" } as const;
 
 /**
@@ -32,18 +32,18 @@ export interface VercelTaskSchedule {
   name: string;
   /** Cron expression from `scheduledTasks`. */
   schedule: string;
-  /** Nitro task name. */
+  /** Fastnode task name. */
   task: string;
 }
 
 /**
  * Whether and how scheduled tasks are emitted as Vercel Schedules instead of Cron Jobs.
  *
- * Set with the `vercel.schedules` option, or else the `NITRO_VERCEL_SCHEDULES`
+ * Set with the `vercel.schedules` option, or else the `FASTNODE_VERCEL_SCHEDULES`
  * environment variable (`private` or `public`).
  */
 export function getVercelSchedulesMode(
-  options: NitroOptions,
+  options: FastnodeOptions,
   env: Record<string, string | undefined> = process.env
 ): VercelSchedulesMode | false {
   if (!options.experimental.tasks) {
@@ -58,7 +58,7 @@ export function getVercelSchedulesMode(
       `[vercel] Invalid \`vercel.schedules\` value: ${JSON.stringify(option)}. Use "private", "public" or \`false\`.`
     );
   }
-  const value = env.NITRO_VERCEL_SCHEDULES?.toLowerCase();
+  const value = env.FASTNODE_VERCEL_SCHEDULES?.toLowerCase();
   if (value === "private" || value === "public") {
     return value;
   }
@@ -66,7 +66,7 @@ export function getVercelSchedulesMode(
     return false;
   }
   throw new Error(
-    `[vercel] Invalid \`NITRO_VERCEL_SCHEDULES\` value: ${JSON.stringify(env.NITRO_VERCEL_SCHEDULES)}. Use "private" or "public".`
+    `[vercel] Invalid \`FASTNODE_VERCEL_SCHEDULES\` value: ${JSON.stringify(env.FASTNODE_VERCEL_SCHEDULES)}. Use "private" or "public".`
   );
 }
 
@@ -78,7 +78,7 @@ export function getVercelSchedulesMode(
  * expressions gets a stable suffix derived from each expression.
  */
 export function getVercelTaskSchedules(
-  options: Pick<NitroOptions, "scheduledTasks" | "tasks">
+  options: Pick<FastnodeOptions, "scheduledTasks" | "tasks">
 ): VercelTaskSchedule[] {
   const entries: { cron: string; task: string }[] = [];
   const cronsPerTask = new Map<string, number>();
@@ -110,20 +110,20 @@ export function getVercelTaskSchedules(
 }
 
 /** Build Output API `schedules` entries for the scheduled tasks. */
-export function getVercelBuildOutputSchedules(nitro: Nitro): Record<string, VercelSchedule> {
-  const mode = getVercelSchedulesMode(nitro.options);
+export function getVercelBuildOutputSchedules(fastnode: Fastnode): Record<string, VercelSchedule> {
+  const mode = getVercelSchedulesMode(fastnode.options);
   if (!mode) {
     return {};
   }
   const target =
     mode === "public"
       ? {
-          path: joinURL(nitro.options.baseURL, getCronHandlerRoute(nitro)),
+          path: joinURL(fastnode.options.baseURL, getCronHandlerRoute(fastnode)),
           requestMethod: "GET" as const,
         }
-      : { function: getScheduleFunctionPath(nitro) };
+      : { function: getScheduleFunctionPath(fastnode) };
   return Object.fromEntries(
-    getVercelTaskSchedules(nitro.options).map(({ name, schedule }) => [
+    getVercelTaskSchedules(fastnode.options).map(({ name, schedule }) => [
       name,
       { schedule, ...target },
     ])
@@ -134,20 +134,20 @@ export function getVercelBuildOutputSchedules(nitro: Nitro): Record<string, Verc
  * Registers the handler that Vercel Schedules invokes to run scheduled tasks: a private
  * function in `private` mode, or the public cron handler in `public` mode.
  */
-export function setupVercelSchedules(nitro: Nitro) {
-  const mode = getVercelSchedulesMode(nitro.options);
-  if (!mode || getVercelTaskSchedules(nitro.options).length === 0) {
+export function setupVercelSchedules(fastnode: Fastnode) {
+  const mode = getVercelSchedulesMode(fastnode.options);
+  if (!mode || getVercelTaskSchedules(fastnode.options).length === 0) {
     return;
   }
   if (
     mode === "private" &&
-    nitro.options.vercel?.functionRules?.[SCHEDULE_HANDLER_ROUTE]?.experimentalTriggers?.length
+    fastnode.options.vercel?.functionRules?.[SCHEDULE_HANDLER_ROUTE]?.experimentalTriggers?.length
   ) {
     throw new Error(
       `[vercel] \`vercel.functionRules["${SCHEDULE_HANDLER_ROUTE}"]\` cannot set \`experimentalTriggers\`. The scheduled tasks function only accepts the \`schedule/v1beta\` trigger.`
     );
   }
-  registerScheduleHandler(nitro, mode);
+  registerScheduleHandler(fastnode, mode);
 }
 
 /**
@@ -157,18 +157,18 @@ export function setupVercelSchedules(nitro: Nitro) {
  * can still configure it, for example `maxDuration`.
  */
 export function getVercelScheduleFunction(
-  nitro: Nitro
+  fastnode: Fastnode
 ): { functionPath: string; overrides: VercelServerlessFunctionConfig } | undefined {
   if (
-    nitro.options.static ||
-    getVercelSchedulesMode(nitro.options) !== "private" ||
-    getVercelTaskSchedules(nitro.options).length === 0
+    fastnode.options.static ||
+    getVercelSchedulesMode(fastnode.options) !== "private" ||
+    getVercelTaskSchedules(fastnode.options).length === 0
   ) {
     return;
   }
-  const rule = nitro.options.vercel?.functionRules?.[SCHEDULE_HANDLER_ROUTE];
+  const rule = fastnode.options.vercel?.functionRules?.[SCHEDULE_HANDLER_ROUTE];
   return {
-    functionPath: getScheduleFunctionPath(nitro),
+    functionPath: getScheduleFunctionPath(fastnode),
     overrides: {
       ...rule,
       experimentalTriggers: [SCHEDULE_TRIGGER],
@@ -181,35 +181,35 @@ export function getVercelScheduleFunction(
  * Build Output API path of the private task function. It includes the `baseURL`, so the
  * request path Vercel Schedules invokes it with matches the handler route.
  */
-export function getScheduleFunctionPath(nitro: Nitro): string {
-  return withoutLeadingSlash(joinURL(nitro.options.baseURL, SCHEDULE_HANDLER_ROUTE));
+export function getScheduleFunctionPath(fastnode: Fastnode): string {
+  return withoutLeadingSlash(joinURL(fastnode.options.baseURL, SCHEDULE_HANDLER_ROUTE));
 }
 
-export function getCronHandlerRoute(nitro: Nitro): string {
-  return nitro.options.vercel?.cronHandlerRoute || DEFAULT_CRON_HANDLER_ROUTE;
+export function getCronHandlerRoute(fastnode: Fastnode): string {
+  return fastnode.options.vercel?.cronHandlerRoute || DEFAULT_CRON_HANDLER_ROUTE;
 }
 
 /**
  * Serves the scheduled task handler at its route, which it returns. Only the deployed private
  * function runs tasks: in dev, the `vercel dev` Schedules broker invokes the handler directly.
  */
-export function registerScheduleHandler(nitro: Nitro, mode: VercelSchedulesMode): string {
+export function registerScheduleHandler(fastnode: Fastnode, mode: VercelSchedulesMode): string {
   const [file, factory, route] =
     mode === "public"
-      ? ["cron-handler", "createCronHandler", getCronHandlerRoute(nitro)]
+      ? ["cron-handler", "createCronHandler", getCronHandlerRoute(fastnode)]
       : ["schedule-handler", "createScheduleHandler", SCHEDULE_HANDLER_ROUTE];
   const options =
-    mode === "private" && !nitro.options.dev ? { functionEnv: SCHEDULE_FUNCTION_ENV } : {};
-  nitro.options.virtual[SCHEDULE_HANDLER_ID] = () => {
+    mode === "private" && !fastnode.options.dev ? { functionEnv: SCHEDULE_FUNCTION_ENV } : {};
+  fastnode.options.virtual[SCHEDULE_HANDLER_ID] = () => {
     const scheduleTasks = Object.fromEntries(
-      getVercelTaskSchedules(nitro.options).map((s) => [s.name, s.task])
+      getVercelTaskSchedules(fastnode.options).map((s) => [s.name, s.task])
     );
     return /* js */ `
 import { ${factory} } from "${join(presetsDir, "vercel/runtime", file)}";
 export default ${factory}(${JSON.stringify(scheduleTasks)}, ${JSON.stringify(options)});
 `;
   };
-  nitro.options.handlers.push({ route, lazy: true, handler: SCHEDULE_HANDLER_ID });
+  fastnode.options.handlers.push({ route, lazy: true, handler: SCHEDULE_HANDLER_ID });
   return route;
 }
 

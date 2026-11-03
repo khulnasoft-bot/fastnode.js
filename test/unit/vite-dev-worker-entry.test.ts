@@ -10,7 +10,7 @@ describe("vite dev worker entry", () => {
   const warn = vi.fn();
 
   beforeEach(async () => {
-    buildDir = await mkdtemp(join(tmpdir(), "nitro-dev-worker-entry-"));
+    buildDir = await mkdtemp(join(tmpdir(), "fastnode-dev-worker-entry-"));
   });
 
   afterEach(async () => {
@@ -20,7 +20,7 @@ describe("vite dev worker entry", () => {
   });
 
   async function generate(options: Record<string, unknown> = {}) {
-    const nitro = {
+    const fastnode = {
       options: {
         rootDir: fileURLToPath(new URL("../..", import.meta.url)),
         buildDir,
@@ -30,28 +30,28 @@ describe("vite dev worker entry", () => {
       },
       logger: { warn },
     } as any;
-    return readFile(await writeDevWorkerEntry(nitro), "utf8");
+    return readFile(await writeDevWorkerEntry(fastnode), "utf8");
   }
 
-  test("keeps the default reload timeout when NITRO_DEV_RELOAD_TIMEOUT is unset", async () => {
-    vi.stubEnv("NITRO_DEV_RELOAD_TIMEOUT", undefined);
+  test("keeps the default reload timeout when FASTNODE_DEV_RELOAD_TIMEOUT is unset", async () => {
+    vi.stubEnv("FASTNODE_DEV_RELOAD_TIMEOUT", undefined);
     expect(await generate()).not.toContain("setReloadWaitTimeout(");
   });
 
-  test("passes NITRO_DEV_RELOAD_TIMEOUT to the worker", async () => {
-    vi.stubEnv("NITRO_DEV_RELOAD_TIMEOUT", "300000");
+  test("passes FASTNODE_DEV_RELOAD_TIMEOUT to the worker", async () => {
+    vi.stubEnv("FASTNODE_DEV_RELOAD_TIMEOUT", "300000");
     expect(await generate()).toContain("setReloadWaitTimeout(300000);");
   });
 
-  test("caps NITRO_DEV_RELOAD_TIMEOUT to the largest timer delay", async () => {
-    vi.stubEnv("NITRO_DEV_RELOAD_TIMEOUT", "1e12");
+  test("caps FASTNODE_DEV_RELOAD_TIMEOUT to the largest timer delay", async () => {
+    vi.stubEnv("FASTNODE_DEV_RELOAD_TIMEOUT", "1e12");
     expect(await generate()).toContain(`setReloadWaitTimeout(${2 ** 31 - 1});`);
   });
 
   test.each(["abc", "0", "-1", "0.4"])(
-    "ignores an invalid NITRO_DEV_RELOAD_TIMEOUT (%s)",
+    "ignores an invalid FASTNODE_DEV_RELOAD_TIMEOUT (%s)",
     async (value) => {
-      vi.stubEnv("NITRO_DEV_RELOAD_TIMEOUT", value);
+      vi.stubEnv("FASTNODE_DEV_RELOAD_TIMEOUT", value);
       expect(await generate()).not.toContain("setReloadWaitTimeout(");
       expect(warn).toHaveBeenCalledOnce();
     }

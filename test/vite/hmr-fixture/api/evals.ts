@@ -1,3 +1,3 @@
-import { nitroEvals } from "../nitro-state.ts";
+import { fastnodeEvals } from "../fastnode-state.ts";
 
-export default () => ({ nitroEvals });
+export default () => ({ fastnodeEvals });

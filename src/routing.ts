@@ -1,53 +1,57 @@
-import type { Nitro, NitroEventHandler, NormalizedRouteRules } from "nitro/types";
+import type { Fastnode, FastnodeEventHandler, NormalizedRouteRules } from "fastnode/types";
 import type { RouterContext } from "rou3";
 import type { CompileRouterToStringOptions } from "rou3/compiler";
 
 import { join } from "pathe";
-import { runtimeDir } from "#nitro/meta";
+import { runtimeDir } from "#fastnode/meta";
 import { normalizeRoute } from "h3";
 import { addRoute, createRouter, findRoute, findAllRoutes } from "rou3";
 import { compileRouterToString } from "rou3/compiler";
 import { joinURL } from "ufo";
 import { hash } from "./utils/hash.ts";
 
-const isGlobalMiddleware = (h: NitroEventHandler) => !h.method && (!h.route || h.route === "/**");
+const isGlobalMiddleware = (h: FastnodeEventHandler) =>
+  !h.method && (!h.route || h.route === "/**");
 
-export function initNitroRouting(nitro: Nitro) {
+export function initFastnodeRouting(fastnode: Fastnode) {
   const envConditions = new Set(
     [
-      nitro.options.dev ? "dev" : "prod",
-      nitro.options.preset,
-      nitro.options.preset === "nitro-prerender" ? "prerender" : undefined,
+      fastnode.options.dev ? "dev" : "prod",
+      fastnode.options.preset,
+      fastnode.options.preset === "fastnode-prerender" ? "prerender" : undefined,
     ].filter(Boolean) as string[]
   );
-  const matchesEnv = (h: NitroEventHandler) => {
+  const matchesEnv = (h: FastnodeEventHandler) => {
     const hEnv = Array.isArray(h.env) ? h.env : [h.env];
     const envs = hEnv.filter(Boolean) as string[];
     return envs.length === 0 || envs.some((env) => envConditions.has(env));
   };
 
   type MaybeArray<T> = T | T[];
-  const routes = new Router<MaybeArray<NitroEventHandler & { _importHash: string }>>(
-    nitro.options.baseURL
+  const routes = new Router<MaybeArray<FastnodeEventHandler & { _importHash: string }>>(
+    fastnode.options.baseURL
   );
 
   // Matched with route *patterns* at build time (presets), never with a request
   // path — the runtime rules matcher is compiled from `options.routeRules` by
   // `h3/rules` itself.
-  const routeRules = new Router<NormalizedRouteRules & { _route: string }>(nitro.options.baseURL, {
-    normalize: false,
-  });
+  const routeRules = new Router<NormalizedRouteRules & { _route: string }>(
+    fastnode.options.baseURL,
+    {
+      normalize: false,
+    }
+  );
 
-  const globalMiddleware: (NitroEventHandler & { _importHash: string })[] = [];
+  const globalMiddleware: (FastnodeEventHandler & { _importHash: string })[] = [];
 
-  const routedMiddleware = new Router<NitroEventHandler & { _importHash: string }>(
-    nitro.options.baseURL
+  const routedMiddleware = new Router<FastnodeEventHandler & { _importHash: string }>(
+    fastnode.options.baseURL
   );
 
   const sync = () => {
     // Update route rules
     routeRules._update(
-      Object.entries(nitro.options.routeRules).map(([route, data]) => ({
+      Object.entries(fastnode.options.routeRules).map(([route, data]) => ({
         route,
         method: "",
         data: {
@@ -59,28 +63,28 @@ export function initNitroRouting(nitro: Nitro) {
 
     // Update routes
     const _routes = [
-      ...Object.entries(nitro.options.routes).flatMap(([route, handler]) => {
+      ...Object.entries(fastnode.options.routes).flatMap(([route, handler]) => {
         if (typeof handler === "string") {
           handler = { handler };
         }
         return { ...handler, route, middleware: false };
       }),
-      ...nitro.options.handlers,
-      ...nitro.scannedHandlers,
+      ...fastnode.options.handlers,
+      ...fastnode.scannedHandlers,
     ].filter((h) => h && !h.middleware && matchesEnv(h));
-    if (nitro.options.serverEntry && nitro.options.serverEntry.handler) {
+    if (fastnode.options.serverEntry && fastnode.options.serverEntry.handler) {
       _routes.push({
         route: "/**",
         lazy: false,
-        format: nitro.options.serverEntry.format,
-        handler: nitro.options.serverEntry.handler,
+        format: fastnode.options.serverEntry.format,
+        handler: fastnode.options.serverEntry.handler,
       });
     }
-    if (nitro.options.renderer?.handler) {
+    if (fastnode.options.renderer?.handler) {
       _routes.push({
         route: "/**",
         lazy: true,
-        handler: nitro.options.renderer?.handler,
+        handler: fastnode.options.renderer?.handler,
       });
     }
     routes._update(
@@ -93,17 +97,17 @@ export function initNitroRouting(nitro: Nitro) {
     );
 
     // Update middleware
-    const _middleware = [...nitro.scannedHandlers, ...nitro.options.handlers].filter(
+    const _middleware = [...fastnode.scannedHandlers, ...fastnode.options.handlers].filter(
       (h) => h && h.middleware && matchesEnv(h)
     );
-    if (nitro.options.serveStatic) {
+    if (fastnode.options.serveStatic) {
       _middleware.unshift({
         route: "/**",
         middleware: true,
         handler: join(runtimeDir, "internal/static"),
       });
     } else {
-      for (const asset of nitro.options.publicAssets) {
+      for (const asset of fastnode.options.publicAssets) {
         if (asset.fallthrough || !asset.baseURL || asset.baseURL === "/") {
           continue;
         }
@@ -133,7 +137,7 @@ export function initNitroRouting(nitro: Nitro) {
     );
   };
 
-  nitro.routing = Object.freeze({
+  fastnode.routing = Object.freeze({
     sync,
     routes,
     routeRules,
@@ -142,7 +146,7 @@ export function initNitroRouting(nitro: Nitro) {
   });
 }
 
-function handlerWithImportHash(h: NitroEventHandler) {
+function handlerWithImportHash(h: FastnodeEventHandler) {
   // Handlers registered after options are resolved may still use windows separators
   const handler = h.handler.replace(/\\/g, "/");
   const id = (h.lazy ? "_lazy_" : "_") + hash(handler);

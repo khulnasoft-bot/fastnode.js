@@ -1,6 +1,6 @@
 import { HTTPError } from "h3";
-import { useKV } from "nitro/kv";
-import { useRuntimeConfig } from "nitro/runtime-config";
+import { useKV } from "fastnode/kv";
+import { useRuntimeConfig } from "fastnode/runtime-config";
 
 export default {
   async fetch(req: Request) {
@@ -27,7 +27,7 @@ export default {
     const value = await storage.get("test:key");
     return Response.json({
       storage: value,
-      config: config.nitro?.envPrefix ?? "NITRO_",
+      config: config.fastnode?.envPrefix ?? "FASTNODE_",
     });
   },
 };

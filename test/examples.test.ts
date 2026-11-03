@@ -13,7 +13,7 @@ import { existsSync } from "node:fs";
 const examplesDir = fileURLToPath(new URL("../examples", import.meta.url));
 
 const { createServer, createBuilder, rolldownVersion } = (await import(
-  process.env.NITRO_VITE_PKG || "vite"
+  process.env.FASTNODE_VITE_PKG || "vite"
 )) as typeof import("vite");
 
 const isRolldown = !!rolldownVersion;
@@ -55,12 +55,12 @@ function setupVitestTest(name: string) {
   test.skipIf(skip.has(name))(
     `${name} (vitest)`,
     async () => {
-      const outDir = await mkdtemp(join(tmpdir(), "nitro-example-vitest-"));
+      const outDir = await mkdtemp(join(tmpdir(), "fastnode-example-vitest-"));
       const outputFile = join(outDir, "results.json");
-      // A clean environment, as when users run Vitest (no `NODE_ENV`, `VITEST_*` or `NITRO_PRESET`)
+      // A clean environment, as when users run Vitest (no `NODE_ENV`, `VITEST_*` or `FASTNODE_PRESET`)
       const env = Object.fromEntries(
         Object.entries(process.env).filter(
-          ([key]) => key !== "NODE_ENV" && key !== "NITRO_PRESET" && !key.startsWith("VITEST")
+          ([key]) => key !== "NODE_ENV" && key !== "FASTNODE_PRESET" && !key.startsWith("VITEST")
         )
       );
       try {
@@ -145,11 +145,11 @@ function setupTest(name: string) {
       beforeAll(async () => {
         process.chdir(rootDir);
 
-        process.env.NITRO_PRESET = "standard";
+        process.env.FASTNODE_PRESET = "standard";
         const builder = await createBuilder({ logLevel: "warn" });
         await builder.buildApp();
 
-        delete globalThis.__nitro__;
+        delete globalThis.__fastnode__;
 
         const { default: entryMod } = await import(
           pathToFileURL(join(rootDir, ".output/server/index.mjs")).href

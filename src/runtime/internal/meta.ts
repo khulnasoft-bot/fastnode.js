@@ -1,5 +1,5 @@
-import type { NitroRouteMeta } from "nitro/types";
+import type { FastnodeRouteMeta } from "fastnode/types";
 
-export function defineRouteMeta(meta: NitroRouteMeta): NitroRouteMeta {
+export function defineRouteMeta(meta: FastnodeRouteMeta): FastnodeRouteMeta {
   return meta;
 }

@@ -1,6 +1,6 @@
 import type { EnvironmentModuleNode, ViteDevServer } from "vite";
 import type { VitestPluginContext } from "vitest/node";
-import type { NitroPluginContext } from "./types.ts";
+import type { FastnodePluginContext } from "./types.ts";
 import { normalize } from "pathe";
 import { debounce } from "perfect-debounce";
 import { rescanHandlers, watchScanDirs } from "./_scan-watch.ts";
@@ -13,7 +13,7 @@ const _watchedServers = new WeakSet<ViteDevServer>();
  * reload runs in Vitest mode).
  */
 export function setupVitestWatch(
-  ctx: NitroPluginContext,
+  ctx: FastnodePluginContext,
   { vitest, project }: VitestPluginContext
 ): void {
   const server = project.vite;
@@ -21,11 +21,11 @@ export function setupVitestWatch(
     return;
   }
   _watchedServers.add(server);
-  const nitro = ctx.nitro!;
-  const nitroEnv = server.environments.nitro;
+  const fastnode = ctx.fastnode!;
+  const fastnodeEnv = server.environments.fastnode;
   const affectedTests = (modules: Iterable<EnvironmentModuleNode>) =>
     _affectedTests(modules, {
-      testFiles: () => nitroEnv.moduleGraph.fileToModulesMap.keys(),
+      testFiles: () => fastnodeEnv.moduleGraph.fileToModulesMap.keys(),
       isTestFile: (file) => vitest.getModuleSpecifications(file).length > 0,
       isSetupFile: (file) =>
         vitest.projects.some((p) => p.vite === server && p.config.setupFiles.includes(file)),
@@ -38,7 +38,7 @@ export function setupVitestWatch(
     {
       pattern: /.*/,
       testsToRun: (file) => {
-        const modules = nitroEnv.moduleGraph.getModulesByFile(file);
+        const modules = fastnodeEnv.moduleGraph.getModulesByFile(file);
         const result = modules && affectedTests(modules);
         if (!result?.throughVirtual || result.tests.size === 0) {
           return;
@@ -53,9 +53,9 @@ export function setupVitestWatch(
 
   // Added or removed handlers: rescan, then rerun the tests depending on virtual modules
   const rescan = debounce(async () => {
-    await rescanHandlers(nitro, nitroEnv);
-    const virtualModules = [...nitroEnv.moduleGraph.idToModuleMap.values()].filter((mod) =>
-      mod.id?.startsWith("#nitro/virtual/")
+    await rescanHandlers(fastnode, fastnodeEnv);
+    const virtualModules = [...fastnodeEnv.moduleGraph.idToModuleMap.values()].filter((mod) =>
+      mod.id?.startsWith("#fastnode/virtual/")
     );
     let specs = [...affectedTests(virtualModules).tests].flatMap((file) =>
       vitest.getModuleSpecifications(file)
@@ -71,18 +71,18 @@ export function setupVitestWatch(
       await vitest.rerunTestSpecifications(specs);
     }
   });
-  watchScanDirs(nitro, server, () => {
-    rescan().catch((error) => nitro.logger.error(error));
+  watchScanDirs(fastnode, server, () => {
+    rescan().catch((error) => fastnode.logger.error(error));
   });
 
-  // Nitro config: Vitest only restarts on its own config files (its `restart` reruns everything)
-  const configFile = nitro.options._c12.configFile;
+  // Fastnode config: Vitest only restarts on its own config files (its `restart` reruns everything)
+  const configFile = fastnode.options._c12.configFile;
   if (configFile) {
     const restart = debounce(() => vitest.vite.restart());
     server.watcher.add(configFile);
     server.watcher.on("change", (file) => {
       if (normalize(file) === configFile) {
-        restart().catch((error) => nitro.logger.error(error));
+        restart().catch((error) => fastnode.logger.error(error));
       }
     });
   }

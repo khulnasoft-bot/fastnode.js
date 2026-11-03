@@ -7,7 +7,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.10",
-    "nitro": "latest",
+    "fastnode": "latest",
     "unhead": "^3.4.3",
     "vite": "latest",
     "vite-plugin-devtools-json": "^1.1.2",

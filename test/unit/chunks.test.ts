@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "pathe";
 import { rolldown, type OutputChunk } from "rolldown";
 import { describe, expect, it } from "vitest";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import {
   NODE_MODULES_RE,
   libChunkName,
@@ -17,7 +17,7 @@ function createChunk(name: string, moduleIds: string[]): { name: string; moduleI
   return { name, moduleIds };
 }
 
-function createNitro(overrides: Partial<Nitro> = {}): Nitro {
+function createFastnode(overrides: Partial<Fastnode> = {}): Fastnode {
   return {
     options: { buildDir: "/build", tasks: {}, experimental: {}, ...overrides.options },
     routing: {
@@ -25,7 +25,7 @@ function createNitro(overrides: Partial<Nitro> = {}): Nitro {
       ...overrides.routing,
     },
     ...overrides,
-  } as unknown as Nitro;
+  } as unknown as Fastnode;
 }
 
 describe("NODE_MODULES_RE", () => {
@@ -33,9 +33,9 @@ describe("NODE_MODULES_RE", () => {
     ["/foo/node_modules/bar/index.js", true],
     ["node_modules/bar/index.js", true],
     ["node_modules\\bar\\index.js", true],
-    ["/foo/node_modules/nitro/dist/index.js", false],
-    ["/foo/node_modules/nitro-nightly/dist/index.js", false],
-    ["/foo/node_modules/.nitro", false],
+    ["/foo/node_modules/fastnode/dist/index.js", false],
+    ["/foo/node_modules/fastnode-nightly/dist/index.js", false],
+    ["/foo/node_modules/.fastnode", false],
     ["/foo/node_modules/.cache", false],
     ["/foo/src/bar.js", false],
   ])("%s → %s", (path, expected) => {
@@ -49,7 +49,7 @@ describe("pathToPkgName", () => {
     ["/foo/node_modules/@h3/core/index.js", "@h3/core"],
     ["C:\\proj\\node_modules\\express\\index.js", "express"],
     ["C:\\proj\\node_modules\\@h3\\core\\index.js", "@h3\\core"],
-    ["/node_modules/nitro-nightly/dist/index.js", "nitro"],
+    ["/node_modules/fastnode-nightly/dist/index.js", "fastnode"],
     ["/node_modules/a/node_modules/b/index.js", "b"],
     ["/foo/src/bar.js", undefined],
   ])("%s → %s", (path, expected) => {
@@ -62,7 +62,7 @@ describe("libChunkName", () => {
     ["/node_modules/express/index.js", "_libs/express"],
     ["/node_modules/@h3/core/index.js", "_libs/@h3/core"],
     ["/src/utils/foo.ts", undefined],
-    ["/node_modules/nitro-nightly/dist/index.js", "_libs/nitro"],
+    ["/node_modules/fastnode-nightly/dist/index.js", "_libs/fastnode"],
   ])("%s → %s", (id, expected) => {
     expect(libChunkName(id)).toBe(expected);
   });
@@ -70,7 +70,7 @@ describe("libChunkName", () => {
 
 describe("libChunksGroup", () => {
   it("has a non-enumerable debugName", () => {
-    const group = libChunksGroup(createNitro());
+    const group = libChunksGroup(createFastnode());
     expect(group.test).toBe(NODE_MODULES_RE);
     expect(group.name("/node_modules/express/index.js")).toBe("_libs/express");
     expect((group as { debugName?: string }).debugName).toBe("libs");
@@ -79,9 +79,9 @@ describe("libChunksGroup", () => {
   });
 
   it("can opt out of entriesAware with experimental.entriesAwareLibChunks", () => {
-    const nitro = createNitro();
-    nitro.options.experimental.entriesAwareLibChunks = false;
-    expect(libChunksGroup(nitro).entriesAware).toBe(false);
+    const fastnode = createFastnode();
+    fastnode.options.experimental.entriesAwareLibChunks = false;
+    expect(libChunksGroup(fastnode).entriesAware).toBe(false);
   });
 
   it.each([
@@ -92,9 +92,9 @@ describe("libChunksGroup", () => {
       ["small", "big"],
     ],
   ])("%s", async (_, entriesAwareLibChunks, expected) => {
-    const nitro = createNitro();
-    nitro.options.experimental.entriesAwareLibChunks = entriesAwareLibChunks;
-    const dir = mkdtempSync(join(tmpdir(), "nitro-lib-chunks-"));
+    const fastnode = createFastnode();
+    fastnode.options.experimental.entriesAwareLibChunks = entriesAwareLibChunks;
+    const dir = mkdtempSync(join(tmpdir(), "fastnode-lib-chunks-"));
     const files = {
       "node_modules/small/package.json": `{ "name": "small", "type": "module", "main": "index.js" }`,
       "node_modules/small/index.js": `export const small = "small";`,
@@ -111,8 +111,8 @@ describe("libChunksGroup", () => {
       const bundle = await rolldown({ input: join(dir, "entry.mjs"), cwd: dir });
       const { output } = await bundle.generate({
         format: "esm",
-        chunkFileNames: (chunk) => getChunkName(chunk, nitro),
-        codeSplitting: { groups: [libChunksGroup(nitro)] },
+        chunkFileNames: (chunk) => getChunkName(chunk, fastnode),
+        codeSplitting: { groups: [libChunksGroup(fastnode)] },
       });
       const chunks = new Map(output.map((chunk) => [chunk.fileName, chunk]));
       const loaded = new Set<string>();
@@ -148,7 +148,7 @@ describe("routeToFsPath", () => {
 });
 
 describe("getChunkName", () => {
-  const nitro = createNitro();
+  const fastnode = createFastnode();
 
   it.each<[string, { name: string; moduleIds: string[] }, string]>([
     ["rolldown-runtime", createChunk("rolldown-runtime", []), "_runtime.mjs"],
@@ -224,11 +224,11 @@ describe("getChunkName", () => {
     ],
     ["fallback to _chunks", createChunk("misc", ["/src/utils/helper.ts"]), "_chunks/[name].mjs"],
   ])("%s → %s", (_label, chunk, expected) => {
-    expect(getChunkName(chunk, nitro)).toBe(expected);
+    expect(getChunkName(chunk, fastnode)).toBe(expected);
   });
 
   it("returns _routes/<path>.mjs for route handler", () => {
-    const n = createNitro({
+    const n = createFastnode({
       routing: {
         routes: {
           routes: [{ data: [{ route: "/api/hello", handler: "/src/routes/api/hello.ts" }] }],
@@ -244,7 +244,7 @@ describe("getChunkName", () => {
     ["rolldown", "_routes/api/users/[id].mjs"],
     ["rollup", "_routes/api/users/%5Bid%5D.mjs"],
   ])("returns _routes/<path>.mjs for dynamic route (%s)", (builder, expected) => {
-    const n = createNitro({
+    const n = createFastnode({
       options: { builder },
       routing: {
         routes: {
@@ -263,7 +263,7 @@ describe("getChunkName", () => {
     ["rolldown", "_routes/api/applications/[id]/context.mjs"],
     ["rollup", "_routes/api/applications/%5Bid%5D/context.mjs"],
   ])("returns _routes/<path>.mjs for nested dynamic route (%s)", (builder, expected) => {
-    const n = createNitro({
+    const n = createFastnode({
       options: { builder },
       routing: {
         routes: {
@@ -286,7 +286,7 @@ describe("getChunkName", () => {
   });
 
   it("returns _routes/index.mjs for root route", () => {
-    const n = createNitro({
+    const n = createFastnode({
       routing: {
         routes: {
           routes: [{ data: [{ route: "/", handler: "/src/routes/index.ts" }] }],
@@ -299,7 +299,7 @@ describe("getChunkName", () => {
   });
 
   it("returns _tasks/[name].mjs for task handler", () => {
-    const n = createNitro({
+    const n = createFastnode({
       options: {
         buildDir: "/build",
         tasks: { "db:migrate": { handler: "/src/tasks/migrate.ts" } },

@@ -1,4 +1,4 @@
-import type { NitroApp, NitroRuntimeHooks, ResolvedRouteRules } from "nitro/types";
+import type { FastnodeApp, FastnodeRuntimeHooks, ResolvedRouteRules } from "fastnode/types";
 import type { ServerRequest, ServerRequestContext } from "srvx";
 import type { ComposedMiddleware, H3EventContext, H3Route, Middleware, WebSocketHooks } from "h3";
 import type { MatchedRoute } from "rou3";
@@ -8,36 +8,36 @@ import type { MatchedRouteRules } from "h3/rules";
 import { createMatcherFromFind, memoizeRouteRulesMatcher } from "h3/rules";
 
 // IMPORTANT: virtual imports and user code should be imported last to avoid initialization order issues
-import { findRouteRules } from "#nitro/virtual/routing";
-import { createNitroApp, initNitroPlugins } from "#nitro/virtual/app";
+import { findRouteRules } from "#fastnode/virtual/routing";
+import { createFastnodeApp, initFastnodePlugins } from "#fastnode/virtual/app";
 
 declare global {
-  var __nitro__:
-    | Partial<Record<"default" | "prerender" | (string & {}), NitroApp | undefined>>
+  var __fastnode__:
+    | Partial<Record<"default" | "prerender" | (string & {}), FastnodeApp | undefined>>
     | undefined;
 }
 
 const APP_ID = import.meta.prerender ? "prerender" : "default";
 
-export function useNitroApp(): NitroApp {
-  let instance: NitroApp | undefined = (useNitroApp as any)._instance;
+export function useFastnodeApp(): FastnodeApp {
+  let instance: FastnodeApp | undefined = (useFastnodeApp as any)._instance;
   if (instance) {
     return instance;
   }
-  instance = (useNitroApp as any)._instance = createNitroApp();
-  globalThis.__nitro__ = globalThis.__nitro__ || {};
-  globalThis.__nitro__[APP_ID] = instance;
-  initNitroPlugins(instance);
+  instance = (useFastnodeApp as any)._instance = createFastnodeApp();
+  globalThis.__fastnode__ = globalThis.__fastnode__ || {};
+  globalThis.__fastnode__[APP_ID] = instance;
+  initFastnodePlugins(instance);
   return instance;
 }
 
-export function useNitroHooks(): NonNullable<NitroApp["hooks"]> {
-  const nitroApp = useNitroApp();
-  const hooks = nitroApp.hooks;
+export function useFastnodeHooks(): NonNullable<FastnodeApp["hooks"]> {
+  const fastnodeApp = useFastnodeApp();
+  const hooks = fastnodeApp.hooks;
   if (hooks) {
     return hooks;
   }
-  return (nitroApp.hooks = new HookableCore<NitroRuntimeHooks>());
+  return (fastnodeApp.hooks = new HookableCore<FastnodeRuntimeHooks>());
 }
 
 export function serverFetch(
@@ -47,7 +47,7 @@ export function serverFetch(
 ): Promise<Response> {
   const req = toRequest(resource, init);
   req.context = { ...req.context, ...context } as ServerRequestContext;
-  const appHandler = useNitroApp().fetch;
+  const appHandler = useFastnodeApp().fetch;
   try {
     return Promise.resolve(appHandler(req));
   } catch (error) {
@@ -208,7 +208,7 @@ function matchRouteRules(
   );
 }
 
-const kCacheRule: unique symbol = /* @__PURE__ */ Symbol("nitro.cacheRule");
+const kCacheRule: unique symbol = /* @__PURE__ */ Symbol("fastnode.cacheRule");
 
 type CacheRuleCarrier = { [kCacheRule]?: Middleware };
 
@@ -243,7 +243,7 @@ type RoutedChainNode = {
   chain?: ComposedMiddleware;
 };
 
-// Nitro's own wrappers are not user middleware: opt them out of `h3/tracing`
+// Fastnode's own wrappers are not user middleware: opt them out of `h3/tracing`
 // so they do not add anonymous spans around the whole downstream chain.
 function markUntraced(middleware: Middleware): Middleware {
   (middleware as Middleware & { __traced__?: boolean }).__traced__ = true;

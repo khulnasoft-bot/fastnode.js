@@ -1,6 +1,6 @@
 # Zeabur
 
-> Deploy Nitro apps to [Zeabur](https://zeabur.com).
+> Deploy Fastnode apps to [Zeabur](https://zeabur.com).
 
 **Preset:** `zeabur`
 
@@ -14,5 +14,5 @@ Integration with this provider is possible with [zero configuration](/deploy#zer
 
 1. Push your code to your git repository (currently only GitHub is supported).
 2. [Import your project](https://zeabur.com/docs/get-started) into Zeabur.
-3. Zeabur detects that you are using Nitro and enables the correct settings for your deployment.
+3. Zeabur detects that you are using Fastnode and enables the correct settings for your deployment.
 4. Your application is deployed!

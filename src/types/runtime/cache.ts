@@ -10,7 +10,7 @@ export type { CacheEntry, CachedFunction, ResponseCacheEntry } from "ocache";
 /**
  * Options for `defineCachedFunction`.
  *
- * @see https://nitro.build/docs/cache
+ * @see https://fastnode.khulnasoft.com/docs/cache
  */
 export type CachedFunctionOptions<T = any, ArgsT extends unknown[] = any[]> = OCacheOptions<
   T,
@@ -26,7 +26,7 @@ export type CacheOptions<T = any, ArgsT extends unknown[] = any[]> = CachedFunct
 /**
  * Options for `defineCachedHandler`.
  *
- * @see https://nitro.build/docs/cache
+ * @see https://fastnode.khulnasoft.com/docs/cache
  */
 export interface CachedHandlerOptions extends Omit<
   OCacheEventHandlerOptions<HTTPEvent & OCacheHTTPEvent>,

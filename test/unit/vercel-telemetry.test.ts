@@ -6,7 +6,7 @@ import type {
   ISpan,
 } from "../../src/runtime/internal/telemetry/types.ts";
 
-vi.mock("nitro", () => ({ definePlugin: (def: unknown) => def }));
+vi.mock("fastnode", () => ({ definePlugin: (def: unknown) => def }));
 
 import telemetryPlugin from "../../src/presets/vercel/runtime/telemetry/plugin.ts";
 
@@ -322,7 +322,7 @@ describe("vercel telemetry span payload", () => {
     expect(BigInt(span.endTimeUnixNano)).toBeLessThanOrEqual(after);
 
     const scopeSpans = harness.reports[0].resourceSpans![0].scopeSpans[0];
-    expect(scopeSpans.scope?.name).toBe("@nitro/vercel-tracing");
+    expect(scopeSpans.scope?.name).toBe("@fastnode/vercel-tracing");
   });
 
   it("records rejected operations as error status + OTEL exception event", async () => {

@@ -1,4 +1,4 @@
-import { defineHandler } from "nitro";
-import { fetch } from "nitro";
+import { defineHandler } from "fastnode";
+import { fetch } from "fastnode";
 
 export default defineHandler(() => fetch("/hello"));

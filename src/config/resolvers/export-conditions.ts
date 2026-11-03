@@ -1,6 +1,6 @@
-import type { NitroOptions } from "nitro/types";
+import type { FastnodeOptions } from "fastnode/types";
 
-export async function resolveExportConditionsOptions(options: NitroOptions) {
+export async function resolveExportConditionsOptions(options: FastnodeOptions) {
   options.exportConditions = _resolveExportConditions(options.exportConditions || [], {
     dev: options.dev,
     node: options.node,

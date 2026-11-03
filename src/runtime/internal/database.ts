@@ -1,6 +1,6 @@
 import type { Database } from "db0";
 import { createDatabase } from "db0";
-import { connectionConfigs, traceDatabase } from "#nitro/virtual/database";
+import { connectionConfigs, traceDatabase } from "#fastnode/virtual/database";
 
 const instances: Record<string, Database> = Object.create(null);
 

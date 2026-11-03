@@ -1,15 +1,15 @@
-import { prettyPath, resolveNitroPath } from "../../utils/fs.ts";
-import { runtimeDir } from "#nitro/meta";
-import type { NitroOptions, NitroConfig } from "nitro/types";
+import { prettyPath, resolveFastnodePath } from "../../utils/fs.ts";
+import { runtimeDir } from "#fastnode/meta";
+import type { FastnodeOptions, FastnodeConfig } from "fastnode/types";
 import { join, resolve } from "pathe";
 import { findWorkspaceDir } from "pkg-types";
-import { NitroDefaults } from "../defaults.ts";
+import { FastnodeDefaults } from "../defaults.ts";
 import { resolveModulePath } from "exsolve";
 import consola from "consola";
 
 const RESOLVE_EXTENSIONS = [".ts", ".js", ".mts", ".mjs", ".tsx", ".jsx"];
 
-export async function resolvePathOptions(options: NitroOptions) {
+export async function resolvePathOptions(options: FastnodeOptions) {
   options.rootDir = resolve(options.rootDir || ".") + "/";
   options.buildDir = resolve(options.rootDir, options.buildDir || ".") + "/";
   options.workspaceDir ||=
@@ -33,30 +33,33 @@ export async function resolvePathOptions(options: NitroOptions) {
 
   // Resolve possibly template paths
   if (!options.static && !options.entry) {
-    throw new Error(`Nitro entry is missing! Is "${options.preset}" preset correct?`);
+    throw new Error(`Fastnode entry is missing! Is "${options.preset}" preset correct?`);
   }
   if (options.entry) {
-    options.entry = resolveNitroPath(options.entry, options);
+    options.entry = resolveFastnodePath(options.entry, options);
   }
 
   options.output.dir =
-    resolveNitroPath(options.output.dir || NitroDefaults.output!.dir!, options, options.rootDir) +
-    "/";
+    resolveFastnodePath(
+      options.output.dir || FastnodeDefaults.output!.dir!,
+      options,
+      options.rootDir
+    ) + "/";
   options.output.publicDir =
-    resolveNitroPath(
-      options.output.publicDir || NitroDefaults.output!.publicDir!,
+    resolveFastnodePath(
+      options.output.publicDir || FastnodeDefaults.output!.publicDir!,
       options,
       options.rootDir
     ) + "/";
   options.output.serverDir =
-    resolveNitroPath(
-      options.output.serverDir || NitroDefaults.output!.serverDir!,
+    resolveFastnodePath(
+      options.output.serverDir || FastnodeDefaults.output!.serverDir!,
       options,
       options.rootDir
     ) + "/";
 
   // Resolve plugin paths
-  options.plugins = options.plugins.map((p) => resolveNitroPath(p, options));
+  options.plugins = options.plugins.map((p) => resolveFastnodePath(p, options));
 
   // Resolve scanDirs
   if (options.serverDir) {
@@ -69,7 +72,7 @@ export async function resolvePathOptions(options: NitroOptions) {
   options.handlers = options.handlers.map((h) => {
     return {
       ...h,
-      handler: resolveNitroPath(h.handler, options),
+      handler: resolveFastnodePath(h.handler, options),
     };
   });
   options.routes = Object.fromEntries(
@@ -77,7 +80,7 @@ export async function resolvePathOptions(options: NitroOptions) {
       if (typeof h === "string") {
         h = { handler: h };
       }
-      h.handler = resolveNitroPath(h.handler, options);
+      h.handler = resolveFastnodePath(h.handler, options);
       return [route, h];
     })
   );
@@ -88,7 +91,7 @@ export async function resolvePathOptions(options: NitroOptions) {
       options.serverEntry = { handler: options.serverEntry };
     }
     if (options.serverEntry?.handler) {
-      options.serverEntry.handler = resolveNitroPath(options.serverEntry.handler, options);
+      options.serverEntry.handler = resolveFastnodePath(options.serverEntry.handler, options);
     } else {
       const detected = resolveModulePath("./server", {
         try: true,
@@ -110,15 +113,15 @@ export async function resolvePathOptions(options: NitroOptions) {
     }
   }
 
-  if ((options as NitroConfig).renderer === false) {
+  if ((options as FastnodeConfig).renderer === false) {
     // Skip (auto) resolve renderer,
-    // and reset it to meet "NitroOptions" requirements
+    // and reset it to meet "FastnodeOptions" requirements
     options.renderer = undefined;
   } else {
     // Resolve renderer handler
     if (options.renderer?.handler) {
       options.renderer.handler = resolveModulePath(
-        resolveNitroPath(options.renderer?.handler, options),
+        resolveFastnodePath(options.renderer?.handler, options),
         {
           from: [options.rootDir, ...options.scanDirs],
           extensions: RESOLVE_EXTENSIONS,
@@ -129,7 +132,7 @@ export async function resolvePathOptions(options: NitroOptions) {
     // Resolve renderer template
     if (options.renderer?.template) {
       options.renderer.template = resolveModulePath(
-        resolveNitroPath(options.renderer?.template, options),
+        resolveFastnodePath(options.renderer?.template, options),
         {
           from: [options.rootDir, ...options.scanDirs],
           extensions: [".html"],

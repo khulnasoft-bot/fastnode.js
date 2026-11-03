@@ -1,10 +1,10 @@
 import type { EnvironmentOptions, RollupCommonJSOptions, Plugin as VitePlugin } from "vite";
-import type { NitroPluginContext, ViteServiceConfig } from "./types.ts";
+import type { FastnodePluginContext, ViteServiceConfig } from "./types.ts";
 
 import type { RunnerName } from "env-runner";
 import { RunnerManager, loadRunner } from "env-runner";
 import { join, resolve } from "node:path";
-import { runtimeDependencies, runtimeDir } from "#nitro/meta";
+import { runtimeDependencies, runtimeDir } from "#fastnode/meta";
 import { resolveModulePath } from "exsolve";
 import { isAbsolute } from "pathe";
 import { resolveRunnerDeps } from "../../dev/runner-deps.ts";
@@ -14,30 +14,30 @@ import { shutdownRunner } from "../../dev/shutdown.ts";
 import { writeDevWorkerEntry } from "./_dev-worker.ts";
 import { viteImportOptions } from "./_import.ts";
 
-export function createNitroEnvironment(ctx: NitroPluginContext): EnvironmentOptions {
+export function createFastnodeEnvironment(ctx: FastnodePluginContext): EnvironmentOptions {
   const isWorkerdRunner = _isWorkerdRunner(ctx);
   return {
     consumer: "server",
     build: {
       rollupOptions: ctx.bundlerConfig!.rollupConfig as any,
       rolldownOptions: ctx.bundlerConfig!.rolldownConfig as any,
-      minify: ctx.nitro!.options.minify,
+      minify: ctx.fastnode!.options.minify,
       emptyOutDir: false,
-      sourcemap: ctx.nitro!.options.sourcemap,
-      commonjsOptions: ctx.nitro!.options.commonJS as RollupCommonJSOptions,
+      sourcemap: ctx.fastnode!.options.sourcemap,
+      commonjsOptions: ctx.fastnode!.options.commonJS as RollupCommonJSOptions,
       copyPublicDir: false,
       // Vite drops the assets of server environments, but files referenced with
       // `new URL(..., import.meta.url)` are read at runtime. The others are still
-      // dropped by the `nitro:asset-urls` plugin (see `bundler.ts`)
-      emitAssets: ctx.nitro!.options.node,
+      // dropped by the `fastnode:asset-urls` plugin (see `bundler.ts`)
+      emitAssets: ctx.fastnode!.options.node,
     },
     resolve: {
-      noExternal: ctx.nitro!.options.dev
+      noExternal: ctx.fastnode!.options.dev
         ? [
-            /^nitro(\/|$)/,
+            /^fastnode(\/|$)/,
             new RegExp(`^(${runtimeDependencies.join("|")})$`), // virtual resolutions in vite skip plugin hooks
             OPTIONAL_RUNTIME_DEPS_RE, // resolved (and installed) on demand from the project
-            ...tsconfigPathsNoExternal(ctx.nitro!), // packages mapped by tsconfig `paths`
+            ...tsconfigPathsNoExternal(ctx.fastnode!), // packages mapped by tsconfig `paths`
             ...ctx.bundlerConfig!.base.noExternal,
           ]
         : true, // production build is standalone
@@ -46,7 +46,9 @@ export function createNitroEnvironment(ctx: NitroPluginContext): EnvironmentOpti
     },
     define: {
       // Workaround for tanstack-start (devtools)
-      "process.env.NODE_ENV": JSON.stringify(ctx.nitro!.options.dev ? "development" : "production"),
+      "process.env.NODE_ENV": JSON.stringify(
+        ctx.fastnode!.options.dev ? "development" : "production"
+      ),
     },
     // Vitest evaluates modules in its own workers, the default dev environment is enough
     dev: ctx._isVitest
@@ -62,7 +64,7 @@ export function createNitroEnvironment(ctx: NitroPluginContext): EnvironmentOpti
               entry,
               {
                 workerd: isWorkerdRunner,
-                vite: viteImportOptions(ctx.nitro!),
+                vite: viteImportOptions(ctx.fastnode!),
                 onInit: () => (ctx._viteEnvs ??= new Map()).set(envName, entry),
               }
             );
@@ -74,28 +76,28 @@ export function createNitroEnvironment(ctx: NitroPluginContext): EnvironmentOpti
 }
 
 export function createServiceEnvironment(
-  ctx: NitroPluginContext,
+  ctx: FastnodePluginContext,
   name: string,
   serviceConfig: ViteServiceConfig
 ): EnvironmentOptions {
-  const isDev = ctx.nitro!.options.dev;
+  const isDev = ctx.fastnode!.options.dev;
   const isWorkerdRunner = _isWorkerdRunner(ctx);
   return {
     consumer: "server",
     build: {
       rollupOptions: {
         input: { index: serviceConfig.entry },
-        ...(isDev ? {} : { external: [/^nitro(\/|$)/] }),
+        ...(isDev ? {} : { external: [/^fastnode(\/|$)/] }),
         output: { minifyInternalExports: false },
       },
-      minify: ctx.nitro!.options.minify,
-      sourcemap: ctx.nitro!.options.sourcemap,
-      outDir: join(ctx.nitro!.options.buildDir, "vite/services", name),
+      minify: ctx.fastnode!.options.minify,
+      sourcemap: ctx.fastnode!.options.sourcemap,
+      outDir: join(ctx.fastnode!.options.buildDir, "vite/services", name),
       emptyOutDir: true,
       copyPublicDir: false,
     },
     resolve: {
-      ...(isDev ? { noExternal: [/^nitro(\/|$)/] } : {}),
+      ...(isDev ? { noExternal: [/^fastnode(\/|$)/] } : {}),
       conditions: _envConditions(ctx),
       externalConditions: _externalConditions(ctx),
     },
@@ -112,7 +114,7 @@ export function createServiceEnvironment(
               entry,
               {
                 workerd: isWorkerdRunner,
-                vite: viteImportOptions(ctx.nitro!),
+                vite: viteImportOptions(ctx.fastnode!),
                 onInit: () => (ctx._viteEnvs ??= new Map()).set(envName, entry),
               }
             );
@@ -122,7 +124,7 @@ export function createServiceEnvironment(
 }
 
 export function createServiceEnvironments(
-  ctx: NitroPluginContext
+  ctx: FastnodePluginContext
 ): Record<string, EnvironmentOptions> {
   return Object.fromEntries(
     Object.entries(ctx.services).map(([name, config]) => [
@@ -132,12 +134,12 @@ export function createServiceEnvironments(
   );
 }
 
-export async function initEnvRunner(ctx: NitroPluginContext) {
+export async function initEnvRunner(ctx: FastnodePluginContext) {
   if (ctx._envRunner) {
     return ctx._envRunner;
   }
   if (ctx._closingEnvRunner) {
-    throw new Error("Nitro dev env runner is closed.");
+    throw new Error("Fastnode dev env runner is closed.");
   }
   if (!ctx._initPromise) {
     ctx._initPromise = (async () => {
@@ -148,10 +150,10 @@ export async function initEnvRunner(ctx: NitroPluginContext) {
           return;
         }
         if (_retries++ < 3) {
-          ctx.nitro!.logger.info("Restarting env runner...", cause ? `Cause: ${cause}` : "");
-          _loadRunner(ctx, manager).catch((error) => ctx.nitro!.logger.error(error));
+          ctx.fastnode!.logger.info("Restarting env runner...", cause ? `Cause: ${cause}` : "");
+          _loadRunner(ctx, manager).catch((error) => ctx.fastnode!.logger.error(error));
         } else {
-          ctx.nitro!.logger.error(
+          ctx.fastnode!.logger.error(
             "Env runner failed after 3 retries.",
             cause ? `Last cause: ${cause}` : ""
           );
@@ -163,7 +165,7 @@ export async function initEnvRunner(ctx: NitroPluginContext) {
           for (const [name, entry] of ctx._viteEnvs) {
             manager.sendMessage({
               type: "custom",
-              event: "nitro:vite-env",
+              event: "fastnode:vite-env",
               data: { name, entry },
             });
           }
@@ -181,7 +183,7 @@ export async function initEnvRunner(ctx: NitroPluginContext) {
  * Shut the dev runner down gracefully: the runtime `close` hooks run in the worker before the
  * runtime is terminated (#4586).
  */
-export async function closeEnvRunner(ctx: NitroPluginContext) {
+export async function closeEnvRunner(ctx: FastnodePluginContext) {
   if (ctx._closingEnvRunner) {
     return;
   }
@@ -191,19 +193,19 @@ export async function closeEnvRunner(ctx: NitroPluginContext) {
     return;
   }
   // With drain, the manager shuts the active and draining runners down gracefully
-  if (ctx.nitro!.options.devServer.drain) {
+  if (ctx.fastnode!.options.devServer.drain) {
     await manager.shutdown();
     return;
   }
   // The miniflare runner runs the same handshake itself when it is disposed, so it is only
   // needed for the runners that terminate their runtime outright.
   if (manager.ready && !_isWorkerdRunner(ctx)) {
-    await shutdownRunner(manager, { warn: (message) => ctx.nitro!.logger.warn(message) });
+    await shutdownRunner(manager, { warn: (message) => ctx.fastnode!.logger.warn(message) });
   }
   await manager.close();
 }
 
-export async function reloadEnvRunner(ctx: NitroPluginContext) {
+export async function reloadEnvRunner(ctx: FastnodePluginContext) {
   const manager = ctx._envRunner;
   if (!manager) {
     return initEnvRunner(ctx);
@@ -212,15 +214,15 @@ export async function reloadEnvRunner(ctx: NitroPluginContext) {
   return manager;
 }
 
-async function _loadRunner(ctx: NitroPluginContext, manager: RunnerManager) {
+async function _loadRunner(ctx: FastnodePluginContext, manager: RunnerManager) {
   const runnerName = _devRunner(ctx);
-  const entry = await writeDevWorkerEntry(ctx.nitro!);
+  const entry = await writeDevWorkerEntry(ctx.fastnode!);
   const runner = await loadRunner(runnerName, {
-    ...(await resolveRunnerDeps(ctx.nitro!, runnerName)),
-    name: "nitro-vite",
+    ...(await resolveRunnerDeps(ctx.fastnode!, runnerName)),
+    name: "fastnode-vite",
     data: { entry },
   });
-  await manager.reload(runner, { drain: ctx.nitro!.options.devServer.drain });
+  await manager.reload(runner, { drain: ctx.fastnode!.options.devServer.drain });
 }
 
 // Resolve export conditions for the (non-workerd) environment.
@@ -230,9 +232,9 @@ async function _loadRunner(ctx: NitroPluginContext, manager: RunnerManager) {
 // entry instead of the `node` one. Other runners (process-based or miniflare)
 // run in a different runtime, so the host condition must not leak into their
 // resolution; outside of dev the conditions are returned unchanged.
-function _resolveConditions(ctx: NitroPluginContext): string[] {
-  const exportConditions = ctx.nitro!.options.exportConditions!;
-  if (!ctx.nitro!.options.dev || _devRunner(ctx) !== "node-worker") {
+function _resolveConditions(ctx: FastnodePluginContext): string[] {
+  const exportConditions = ctx.fastnode!.options.exportConditions!;
+  if (!ctx.fastnode!.options.dev || _devRunner(ctx) !== "node-worker") {
     return exportConditions;
   }
   const runtimeCondition =
@@ -248,31 +250,31 @@ function _resolveConditions(ctx: NitroPluginContext): string[] {
 
 // Dependencies are not inlined in dev: they are imported by the runtime of the runner (workerd
 // loads them, CommonJS included, through the module fallback service of env-runner).
-function _envConditions(ctx: NitroPluginContext): string[] {
+function _envConditions(ctx: FastnodePluginContext): string[] {
   return _isWorkerdRunner(ctx) ? _workerdConditions(ctx) : _resolveConditions(ctx);
 }
 
 // The runtime resolves the imports of externalized dependencies itself, without the
 // `development`/`production` condition: resolving the app's own imports of them with it
 // would load a second copy of a dependency (#4994).
-function _externalConditions(ctx: NitroPluginContext): string[] {
+function _externalConditions(ctx: FastnodePluginContext): string[] {
   return _envConditions(ctx).filter(
     (c) => !/browser|wasm|module/.test(c) && c !== "development" && c !== "production"
   );
 }
 
-function _workerdConditions(ctx: NitroPluginContext): string[] {
-  const exportConditions = ctx.nitro!.options.exportConditions!;
+function _workerdConditions(ctx: FastnodePluginContext): string[] {
+  const exportConditions = ctx.fastnode!.options.exportConditions!;
   return [...new Set(["workerd", "worker", ...exportConditions.filter((c) => c !== "node")])];
 }
 
-function _devRunner(ctx: NitroPluginContext): RunnerName {
-  return (ctx.nitro!.options.devServer.runner ||
-    process.env.NITRO_DEV_RUNNER ||
+function _devRunner(ctx: FastnodePluginContext): RunnerName {
+  return (ctx.fastnode!.options.devServer.runner ||
+    process.env.FASTNODE_DEV_RUNNER ||
     "node-worker") as RunnerName;
 }
 
-export function _isWorkerdRunner(ctx: NitroPluginContext): boolean {
+export function _isWorkerdRunner(ctx: FastnodePluginContext): boolean {
   return _devRunner(ctx) === "miniflare";
 }
 

@@ -1,36 +1,36 @@
 import type { TransformResult, Plugin as VitePlugin } from "vite";
 import type { getBundlerConfig } from "./bundler.ts";
-import type { Nitro, NitroConfig, NitroModule, ViteServiceConfig } from "nitro/types";
+import type { Fastnode, FastnodeConfig, FastnodeModule, ViteServiceConfig } from "fastnode/types";
 import type { RunnerManager } from "env-runner";
-import type { NitroDevApp } from "../../dev/app.ts";
+import type { FastnodeDevApp } from "../../dev/app.ts";
 
-export type { ViteServiceConfig } from "nitro/types";
+export type { ViteServiceConfig } from "fastnode/types";
 
 declare module "vite" {
   interface UserConfig {
     /**
-     * Nitro Vite Plugin options.
+     * Fastnode Vite Plugin options.
      */
-    nitro?: NitroConfig;
+    fastnode?: FastnodeConfig;
   }
 
   interface Plugin {
-    nitro?: NitroModule;
+    fastnode?: FastnodeModule;
   }
 }
 
-export interface NitroPluginConfig extends NitroConfig {
+export interface FastnodePluginConfig extends FastnodeConfig {
   /**
-   * Existing Nitro instance to use instead of creating one (for frameworks that create Nitro themselves).
+   * Existing Fastnode instance to use instead of creating one (for frameworks that create Fastnode themselves).
    */
-  _nitro?: Nitro;
+  _fastnode?: Fastnode;
 }
 
-export interface NitroPluginContext {
-  nitro?: Nitro;
-  pluginConfig: NitroPluginConfig;
+export interface FastnodePluginContext {
+  fastnode?: Fastnode;
+  pluginConfig: FastnodePluginConfig;
   bundlerConfig?: Awaited<ReturnType<typeof getBundlerConfig>>;
-  devApp?: NitroDevApp;
+  devApp?: FastnodeDevApp;
   services: Record<string, ViteServiceConfig>;
 
   _isRolldown?: boolean;
@@ -46,5 +46,5 @@ export interface NitroPluginContext {
   _publicDistDir?: string;
   _entryPoints: Record<string, string>;
   _pluginModules?: VitePlugin[];
-  _nitroEnvAliases?: string[];
+  _fastnodeEnvAliases?: string[];
 }

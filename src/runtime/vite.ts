@@ -1,5 +1,5 @@
 import { HTTPError, toRequest } from "h3";
-import { viteServices } from "#nitro/virtual/vite-services";
+import { viteServices } from "#fastnode/virtual/vite-services";
 
 export function fetchViteEnv(
   viteEnvName: string,

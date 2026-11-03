@@ -1,17 +1,17 @@
 import type { Plugin as VitePlugin } from "vite";
 import assetsPlugin from "@hiogawa/vite-plugin-fullstack/assets";
-import type { NitroPluginContext } from "./types.ts";
+import type { FastnodePluginContext } from "./types.ts";
 
 const NON_HOOK_KEYS = new Set(["name", "enforce", "apply", "api"]);
 
 /**
  * `?assets` imports (`vite.assetsImport` option).
  *
- * Vite resolves its plugin list before Nitro loads its config, so the plugins are always
+ * Vite resolves its plugin list before Fastnode loads its config, so the plugins are always
  * registered and their hooks are skipped when the option is disabled.
  */
-export function nitroAssetsImport(ctx: NitroPluginContext): VitePlugin[] {
-  const enabled = () => ctx.nitro?.options.vite?.assetsImport !== false;
+export function fastnodeAssetsImport(ctx: FastnodePluginContext): VitePlugin[] {
+  const enabled = () => ctx.fastnode?.options.vite?.assetsImport !== false;
   const plugins = assetsPlugin({
     experimental: {
       // See https://github.com/hi-ogawa/vite-plugins/pull/1289

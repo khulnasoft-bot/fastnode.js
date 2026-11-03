@@ -1,4 +1,4 @@
-import type { NitroPluginContext } from "./types.ts";
+import type { FastnodePluginContext } from "./types.ts";
 import type { DevEnvironment, DevEnvironmentContext, ResolvedConfig, ViteDevServer } from "vite";
 import type { FetchFunctionOptions, FetchResult } from "vite/module-runner";
 import type { RunnerRPCHooks, UpgradeContext } from "env-runner";
@@ -25,7 +25,7 @@ import { _isWorkerdRunner } from "./env.ts";
 
 // Extensions that strongly indicate a browser asset load (script/style/font/image/media).
 // Used as a fallback signal when `Sec-Fetch-Dest` is absent (plain-HTTP non-loopback origins).
-// Kept narrow on purpose so that arbitrary dotted Nitro route params (e.g. `.../foo.bar.1`) keep reaching Nitro.
+// Kept narrow on purpose so that arbitrary dotted Fastnode route params (e.g. `.../foo.bar.1`) keep reaching Fastnode.
 const ASSET_EXT_RE =
   /^(?:[jt]sx?|mjs|cjs|css|s[ac]ss|less|styl|vue|svelte|astro|mdx?|map|wasm|png|jpe?g|gif|svg|webp|avif|ico|bmp|woff2?|ttf|otf|eot|mp[34]|webm|wav|ogg|m4a)$/i;
 
@@ -39,10 +39,10 @@ const WORKERD_BUILTIN_RE = /^(?:cloudflare|workerd):/;
 
 export type FetchHandler = (req: Request) => Promise<Response>;
 
-type NitroDevRequest = IncomingMessage & {
-  _nitroHandled?: boolean;
-  _nitroAssetCheck?: boolean;
-  _nitroDevRoute?: boolean;
+type FastnodeDevRequest = IncomingMessage & {
+  _fastnodeHandled?: boolean;
+  _fastnodeAssetCheck?: boolean;
+  _fastnodeDevRoute?: boolean;
 };
 
 export interface DevServer extends RunnerRPCHooks {
@@ -155,7 +155,7 @@ function _defineFetchableDevEnvironment({
       this.#onInit?.();
       this.devServer.sendMessage({
         type: "custom",
-        event: "nitro:vite-env",
+        event: "fastnode:vite-env",
         data: { name: this.name, entry: this.#entry },
       });
     }
@@ -170,9 +170,9 @@ function _defineFetchableDevEnvironment({
 
 // ---- Vite Dev Server Integration ----
 
-export async function configureViteDevServer(ctx: NitroPluginContext, server: ViteDevServer) {
-  const nitro = ctx.nitro!;
-  const nitroEnv = server.environments.nitro as FetchableDevEnvironment;
+export async function configureViteDevServer(ctx: FastnodePluginContext, server: ViteDevServer) {
+  const fastnode = ctx.fastnode!;
+  const fastnodeEnv = server.environments.fastnode as FetchableDevEnvironment;
 
   const viteBase = server.config.base || "/";
 
@@ -181,27 +181,27 @@ export async function configureViteDevServer(ctx: NitroPluginContext, server: Vi
   // answers waiting error pages, which would otherwise hold a middleware mode host server open.
   const reloadSignal = new DevReloadSignal();
   ctx.devApp!.reloadSignal = reloadSignal;
-  nitroEnv.onClose = () => reloadSignal.close();
+  fastnodeEnv.onClose = () => reloadSignal.close();
 
-  // Restart with nitro.config changes
-  const nitroConfigFile = nitro.options._c12.configFile;
-  if (nitroConfigFile) {
-    server.config.configFileDependencies.push(nitroConfigFile);
+  // Restart with fastnode.config changes
+  const fastnodeConfigFile = fastnode.options._c12.configFile;
+  if (fastnodeConfigFile) {
+    server.config.configFileDependencies.push(fastnodeConfigFile);
   }
 
   // Websocket (`httpServer` is null in middleware mode, the parent server handles upgrades)
   // In workerd, routes can accept upgrades without crossws (e.g. with a Durable Object)
   const websocket =
-    (nitro.options.features.websocket ?? nitro.options.experimental.websocket) ||
+    (fastnode.options.features.websocket ?? fastnode.options.experimental.websocket) ||
     _isWorkerdRunner(ctx);
-  const wsProxy = Object.values(nitro.options.devProxy).some(
+  const wsProxy = Object.values(fastnode.options.devProxy).some(
     (opts) => typeof opts === "object" && opts.ws
   );
   if (websocket || wsProxy) {
     const viteHmrBase = _getViteHmrBase(server);
     server.httpServer?.on("upgrade", (req, socket, head) => {
       // Vite HMR WebSocket connection. Other `vite-*` upgrades (e.g. the HMR socket of a proxied
-      // upstream Vite on another path) are never claimed by Vite and must reach Nitro.
+      // upstream Vite on another path) are never claimed by Vite and must reach Fastnode.
       if (viteHmrBase && _isViteHmrUpgrade(req, viteHmrBase)) {
         return;
       }
@@ -209,18 +209,18 @@ export async function configureViteDevServer(ctx: NitroPluginContext, server: Vi
         return;
       }
       if (websocket) {
-        nitroEnv.devServer.upgrade?.({ node: { req, socket, head } });
+        fastnodeEnv.devServer.upgrade?.({ node: { req, socket, head } });
       }
     });
   }
 
   // Rebuild on scan dir changes
   const reload = debounce(async () => {
-    await rescanHandlers(nitro, nitroEnv);
-    nitroEnv.hot.send({ type: "full-reload" });
+    await rescanHandlers(fastnode, fastnodeEnv);
+    fastnodeEnv.hot.send({ type: "full-reload" });
     ctx.devApp?.reloadSignal.bump();
   });
-  watchScanDirs(nitro, server, () => reload());
+  watchScanDirs(fastnode, server, () => reload());
 
   // Vite only installs a `SIGTERM` handler, so Ctrl+C (`SIGINT`) tears the process down before
   // any `close` hook runs and leaves the dev worker (and its resources) behind (#4586). In
@@ -234,17 +234,17 @@ export async function configureViteDevServer(ctx: NitroPluginContext, server: Vi
       }
     };
     process.once("SIGINT", onSigint);
-    nitro.hooks.hook("close", () => {
+    fastnode.hooks.hook("close", () => {
       process.off("SIGINT", onSigint);
     });
   }
 
-  // Point CLI commands (`nitro fetch`) to this dev server
+  // Point CLI commands (`fastnode fetch`) to this dev server
   server.httpServer?.once("listening", () => {
     const url = _getListenURL(server);
     if (url) {
-      writeDevBuildInfo(nitro, { url }).catch((error) => {
-        nitro.logger.warn(
+      writeDevBuildInfo(fastnode, { url }).catch((error) => {
+        fastnode.logger.warn(
           `Failed to write dev build info: ${error instanceof Error ? error.message : String(error)}`
         );
       });
@@ -252,27 +252,27 @@ export async function configureViteDevServer(ctx: NitroPluginContext, server: Vi
   });
 
   // Worker => Host RPC
-  nitroEnv.devServer.onMessage((message) =>
+  fastnodeEnv.devServer.onMessage((message) =>
     handleDevRPC(message, {
-      sendMessage: (message) => nitroEnv.devServer.sendMessage(message),
+      sendMessage: (message) => fastnodeEnv.devServer.sendMessage(message),
       handlers: {
         transformHTML: async (html: string) => {
-          const template = nitro.options.renderer?.template;
+          const template = fastnode.options.renderer?.template;
           html =
             (await _readBundledHTML(server, template)) ??
             (await server.transformIndexHtml(_htmlTemplateURL(template, server.config.root), html));
           return html.replace(
             "<!--ssr-outlet-->",
-            `{{{ globalThis.__nitro_vite_envs__?.["ssr"]?.fetch($REQUEST) || "" }}}`
+            `{{{ globalThis.__fastnode_vite_envs__?.["ssr"]?.fetch($REQUEST) || "" }}}`
           );
         },
-        rendererTemplate: () => readFile(nitro.options.renderer!.template!, "utf8"),
+        rendererTemplate: () => readFile(fastnode.options.renderer!.template!, "utf8"),
       },
     })
   );
 
-  const nitroDevMiddleware = async (
-    nodeReq: NitroDevRequest,
+  const fastnodeDevMiddleware = async (
+    nodeReq: FastnodeDevRequest,
     nodeRes: ServerResponse,
     next: (error?: unknown) => void
   ) => {
@@ -280,14 +280,14 @@ export async function configureViteDevServer(ctx: NitroPluginContext, server: Vi
     if (
       !nodeReq.url ||
       /^\/@(?:vite|fs|id)\//.test(withoutBase(nodeReq.url, viteBase)) ||
-      nodeReq._nitroHandled ||
+      nodeReq._fastnodeHandled ||
       server.middlewares.stack.some((mw) => matchesMiddlewareRoute(mw.route, nodeReq.url!))
     ) {
       return next();
     }
-    nodeReq._nitroHandled = true;
+    nodeReq._fastnodeHandled = true;
 
-    const baseURL = nitro.options.baseURL || "/";
+    const baseURL = fastnode.options.baseURL || "/";
     const originalURL = nodeReq.url;
     if (baseURL !== "/") {
       nodeReq.url = withBase(nodeReq.url, baseURL);
@@ -301,12 +301,12 @@ export async function configureViteDevServer(ctx: NitroPluginContext, server: Vi
       if (nodeRes.writableEnded || nodeRes.headersSent) {
         return;
       }
-      if (devAppRes.status !== 404 || nodeReq._nitroDevRoute) {
+      if (devAppRes.status !== 404 || nodeReq._fastnodeDevRoute) {
         return await sendNodeResponse(nodeRes, devAppRes);
       }
 
-      // Dispatch the request to the nitro environment
-      const envRes = await nitroEnv.dispatchFetch(req);
+      // Dispatch the request to the fastnode environment
+      const envRes = await fastnodeEnv.dispatchFetch(req);
       if (nodeRes.writableEnded || nodeRes.headersSent) {
         return;
       }
@@ -317,7 +317,7 @@ export async function configureViteDevServer(ctx: NitroPluginContext, server: Vi
       // (#4252, TanStack/router#7403), and `text/plain` is the bridge default for bare string
       // returns.
       if (
-        nodeReq._nitroAssetCheck &&
+        nodeReq._fastnodeAssetCheck &&
         envRes.ok &&
         /^text\/html\b/i.test(envRes.headers.get("content-type") || "")
       ) {
@@ -325,12 +325,12 @@ export async function configureViteDevServer(ctx: NitroPluginContext, server: Vi
         return next();
       }
       // The dev worker reloads lazily, so the page checks that it renders again before reloading.
-      // Nitro routes are served outside the Vite `base`.
+      // Fastnode routes are served outside the Vite `base`.
       return await sendNodeResponse(
         nodeRes,
         withDevErrorRecovery(req, envRes, {
           signal: ctx.devApp!.reloadSignal,
-          base: nitro.options.baseURL,
+          base: fastnode.options.baseURL,
           poll: true,
         })
       );
@@ -350,51 +350,51 @@ export async function configureViteDevServer(ctx: NitroPluginContext, server: Vi
   // Only a scanned user route file catch-all is transparent; the SSR renderer, a custom server
   // entry and `routes:`/`handlers:` registrations are opaque (see .agents/vite-dev.md §2).
   const isOpaqueHandler = (h?: { handler?: string }) =>
-    !!h?.handler && !nitro.scannedHandlers.some((s) => s.handler === h.handler);
+    !!h?.handler && !fastnode.scannedHandlers.some((s) => s.handler === h.handler);
 
   // Handle server routes first to avoid conflicts with static assets served by Vite from the root
   // https://github.com/vitejs/vite/pull/20866
-  const nitroDevMiddlewarePre = (
-    req: NitroDevRequest,
+  const fastnodeDevMiddlewarePre = (
+    req: FastnodeDevRequest,
     res: ServerResponse,
     next: (error?: unknown) => void
   ) => {
-    // Vite-internal prefixes (/@vite/client, /__vue-router/auto-routes, ...) are never Nitro's.
+    // Vite-internal prefixes (/@vite/client, /__vue-router/auto-routes, ...) are never Fastnode's.
     if (/^\/(?:__|@)/.test(withoutBase(req.url!, viteBase))) {
       return next();
     }
 
-    // `nitro.routing.routes` always includes the SSR catch-all `/**` in SSR apps, so an explicit
+    // `fastnode.routing.routes` always includes the SSR catch-all `/**` in SSR apps, so an explicit
     // user route must be told apart from the catch-all. A root-level user catch-all
     // (`routes/[...].ts` -> `/**`, `routes/[...slug].ts` -> `/:slug(.*)`) is as authoritative as the
     // SSR `/**` and must not swallow Vite asset serves either, so both forms count as catch-all;
     // prefixed splat routes (`/api/photos/**`) are deterministic user routes and stay explicit.
-    const pathname = new URL(withBase(req.url!, nitro.options.baseURL), "http://localhost")
+    const pathname = new URL(withBase(req.url!, fastnode.options.baseURL), "http://localhost")
       .pathname;
-    let match = nitro.routing.routes.match(req.method || "", pathname);
+    let match = fastnode.routing.routes.match(req.method || "", pathname);
     // Mirrors the runtime: `HEAD` is served by the `GET` route unless a `HEAD` route matches
     if (req.method === "HEAD" && !(match && !Array.isArray(match) && match.method)) {
-      match = nitro.routing.routes.match("GET", pathname);
+      match = fastnode.routing.routes.match("GET", pathname);
     }
     const matchedHandlers = match ? (Array.isArray(match) ? match : [match]) : [];
     const isExplicitRoute = matchedHandlers.some((h) => h?.route && !isCatchAllRoute(h.route));
 
     // Explicit dev app routes (dev handlers, dev proxies and public asset dirs without
     // fallthrough) are explicit too; their response (even a 404) is final, since falling through
-    // to the Nitro env would let the SSR catch-all answer an asset load (#4234).
+    // to the Fastnode env would let the SSR catch-all answer an asset load (#4234).
     if (!isExplicitRoute && ctx.devApp!.hasRoute(req.method || "", pathname)) {
-      req._nitroDevRoute = true;
-      return nitroDevMiddleware(req, res, next);
+      req._fastnodeDevRoute = true;
+      return fastnodeDevMiddleware(req, res, next);
     }
 
     // An explicit user route is a deterministic match and always wins, regardless of how the
     // browser tags the request (#4108, #4241, #4252, #4270) — no heuristic may override it.
     if (isExplicitRoute) {
-      return nitroDevMiddleware(req, res, next);
+      return fastnodeDevMiddleware(req, res, next);
     }
 
     // Otherwise the request is unmatched or matched only by the SSR catch-all `/**` — genuinely
-    // ambiguous between a page navigation (-> Nitro) and an asset load (-> Vite). A wrong guess
+    // ambiguous between a page navigation (-> Fastnode) and an asset load (-> Vite). A wrong guess
     // here only affects the catch-all fallback, never an explicit route.
     res.setHeader("vary", "sec-fetch-dest, accept");
     const fetchDest = req.headers["sec-fetch-dest"];
@@ -411,7 +411,7 @@ export async function configureViteDevServer(ctx: NitroPluginContext, server: Vi
     // request-time marker: `fetch()` sends no usable `Sec-Fetch-Dest` and the extension can be
     // anything, so the only disambiguation left is that Vite's `serveStaticMiddleware` can
     // serve it as a real file under the project root. Mirrors its skip rules (`.html` files
-    // are left for Nitro) — #4230.
+    // are left for Fastnode) — #4230.
     const isAssetByFile = () => {
       const urlPath = req.url!.split(/[?#]/, 1)[0];
       // Vite only serves root files under its base; outside it, the probe would only leak existence.
@@ -454,32 +454,32 @@ export async function configureViteDevServer(ctx: NitroPluginContext, server: Vi
           // never does — so it stays authoritative for extensions left out of `ASSET_EXT_RE` (#4433).
           /[?&]import(?:[&=]|$)/.test(req.url!) || isAssetByExt || isAssetByFile());
 
-    // Non-asset requests go to Nitro: the catch-all (`matchedHandlers` are all catch-all here,
+    // Non-asset requests go to Fastnode: the catch-all (`matchedHandlers` are all catch-all here,
     // since explicit routes already returned) renders them, and bare (extensionless) unmatched
-    // URLs default to Nitro as page navigations.
+    // URLs default to Fastnode as page navigations.
     if (!isAsset && (matchedHandlers.length > 0 || !ext)) {
-      return nitroDevMiddleware(req, res, next);
+      return fastnodeDevMiddleware(req, res, next);
     }
 
     if (isAsset) {
       // Opaque catch-alls (the SSR renderer, a custom server entry, config-registered `/**`)
-      // route requests Nitro cannot see in `nitro.routing.routes` (#4252, #4531), so an
+      // route requests Fastnode cannot see in `fastnode.routing.routes` (#4252, #4531), so an
       // asset-tagged miss from Vite must still be dispatched — the response content-type then
-      // decides (`_nitroAssetCheck`).
-      // A user-file root catch-all is transparent: Nitro sees everything it can handle, so
+      // decides (`_fastnodeAssetCheck`).
+      // A user-file root catch-all is transparent: Fastnode sees everything it can handle, so
       // Vite stays the definitive asset handler and a Vite miss must not fall back into it.
       if (matchedHandlers.every(isOpaqueHandler)) {
-        req._nitroAssetCheck = true;
+        req._fastnodeAssetCheck = true;
       } else {
-        req._nitroHandled = true;
+        req._fastnodeHandled = true;
       }
     }
     next();
   };
-  server.middlewares.use(nitroDevMiddlewarePre);
+  server.middlewares.use(fastnodeDevMiddlewarePre);
 
   return () => {
-    server.middlewares.use(nitroDevMiddleware);
+    server.middlewares.use(fastnodeDevMiddleware);
   };
 }
 

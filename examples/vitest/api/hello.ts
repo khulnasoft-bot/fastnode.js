@@ -1,7 +1,7 @@
-import { defineHandler } from "nitro";
-import { useRuntimeConfig } from "nitro/runtime-config";
+import { defineHandler } from "fastnode";
+import { useRuntimeConfig } from "fastnode/runtime-config";
 
 export default defineHandler(() => {
   const { greeting } = useRuntimeConfig();
-  return { message: `${greeting} from Nitro!` };
+  return { message: `${greeting} from Fastnode!` };
 });

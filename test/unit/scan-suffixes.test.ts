@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { scanMiddleware, scanPlugins, scanServerRoutes, scanTasks } from "../../src/scan.ts";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 
 let dir: string;
 
@@ -15,18 +15,18 @@ function write(...paths: string[]) {
   }
 }
 
-const nitro = (options: Record<string, unknown> = {}) =>
+const fastnode = (options: Record<string, unknown> = {}) =>
   ({
     options: { scanDirs: [dir], ignore: [], ...options },
     logger: { error: vi.fn(), warn: vi.fn() },
-  }) as unknown as Nitro;
+  }) as unknown as Fastnode;
 
-const routes = async (n = nitro()) =>
+const routes = async (n = fastnode()) =>
   (await scanServerRoutes(n, "routes")).map((r) => [r.route, r.method, r.env].filter(Boolean));
 
 describe("scan suffixes", () => {
   beforeEach(() => {
-    dir = mkdtempSync(join(tmpdir(), "nitro-scan-"));
+    dir = mkdtempSync(join(tmpdir(), "fastnode-scan-"));
   });
 
   afterEach(() => {
@@ -57,7 +57,7 @@ describe("scan suffixes", () => {
       "routes/hello.world.ts",
       "routes/[...].ts"
     );
-    expect(await routes(nitro({ scanSuffixes: ["world"] }))).toEqual([
+    expect(await routes(fastnode({ scanSuffixes: ["world"] }))).toEqual([
       ["/**"],
       ["/docs/:slug.md", "get"],
       ["/hello.world"],
@@ -82,8 +82,8 @@ describe("scan suffixes", () => {
 
   it("reserves env suffixes in plugins and tasks", async () => {
     write("plugins/log.dev.ts", "tasks/db/seed.prod.ts");
-    await expect(scanPlugins(nitro())).rejects.toThrow("not supported in `plugins/`");
-    await expect(scanTasks(nitro())).rejects.toThrow("not supported in `tasks/`");
+    await expect(scanPlugins(fastnode())).rejects.toThrow("not supported in `plugins/`");
+    await expect(scanTasks(fastnode())).rejects.toThrow("not supported in `tasks/`");
   });
 
   it("keeps names after a numeric order prefix", async () => {
@@ -94,7 +94,7 @@ describe("scan suffixes", () => {
       "middleware/a/1.cors.ts",
       "routes/1.foo.ts"
     );
-    expect((await scanMiddleware(nitro())).map((m) => m.handler.slice(dir.length + 1))).toEqual([
+    expect((await scanMiddleware(fastnode())).map((m) => m.handler.slice(dir.length + 1))).toEqual([
       "middleware/01.auth.ts",
       "middleware/1.logger.ts",
       "middleware/10.cors.ts",
@@ -107,18 +107,18 @@ describe("scan suffixes", () => {
     "reserves unknown suffixes in middleware/%s.ts",
     async (name) => {
       write(`middleware/${name}.ts`);
-      await expect(scanMiddleware(nitro())).rejects.toThrow("Unknown suffix");
+      await expect(scanMiddleware(fastnode())).rejects.toThrow("Unknown suffix");
     }
   );
 
   it.each(["1.dev", "1.get"])("reserves method and env words in middleware/%s.ts", async (name) => {
     write(`middleware/${name}.ts`);
-    await expect(scanMiddleware(nitro())).rejects.toThrow("not supported in `middleware/`");
+    await expect(scanMiddleware(fastnode())).rejects.toThrow("not supported in `middleware/`");
   });
 
   it("logs and skips invalid files in dev", async () => {
     write("routes/ok.ts", "routes/hello.world.ts");
-    const n = nitro({ dev: true });
+    const n = fastnode({ dev: true });
     expect(await routes(n)).toEqual([["/ok"]]);
     expect(n.logger.error).toHaveBeenCalledOnce();
   });
@@ -133,7 +133,7 @@ describe("scan suffixes", () => {
       "plugins/log.test.ts"
     );
     expect(await routes()).toEqual([["/ok"]]);
-    expect((await scanPlugins(nitro())).map((p) => p.slice(dir.length + 1))).toEqual([
+    expect((await scanPlugins(fastnode())).map((p) => p.slice(dir.length + 1))).toEqual([
       "plugins/log.ts",
     ]);
   });

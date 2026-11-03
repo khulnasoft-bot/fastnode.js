@@ -6,12 +6,12 @@ import { useRuntimeConfig } from "../runtime-config.ts";
 
 export default defineHandler((event) => {
   const runtimeConfig = useRuntimeConfig();
-  const title = runtimeConfig.nitro?.openAPI?.meta?.title || "API Reference";
-  const description = runtimeConfig.nitro?.openAPI?.meta?.description || "";
-  const openAPIEndpoint = runtimeConfig.nitro?.openAPI?.route || "./_openapi.json";
+  const title = runtimeConfig.fastnode?.openAPI?.meta?.title || "API Reference";
+  const description = runtimeConfig.fastnode?.openAPI?.meta?.description || "";
+  const openAPIEndpoint = runtimeConfig.fastnode?.openAPI?.route || "./_openapi.json";
 
   const { route: _route, ...swaggerConfig } =
-    (runtimeConfig.nitro?.openAPI?.ui?.swagger as Record<string, unknown>) || {};
+    (runtimeConfig.fastnode?.openAPI?.ui?.swagger as Record<string, unknown>) || {};
 
   const safeSwaggerConfig = JSON.stringify(swaggerConfig).replace(/<\//g, "<\\/");
 

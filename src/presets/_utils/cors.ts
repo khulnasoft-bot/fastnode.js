@@ -1,4 +1,4 @@
-import type { Nitro, NormalizedRouteRules } from "nitro/types";
+import type { Fastnode, NormalizedRouteRules } from "fastnode/types";
 import { compareRoutes } from "rou3";
 import { joinURL } from "ufo";
 import { parseRouteKey, sortRoutes } from "./routes.ts";
@@ -24,14 +24,14 @@ const PATH_LINE_RE = /^[^\s#]/;
  * join or override repeated headers.
  */
 export function getPublicAssetCorsHeaders(
-  nitro: Nitro,
+  fastnode: Fastnode,
   opts: { headersFile?: string } = {}
 ): { base: string; headers: Record<string, string> }[] {
-  const routeRules = nitro.options.routeRules;
+  const routeRules = fastnode.options.routeRules;
   const keys = sortRoutes(Object.keys(routeRules)).reverse();
   const entries: { base: string; files: string; headers: Record<string, string> }[] = [];
 
-  for (const asset of nitro.options.publicAssets) {
+  for (const asset of fastnode.options.publicAssets) {
     const base = asset.baseURL || "/";
     if (asset.fallthrough || base === "/") {
       continue;
@@ -39,13 +39,13 @@ export function getPublicAssetCorsHeaders(
     // Every file of the dir, but not the path of the dir itself
     const files = joinURL(base, "**:file");
     const dirKeys = keys.filter((key) => covers(key, files));
-    const cors = mergeCors(nitro, dirKeys);
+    const cors = mergeCors(fastnode, dirKeys);
     if (!cors) {
       continue;
     }
     const corsHeaders = getStaticCorsHeaders(cors);
     if (!corsHeaders) {
-      nitro.logger.warn(
+      fastnode.logger.warn(
         `Not adding CORS headers to the public assets of \`${base}\`, as their \`cors\` rule allows only some origins. Set them with \`headers\` on \`${joinURL(base, "**")}\` instead.`
       );
       continue;
@@ -66,13 +66,13 @@ export function getPublicAssetCorsHeaders(
         return true;
       }
       const inner = mergeCors(
-        nitro,
+        fastnode,
         keys.filter((other) => dirKeys.includes(other) || covers(other, path))
       );
       return !isSameHeaders(inner ? getStaticCorsHeaders(inner) : undefined, corsHeaders);
     });
     if (conflict) {
-      nitro.logger.warn(
+      fastnode.logger.warn(
         `Not adding CORS headers to the public assets of \`${base}\`, as the rule of \`${conflict}\` sets another CORS header for some of them only. Set them with \`headers\` instead.`
       );
       continue;
@@ -81,7 +81,7 @@ export function getPublicAssetCorsHeaders(
       ...dirKeys
         .flatMap((key) => Object.keys(routeRules[key]!.headers || {}))
         .map((header) => header.toLowerCase()),
-      ...getFileHeaders(opts.headersFile || "", joinURL(nitro.options.baseURL, files)),
+      ...getFileHeaders(opts.headersFile || "", joinURL(fastnode.options.baseURL, files)),
     ]);
     const headers = Object.fromEntries(
       Object.entries(corsHeaders).filter(([header]) => !userHeaders.has(header))
@@ -112,10 +112,10 @@ function covers(key: string, pattern: string): boolean {
 }
 
 /** The `cors` rules of `keys` (least specific first) merged as h3 merges them. */
-function mergeCors(nitro: Nitro, keys: string[]): CorsRule {
+function mergeCors(fastnode: Fastnode, keys: string[]): CorsRule {
   let cors: CorsRule;
   for (const key of keys) {
-    const rule = nitro.options.routeRules[key]!.cors;
+    const rule = fastnode.options.routeRules[key]!.cors;
     if (rule !== undefined) {
       cors = rule && cors ? { ...cors, ...rule } : rule;
     }

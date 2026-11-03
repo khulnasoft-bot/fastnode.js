@@ -1,9 +1,9 @@
-import { definePlugin } from "nitro";
+import { definePlugin } from "fastnode";
 // Handle older compatibility dates without the custom-spans API
 import * as cloudflare from "cloudflare:workers";
 import type { Span, Tracing } from "@cloudflare/workers-types";
-import type { IAnyValue } from "#nitro/runtime/telemetry/types";
-import { subscribeTracedChannels } from "#nitro/runtime/telemetry/subscribe";
+import type { IAnyValue } from "#fastnode/runtime/telemetry/types";
+import { subscribeTracedChannels } from "#fastnode/runtime/telemetry/subscribe";
 
 // https://developers.cloudflare.com/workers/observability/traces/custom-spans/
 const tracing = (cloudflare as { tracing?: Tracing }).tracing;
@@ -14,7 +14,7 @@ interface PendingSpan {
 }
 
 /**
- * Exports Nitro tracing-channel events as Cloudflare Workers custom spans,
+ * Exports Fastnode tracing-channel events as Cloudflare Workers custom spans,
  * alongside Cloudflare's automatic instrumentation (fetch, KV, D1, …)
  */
 export default definePlugin(() => {

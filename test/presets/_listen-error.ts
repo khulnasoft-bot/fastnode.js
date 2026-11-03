@@ -29,8 +29,8 @@ export function testListenError(
       const env: Record<string, string | undefined> = {
         ...process.env,
         ...opts.env,
-        NITRO_PORT: String(port),
-        NITRO_HOST: "127.0.0.1",
+        FASTNODE_PORT: String(port),
+        FASTNODE_HOST: "127.0.0.1",
       };
       delete env.CI;
       delete env.TEST;

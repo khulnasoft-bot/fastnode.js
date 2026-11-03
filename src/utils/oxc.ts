@@ -1,6 +1,6 @@
 import { pathToFileURL } from "node:url";
 import { resolveModulePath } from "exsolve";
-import type { OXCOptions } from "nitro/types";
+import type { OXCOptions } from "fastnode/types";
 import { resolveFromDepPath } from "./_dep-path.ts";
 import type { parseSync, transformSync } from "oxbox";
 import type { minifySync } from "rolldown/utils";
@@ -24,8 +24,8 @@ let _last: Promise<OXC> | undefined;
  * Load the oxc parser and transformer.
  *
  * Uses the native bindings of `rolldown` when it is resolvable from its explicit path (`paths`),
- * `dir` (the project root), its `vite` or Nitro itself (fast path), and falls back to `oxbox`, a
- * portable wasm build bundled with Nitro.
+ * `dir` (the project root), its `vite` or Fastnode itself (fast path), and falls back to `oxbox`, a
+ * portable wasm build bundled with Fastnode.
  *
  * Without `dir`, the last loaded instance is reused (build plugins load it with the project root
  * before any output plugin runs).

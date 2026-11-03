@@ -6,14 +6,14 @@ icon: i-lucide-brackets
 
 # Mono JSX
 
-> Server-side JSX rendering in Nitro with mono-jsx.
+> Server-side JSX rendering in Fastnode with mono-jsx.
 
 <!-- automd:ui-code-tree src="../../examples/mono-jsx" default="server.tsx" ignore="README.md,GUIDE.md" expandAll -->
 
 ::code-tree{defaultValue="server.tsx" expandAll}
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({});
 ```
@@ -22,12 +22,12 @@ export default defineConfig({});
 {
   "type": "module",
   "scripts": {
-    "dev": "nitro dev",
-    "build": "nitro build"
+    "dev": "fastnode dev",
+    "build": "fastnode build"
   },
   "devDependencies": {
+    "fastnode": "latest",
     "mono-jsx": "latest",
-    "nitro": "latest",
     "rolldown": "latest"
   }
 }
@@ -36,14 +36,14 @@ export default defineConfig({});
 ```tsx [server.tsx]
 export default () => (
   <html>
-    <h1>Nitro + mono-jsx works!</h1>
+    <h1>Fastnode + mono-jsx works!</h1>
   </html>
 );
 ```
 
 ```json [tsconfig.json]
 {
-  "extends": "nitro/tsconfig",
+  "extends": "fastnode/tsconfig",
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "mono-jsx"
@@ -53,9 +53,9 @@ export default () => (
 
 ```ts [vite.config.ts]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
-export default defineConfig({ plugins: [nitro()] });
+export default defineConfig({ plugins: [fastnode()] });
 ```
 
 ::
@@ -69,12 +69,12 @@ export default defineConfig({ plugins: [nitro()] });
 ```tsx [server.tsx]
 export default () => (
   <html>
-    <h1>Nitro + mono-jsx works!</h1>
+    <h1>Fastnode + mono-jsx works!</h1>
   </html>
 );
 ```
 
-Nitro auto-detects `server.tsx` and uses mono-jsx to transform JSX into HTML. Export a function that returns JSX, and Nitro sends the rendered HTML as the response.
+Fastnode auto-detects `server.tsx` and uses mono-jsx to transform JSX into HTML. Export a function that returns JSX, and Fastnode sends the rendered HTML as the response.
 
 <!-- /automd -->
 

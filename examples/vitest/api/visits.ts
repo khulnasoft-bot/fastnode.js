@@ -1,5 +1,5 @@
-import { defineHandler } from "nitro";
-import { useKV } from "nitro/kv";
+import { defineHandler } from "fastnode";
+import { useKV } from "fastnode/kv";
 
 export default defineHandler(async () => {
   const kv = useKV<number>();

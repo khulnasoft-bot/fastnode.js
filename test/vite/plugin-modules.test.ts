@@ -1,18 +1,18 @@
 import { fileURLToPath } from "node:url";
 import type { Plugin, PluginOption } from "vite";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import { afterEach, describe, expect, test } from "vitest";
 import { consola } from "consola";
-import { nitro } from "../../src/vite.ts";
+import { fastnode } from "../../src/vite.ts";
 
 const { resolveConfig } = (await import(
-  process.env.NITRO_VITE_PKG || "vite"
+  process.env.FASTNODE_VITE_PKG || "vite"
 )) as typeof import("vite");
 
 const rootDir = fileURLToPath(new URL("./app-fixture", import.meta.url));
 
-describe("vite: nitro modules from vite plugins", () => {
-  const instances: Nitro[] = [];
+describe("vite: fastnode modules from vite plugins", () => {
+  const instances: Fastnode[] = [];
   let installed: string[] = [];
 
   afterEach(async () => {
@@ -23,7 +23,7 @@ describe("vite: nitro modules from vite plugins", () => {
   const modulePlugin = (name: string, options: Partial<Plugin> = {}): Plugin => ({
     name,
     ...options,
-    nitro: {
+    fastnode: {
       setup(instance) {
         instances.push(instance);
         installed.push(name);
@@ -33,7 +33,7 @@ describe("vite: nitro modules from vite plugins", () => {
 
   const resolve = (plugins: PluginOption[], command: "build" | "serve" = "build") =>
     resolveConfig(
-      { root: rootDir, configFile: false, plugins: [nitro({ serverDir: "./" }), ...plugins] },
+      { root: rootDir, configFile: false, plugins: [fastnode({ serverDir: "./" }), ...plugins] },
       command
     );
 
@@ -89,7 +89,7 @@ describe("vite: nitro modules from vite plugins", () => {
     consola.setReporters([reporter]);
 
     // Vite resolves its plugin list before running config hooks, so plugins added
-    // from a `config` hook are ignored by Vite (but visible to Nitro's discovery).
+    // from a `config` hook are ignored by Vite (but visible to Fastnode's discovery).
     // Vite's types forbid this (`Omit<UserConfig, "plugins">`), hence the cast.
     const injector: Plugin = {
       name: "injector",
@@ -101,6 +101,8 @@ describe("vite: nitro modules from vite plugins", () => {
 
     expect(installed).toEqual(["applied", "injected"]);
     expect(warnings).toHaveLength(1);
-    expect(warnings[0]).toContain("`injected` registers a Nitro module but is not applied by Vite");
+    expect(warnings[0]).toContain(
+      "`injected` registers a Fastnode module but is not applied by Vite"
+    );
   });
 });

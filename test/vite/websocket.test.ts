@@ -6,7 +6,7 @@ import { join } from "pathe";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
 const rootDir = fileURLToPath(new URL("./websocket-fixture", import.meta.url));
-const vitePkg = process.env.NITRO_VITE_PKG || "vite";
+const vitePkg = process.env.FASTNODE_VITE_PKG || "vite";
 
 const hasBun = execaSync("bun", ["--version"], { stdio: "ignore", reject: false }).exitCode === 0;
 
@@ -15,10 +15,10 @@ const hasBun = execaSync("bun", ["--version"], { stdio: "ignore", reject: false 
 // child process, because the runtime under test is the one that has to run it.
 describe("dev: websocket", { concurrent: false }, () => {
   let tmpDir: string;
-  const scripts = {} as Record<"vite" | "nitro", string>;
+  const scripts = {} as Record<"vite" | "fastnode", string>;
 
   beforeAll(() => {
-    tmpDir = mkdtempSync(join(tmpdir(), "nitro-dev-ws-"));
+    tmpDir = mkdtempSync(join(tmpdir(), "fastnode-dev-ws-"));
     scripts.vite = join(tmpDir, "vite.mjs");
     writeFileSync(
       scripts.vite,
@@ -29,23 +29,23 @@ await server.listen(0);
 console.log("ready:" + server.resolvedUrls.local[0]);
 `
     );
-    scripts.nitro = join(tmpDir, "nitro.mjs");
+    scripts.fastnode = join(tmpDir, "fastnode.mjs");
     writeFileSync(
-      scripts.nitro,
+      scripts.fastnode,
       /* js */ `
-import { build, createDevServer, createNitro, prepare } from ${JSON.stringify(import.meta.resolve("nitro/builder"))};
-const nitro = await createNitro({
+import { build, createDevServer, createFastnode, prepare } from ${JSON.stringify(import.meta.resolve("fastnode/builder"))};
+const fastnode = await createFastnode({
   rootDir: ${JSON.stringify(rootDir)},
-  buildDir: ${JSON.stringify(join(tmpDir, ".nitro"))},
+  buildDir: ${JSON.stringify(join(tmpDir, ".fastnode"))},
   dev: true,
   builder: "rolldown",
   serverDir: "./",
   features: { websocket: true },
 });
-const server = await createDevServer(nitro).listen({ port: 0, hostname: "127.0.0.1" });
-const ready = new Promise((resolve) => nitro.hooks.hook("dev:reload", resolve));
-await prepare(nitro);
-await build(nitro);
+const server = await createDevServer(fastnode).listen({ port: 0, hostname: "127.0.0.1" });
+const ready = new Promise((resolve) => fastnode.hooks.hook("dev:reload", resolve));
+await prepare(fastnode);
+await build(fastnode);
 await ready;
 console.log("ready:" + server.url);
 `
@@ -56,7 +56,7 @@ console.log("ready:" + server.url);
     rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  for (const dev of ["vite", "nitro"] as const) {
+  for (const dev of ["vite", "fastnode"] as const) {
     test(`${dev} dev (node)`, () => echo(process.execPath, [scripts[dev]]), 60_000);
     test.runIf(hasBun)(`${dev} dev (bun)`, () => echo("bun", ["--bun", scripts[dev]]), 60_000);
   }

@@ -1,12 +1,12 @@
 import type { Route } from "./+types/home";
 import logoDark from "../logos/logo-dark.svg";
 import logoLight from "../logos/logo-light.svg";
-import nitroLogo from "../logos/nitro.svg";
+import fastnodeLogo from "../logos/fastnode.svg";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
-    { title: "Nitro + React Router" },
-    { name: "description", content: "React Router SSR powered by Nitro." },
+    { title: "Fastnode + React Router" },
+    { name: "description", content: "React Router SSR powered by Fastnode." },
   ];
 }
 
@@ -14,8 +14,8 @@ export default function Home() {
   return (
     <main className="mx-auto flex max-w-5xl flex-col items-center px-6 py-16 text-center sm:py-24">
       <h1 className="flex items-center gap-5 sm:gap-8">
-        <span className="sr-only">Nitro + React Router</span>
-        <img className="size-16 sm:size-24" src={nitroLogo} alt="" aria-hidden />
+        <span className="sr-only">Fastnode + React Router</span>
+        <img className="size-16 sm:size-24" src={fastnodeLogo} alt="" aria-hidden />
         <span
           className="text-4xl font-light text-gray-300 sm:text-6xl dark:text-gray-600"
           aria-hidden
@@ -28,17 +28,17 @@ export default function Home() {
         </picture>
       </h1>
       <p className="mt-6 max-w-2xl text-lg leading-8 text-gray-600 dark:text-gray-300">
-        Full-stack React Router, powered by Nitro.
+        Full-stack React Router, powered by Fastnode.
       </p>
 
       <div className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2">
         <a
           className="text-sm font-medium text-gray-700 underline decoration-gray-300 underline-offset-4 transition-colors hover:text-gray-950 hover:decoration-gray-500 dark:text-gray-300 dark:decoration-gray-700 dark:hover:text-white dark:hover:decoration-gray-500"
-          href="https://nitro.build"
+          href="https://fastnode.khulnasoft.com"
           target="_blank"
           rel="noreferrer"
         >
-          Nitro Docs ↗
+          Fastnode Docs ↗
         </a>
         <a
           className="text-sm font-medium text-gray-700 underline decoration-gray-300 underline-offset-4 transition-colors hover:text-gray-950 hover:decoration-gray-500 dark:text-gray-300 dark:decoration-gray-700 dark:hover:text-white dark:hover:decoration-gray-500"
@@ -82,11 +82,11 @@ const features = [
   },
   {
     title: "One Vite lifecycle",
-    description: "Develop and build the React Router frontend and Nitro backend together.",
+    description: "Develop and build the React Router frontend and Fastnode backend together.",
   },
   {
     title: "In-process requests",
-    description: "Call Nitro routes from loaders without an origin or network round trip.",
+    description: "Call Fastnode routes from loaders without an origin or network round trip.",
   },
   {
     title: "Routing without glue",

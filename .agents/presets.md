@@ -1,9 +1,9 @@
-# Nitro Presets Reference
+# Fastnode Presets Reference
 
 ## All Presets
 
 ### Core
-- `_nitro/` — Internal presets (dev, prerender, worker modes)
+- `_fastnode/` — Internal presets (dev, prerender, worker modes)
 - `_static/` — Internal static / prerender-only output
 - `standard/` — Framework-agnostic standard server
 - `node/` — Node.js (server, middleware, cluster)
@@ -38,7 +38,7 @@
 
 ```
 presets/<name>/
-├── preset.ts        # defineNitroPreset() — config overrides, hooks
+├── preset.ts        # defineFastnodePreset() — config overrides, hooks
 ├── runtime/         # Runtime entry points (bundled into output)
 │   └── <name>.ts    # Platform-specific request handler
 ├── types.ts         # TypeScript types (optional)
@@ -50,19 +50,19 @@ presets/<name>/
 
 ## Creating a Preset
 
-Use `defineNitroPreset()` from `src/presets/_utils/preset.ts`:
+Use `defineFastnodePreset()` from `src/presets/_utils/preset.ts`:
 
 ```ts
-import { defineNitroPreset } from "../_utils/preset.ts";
+import { defineFastnodePreset } from "../_utils/preset.ts";
 
-export default defineNitroPreset({
+export default defineFastnodePreset({
   // Preset metadata
   entry: "./runtime/<name>.ts",
-  // NitroConfig overrides
+  // FastnodeConfig overrides
   node: false,
   // Hooks
   hooks: {
-    "build:before": async (nitro) => { /* ... */ },
+    "build:before": async (fastnode) => { /* ... */ },
   },
 });
 ```

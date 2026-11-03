@@ -1,7 +1,7 @@
 import { H3, type H3Event } from "h3";
 import { runTask } from "../task.ts";
 
-import { scheduledTasks, tasks } from "#nitro/virtual/tasks";
+import { scheduledTasks, tasks } from "#fastnode/virtual/tasks";
 
 const taskHandler = async (event: H3Event) => {
   const name = event.context.params?.name;
@@ -17,7 +17,7 @@ const taskHandler = async (event: H3Event) => {
 };
 
 const app: H3 = new H3()
-  .get("/_nitro/tasks", async () => {
+  .get("/_fastnode/tasks", async () => {
     const _tasks = await Promise.all(
       Object.entries(tasks).map(async ([name, task]) => {
         const _task = await task.resolve?.();
@@ -29,7 +29,7 @@ const app: H3 = new H3()
       scheduledTasks,
     };
   })
-  .get("/_nitro/tasks/:name", taskHandler)
-  .post("/_nitro/tasks/:name", taskHandler);
+  .get("/_fastnode/tasks/:name", taskHandler)
+  .post("/_fastnode/tasks/:name", taskHandler);
 
 export default app;

@@ -1,6 +1,6 @@
-import { defineNitroPreset } from "../_utils/preset.ts";
+import { defineFastnodePreset } from "../_utils/preset.ts";
 
-const flightControl = defineNitroPreset(
+const flightControl = defineFastnodePreset(
   {
     extends: "node-server",
     serveStatic: true,

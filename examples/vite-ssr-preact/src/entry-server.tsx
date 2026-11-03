@@ -30,7 +30,7 @@ function Root(props: { url: URL }) {
         <script type="module" src={assets.entry} />
       </head>
       <body>
-        <h1 className="hero">Nitro + Vite + Preact</h1>
+        <h1 className="hero">Fastnode + Vite + Preact</h1>
         <p>URL: {props.url.href}</p>
         <div id="app">
           <App />

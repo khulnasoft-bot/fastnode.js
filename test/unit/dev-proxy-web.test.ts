@@ -1,9 +1,9 @@
 import { createServer } from "node:net";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import type { Server } from "srvx";
 import { serve } from "crossws/server";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { NitroDevApp } from "../../src/dev/app.ts";
+import { FastnodeDevApp } from "../../src/dev/app.ts";
 import { createWorkerWebSocketProxy } from "../../src/dev/_proxy.ts";
 
 const hasIPv6 = await new Promise<boolean>((resolve) => {
@@ -13,10 +13,10 @@ const hasIPv6 = await new Promise<boolean>((resolve) => {
 });
 
 function createApp(devProxy: Record<string, unknown>) {
-  return new NitroDevApp({
+  return new FastnodeDevApp({
     logger: console,
     options: { baseURL: "/", devHandlers: [], publicAssets: [], devProxy },
-  } as unknown as Nitro);
+  } as unknown as Fastnode);
 }
 
 // Requests without a Node.js request (Bun/Deno native servers) carry the client address on `ip`
@@ -49,7 +49,7 @@ describe("dev server devProxy (runtime-agnostic)", () => {
   let upstream: Server;
   let front: Server;
   let target: string;
-  let app: NitroDevApp;
+  let app: FastnodeDevApp;
 
   beforeAll(async () => {
     upstream = serve({

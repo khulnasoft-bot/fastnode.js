@@ -1,1 +1,1 @@
-export { version, runtimeDir, runtimeDependencies } from "#nitro/meta";
+export { version, runtimeDir, runtimeDependencies } from "#fastnode/meta";

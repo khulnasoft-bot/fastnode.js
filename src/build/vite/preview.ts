@@ -1,10 +1,10 @@
 import type { Plugin as VitePlugin } from "vite";
-import type { NitroPluginContext } from "./types.ts";
+import type { FastnodePluginContext } from "./types.ts";
 import { startPreview } from "../../preview.ts";
 
-export function nitroPreviewPlugin(ctx: NitroPluginContext): VitePlugin {
+export function fastnodePreviewPlugin(ctx: FastnodePluginContext): VitePlugin {
   return {
-    name: "nitro:preview",
+    name: "fastnode:preview",
     apply: (_config, configEnv) => !!configEnv.isPreview,
 
     config(config) {
@@ -16,7 +16,7 @@ export function nitroPreviewPlugin(ctx: NitroPluginContext): VitePlugin {
     },
 
     async configurePreviewServer(server) {
-      // Init Nitro preview handler
+      // Init Fastnode preview handler
       const preview = await startPreview({
         rootDir: server.config.root,
         loader: { nodeServer: server.httpServer },
@@ -27,7 +27,7 @@ export function nitroPreviewPlugin(ctx: NitroPluginContext): VitePlugin {
         await preview.close();
       });
 
-      // Handle all requests with Nitro preview handler (also handles production static assets)
+      // Handle all requests with Fastnode preview handler (also handles production static assets)
       const { NodeRequest, sendNodeResponse } = await import("srvx/node");
       server.middlewares.use(async (req, res, next) => {
         const nodeReq = new NodeRequest({ req, res });
@@ -35,7 +35,7 @@ export function nitroPreviewPlugin(ctx: NitroPluginContext): VitePlugin {
         await sendNodeResponse(res, previewRes).catch(next);
       });
 
-      // Handle WebSocket upgrade requests with Nitro preview handler if supported
+      // Handle WebSocket upgrade requests with Fastnode preview handler if supported
       if (preview.upgrade) {
         server.httpServer.on("upgrade", (req, socket, head) => {
           preview.upgrade!(req, socket, head);

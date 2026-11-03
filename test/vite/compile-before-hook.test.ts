@@ -4,7 +4,7 @@ import { existsSync } from "node:fs";
 import { readFile, rm, writeFile } from "node:fs/promises";
 import zlib from "node:zlib";
 import { beforeAll, describe, expect, it } from "vitest";
-import { build, createNitro, prepare } from "nitro/builder";
+import { build, createFastnode, prepare } from "fastnode/builder";
 
 // #4428: modules need a point to emit files into the public output dir that is late
 // enough to be after `copyPublicAssets()` and prerendering, but still early enough for
@@ -19,24 +19,24 @@ describe("vite: vite:compile:before hook", () => {
 
   beforeAll(async () => {
     await rm(outDir, { recursive: true, force: true });
-    const nitro = await createNitro({
+    const fastnode = await createFastnode({
       rootDir: fixtureDir,
       output: { dir: outDir },
       builder: "vite",
       compressPublicAssets: true,
       hooks: {
-        "vite:compile:before": async (nitro) => {
+        "vite:compile:before": async (fastnode) => {
           calls.push("vite:compile:before");
           await writeFile(
-            join(nitro.options.output.publicDir, "emitted-by-hook.txt"),
+            join(fastnode.options.output.publicDir, "emitted-by-hook.txt"),
             "emitted".repeat(200),
             "utf8"
           );
         },
-        compiled: async (nitro) => {
+        compiled: async (fastnode) => {
           calls.push("compiled");
-          serverEntry = join(nitro.options.output.serverDir, "index.mjs");
-          publicDir = nitro.options.output.publicDir;
+          serverEntry = join(fastnode.options.output.serverDir, "index.mjs");
+          publicDir = fastnode.options.output.publicDir;
           await writeFile(
             join(publicDir, "emitted-by-compiled.txt"),
             "emitted".repeat(200),
@@ -46,10 +46,10 @@ describe("vite: vite:compile:before hook", () => {
       },
     });
     try {
-      await prepare(nitro);
-      await build(nitro);
+      await prepare(fastnode);
+      await build(fastnode);
     } finally {
-      await nitro.close();
+      await fastnode.close();
     }
   }, 60_000);
 

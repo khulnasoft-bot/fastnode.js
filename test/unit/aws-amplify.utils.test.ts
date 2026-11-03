@@ -8,7 +8,7 @@ describe("aws-amplify utils", () => {
   let outDir: string;
 
   beforeEach(async () => {
-    outDir = await mkdtemp(join(tmpdir(), "nitro-amplify-"));
+    outDir = await mkdtemp(join(tmpdir(), "fastnode-amplify-"));
     await mkdir(join(outDir, "compute/default"), { recursive: true });
   });
 
@@ -17,7 +17,7 @@ describe("aws-amplify utils", () => {
   });
 
   async function getComputeRuntime(awsAmplify?: Record<string, unknown>) {
-    const nitro = {
+    const fastnode = {
       options: {
         output: { dir: outDir },
         static: false,
@@ -27,7 +27,7 @@ describe("aws-amplify utils", () => {
         awsAmplify,
       },
     } as any;
-    await writeAmplifyFiles(nitro);
+    await writeAmplifyFiles(fastnode);
     const manifest = JSON.parse(await readFile(join(outDir, "deploy-manifest.json"), "utf8"));
     return manifest.computeResources[0].runtime;
   }

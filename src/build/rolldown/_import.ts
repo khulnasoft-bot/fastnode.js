@@ -1,7 +1,7 @@
 import { pathToFileURL } from "node:url";
 import { resolveModulePath } from "exsolve";
 import { resolveFromDepPath } from "../../utils/_dep-path.ts";
-import type { NitroDepsOptions } from "nitro/types";
+import type { FastnodeDepsOptions } from "fastnode/types";
 import { ensureDep, missingDepError } from "../../utils/dep.ts";
 
 /**
@@ -32,12 +32,12 @@ export function resolveRolldown(
 /**
  * Import `rolldown` from the user project, prompting to install it if missing.
  *
- * Nitro does not depend on `rolldown` itself: the version installed next to the app is the
+ * Fastnode does not depend on `rolldown` itself: the version installed next to the app is the
  * version that runs.
  */
 export async function importRolldown(
   dir: string,
-  opts: { deps?: NitroDepsOptions } = {}
+  opts: { deps?: FastnodeDepsOptions } = {}
 ): Promise<typeof import("rolldown")> {
   // An explicit path is resolved through `ensureDep` too, which checks its version
   const paths = opts.deps?.paths;

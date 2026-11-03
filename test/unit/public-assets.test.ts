@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { dirname, join, normalize, resolve } from "pathe";
 import { afterEach, describe, expect, it } from "vitest";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 
 import publicAssets from "../../src/build/virtual/public-assets.ts";
 
@@ -22,19 +22,19 @@ const ASSETS: Record<string, { path: string }> = {
 };
 
 // Return the `node` reader source, asserting the production selection logic in
-// `#nitro/virtual/public-assets` routes `serveStatic: true` (used by all node-based
+// `#fastnode/virtual/public-assets` routes `serveStatic: true` (used by all node-based
 // presets) to it.
 function nodeReaderTemplate(): string {
-  const nitro = {
+  const fastnode = {
     options: { serveStatic: true, baseURL: "/", publicAssets: [] },
-  } as unknown as Nitro;
-  const templates = publicAssets(nitro);
+  } as unknown as Fastnode;
+  const templates = publicAssets(fastnode);
   const main = (
-    templates.find((t) => t.id === "#nitro/virtual/public-assets")!.template as () => string
+    templates.find((t) => t.id === "#fastnode/virtual/public-assets")!.template as () => string
   )();
-  expect(main).toContain(`from "#nitro/virtual/public-assets-node"`);
+  expect(main).toContain(`from "#fastnode/virtual/public-assets-node"`);
 
-  const reader = templates.find((t) => t.id === "#nitro/virtual/public-assets-node")?.template;
+  const reader = templates.find((t) => t.id === "#fastnode/virtual/public-assets-node")?.template;
   if (typeof reader !== "function") {
     throw new Error("node reader template not found");
   }
@@ -53,7 +53,7 @@ function loadReadAsset(template: string, readFile?: () => Promise<unknown>) {
   };
   // Strip the (single-line) imports and bridge their bindings in as args instead.
   const body = template.replace(/^\s*import\s.*$/gm, "").replace(/export\s+function/, "function");
-  (globalThis as any).__nitro_main__ = SERVER_MAIN;
+  (globalThis as any).__fastnode_main__ = SERVER_MAIN;
   const readAsset = new Function(
     "fsp",
     "fileURLToPath",
@@ -67,7 +67,7 @@ function loadReadAsset(template: string, readFile?: () => Promise<unknown>) {
 
 describe("virtual/public-assets node reader", () => {
   afterEach(() => {
-    delete (globalThis as any).__nitro_main__;
+    delete (globalThis as any).__fastnode_main__;
   });
 
   it("serves a normal public asset from within public/", async () => {
@@ -116,7 +116,7 @@ describe("public assets manifest", () => {
   });
 
   it("lists assets in the same order on every build", async () => {
-    const outDir = await mkdtemp(join(tmpdir(), "nitro-public-assets-"));
+    const outDir = await mkdtemp(join(tmpdir(), "fastnode-public-assets-"));
     tempDirs.push(outDir);
     const publicDir = join(outDir, "public");
     // Large files first, so reads finish out of name order
@@ -125,7 +125,7 @@ describe("public assets manifest", () => {
     for (const [i, name] of names.entries()) {
       await writeFile(join(publicDir, name), "x".repeat((names.length - i) * 20_000));
     }
-    const nitro = {
+    const fastnode = {
       options: {
         dev: false,
         baseURL: "/",
@@ -133,9 +133,10 @@ describe("public assets manifest", () => {
         publicAssets: [],
         output: { publicDir, serverDir: join(outDir, "server") },
       },
-    } as unknown as Nitro;
-    const template = publicAssets(nitro).find((t) => t.id === "#nitro/virtual/public-assets-data")!
-      .template as () => Promise<string>;
+    } as unknown as Fastnode;
+    const template = publicAssets(fastnode).find(
+      (t) => t.id === "#fastnode/virtual/public-assets-data"
+    )!.template as () => Promise<string>;
     const keys = (code: string) =>
       Object.keys(JSON.parse(code.replace(/^export default |;$/g, "")));
     expect(keys(await template())).toEqual(names.map((name) => `/${name}`));

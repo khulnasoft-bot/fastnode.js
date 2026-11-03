@@ -1,6 +1,6 @@
 import type { H3Event } from "h3";
 
-export const DEV_RELOAD_ROUTE = "/_nitro/dev/reload";
+export const DEV_RELOAD_ROUTE = "/_fastnode/dev/reload";
 
 const WAIT_TIMEOUT = 25_000;
 

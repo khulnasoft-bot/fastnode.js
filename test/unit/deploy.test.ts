@@ -11,7 +11,7 @@ vi.mock("node:child_process", () => ({ execSync: execSyncMock }));
 let rootDir: string;
 let outputDir: string;
 
-function mockNitro(commands: Record<string, unknown> = {}) {
+function mockFastnode(commands: Record<string, unknown> = {}) {
   return {
     options: {
       preset: "test-preset",
@@ -23,11 +23,11 @@ function mockNitro(commands: Record<string, unknown> = {}) {
 }
 
 beforeAll(async () => {
-  rootDir = await mkdtemp(join(tmpdir(), "nitro-deploy-"));
+  rootDir = await mkdtemp(join(tmpdir(), "fastnode-deploy-"));
   outputDir = join(rootDir, "dist", "server-output");
   await mkdir(outputDir, { recursive: true });
   await writeFile(
-    join(outputDir, "nitro.json"),
+    join(outputDir, "fastnode.json"),
     JSON.stringify({ preset: "test-preset", commands: { deploy: "echo deploy" } })
   );
 });
@@ -42,7 +42,7 @@ beforeEach(() => {
 
 describe("deploy", () => {
   it("runs the deploy command relative to rootDir", async () => {
-    await deploy(mockNitro({ deploy: "npx tool deploy ./ --config ./tool.json" }), {
+    await deploy(mockFastnode({ deploy: "npx tool deploy ./ --config ./tool.json" }), {
       args: ["--extra", "flag"],
     });
     expect(execSyncMock).toHaveBeenCalledWith(
@@ -52,7 +52,7 @@ describe("deploy", () => {
   });
 
   it("rewrites a leading ./ path", async () => {
-    await deploy(mockNitro({ deploy: "./deploy.sh --out ./" }));
+    await deploy(mockFastnode({ deploy: "./deploy.sh --out ./" }));
     expect(execSyncMock).toHaveBeenCalledWith(
       "dist/server-output/deploy.sh --out dist/server-output/",
       { stdio: "inherit", cwd: rootDir }
@@ -61,22 +61,22 @@ describe("deploy", () => {
 
   it("calls a function deploy command", async () => {
     const fn = vi.fn();
-    const nitro = mockNitro({ deploy: fn });
-    await deploy(nitro, { args: ["--flag"] });
-    expect(fn).toHaveBeenCalledWith(nitro, { args: ["--flag"] });
+    const fastnode = mockFastnode({ deploy: fn });
+    await deploy(fastnode, { args: ["--flag"] });
+    expect(fn).toHaveBeenCalledWith(fastnode, { args: ["--flag"] });
     expect(execSyncMock).not.toHaveBeenCalled();
   });
 
   it("throws when the preset has no deploy command", async () => {
-    await expect(deploy(mockNitro())).rejects.toThrow(
+    await expect(deploy(mockFastnode())).rejects.toThrow(
       "The `test-preset` preset does not have a default deploy command."
     );
   });
 
   it("throws when there is no build output", async () => {
-    const nitro = mockNitro({ deploy: "echo deploy" });
-    nitro.options.output.dir = join(rootDir, "missing");
-    await expect(deploy(nitro)).rejects.toThrow("Make sure to build first");
+    const fastnode = mockFastnode({ deploy: "echo deploy" });
+    fastnode.options.output.dir = join(rootDir, "missing");
+    await expect(deploy(fastnode)).rejects.toThrow("Make sure to build first");
     expect(execSyncMock).not.toHaveBeenCalled();
   });
 });

@@ -2,8 +2,8 @@ Virtual routes let you define handlers as strings in your config instead of crea
 
 ## Configuration
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   routes: {
@@ -16,6 +16,6 @@ export default defineConfig({
 });
 ```
 
-The `routes` option maps URL paths to virtual module identifiers (prefixed with `#`). The `virtual` option defines the module content as a string or function returning a string. At build time, Nitro resolves these virtual modules to actual handlers.
+The `routes` option maps URL paths to virtual module identifiers (prefixed with `#`). The `virtual` option defines the module content as a string or function returning a string. At build time, Fastnode resolves these virtual modules to actual handlers.
 
-There are no route files in this project. The entire handler is defined inline in the config, and Nitro generates the route at build time.
+There are no route files in this project. The entire handler is defined inline in the config, and Fastnode generates the route at build time.

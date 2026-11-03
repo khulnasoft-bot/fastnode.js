@@ -1,10 +1,10 @@
 blank_issues_enabled: true
 contact_links:
-  - name: 📚 Nitro Documentation
-    url: https://nitro.build/
+  - name: 📚 Fastnode Documentation
+    url: https://fastnode.khulnasoft.com/
     about: Check the documentation for usage of Nuxt 3
   - name: 💬 Discussions
-    url: https://github.com/nitrojs/nitro/discussions
+    url: https://github.com/khulnasoft/fastnode/discussions
     about: Use discussions if you have an idea for improvement and asking questions
   - name: 🔗 Nuxt related Issues
     url: https://github.com/nuxt/nuxt/issues/new/choose

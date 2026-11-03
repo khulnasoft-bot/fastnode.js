@@ -9,9 +9,9 @@ describe("prerender worker startup", () => {
   });
 
   it("waits for a slow-starting worker before rendering the first route", async () => {
-    const { nitro, outDir } = await prerenderFixture("slow-start-fixture");
+    const { fastnode, outDir } = await prerenderFixture("slow-start-fixture");
 
-    const routes = nitro._prerenderedRoutes!;
+    const routes = fastnode._prerenderedRoutes!;
     expect(routes.map((r) => [r.route, r.error?.status])).toEqual([["/", undefined]]);
     expect(await readFile(join(outDir, "public/index.html"), "utf8")).toBe(
       `<!DOCTYPE html><html><body>rendered /</body></html>`

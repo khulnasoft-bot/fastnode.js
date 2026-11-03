@@ -9,7 +9,7 @@ import type { Context } from "../tests.ts";
  */
 export function testBuiltinImports(ctx: Context) {
   it("externalizes builtins imported by their bare id with the `node:` prefix", async () => {
-    const serverDir = ctx.nitro!.options.output.serverDir;
+    const serverDir = ctx.fastnode!.options.output.serverDir;
     const files = (await fsp.readdir(serverDir, { recursive: true })).filter((f) =>
       f.endsWith(".mjs")
     );

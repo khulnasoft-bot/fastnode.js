@@ -1,7 +1,7 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import type { H3Event } from "h3";
 import { HTTPError } from "h3";
-import { presetsDir } from "#nitro/meta";
+import { presetsDir } from "#fastnode/meta";
 import { resolveModulePath } from "exsolve";
 import { joinURL } from "ufo";
 import { isLocalDevRequest } from "../../dev/_request.ts";
@@ -18,7 +18,7 @@ import type { VercelFunctionTrigger, VercelSchedule } from "./types.ts";
 
 /** Dev-only route that `vercel dev` fetches to register the schedules with its broker. */
 const DEV_MANIFEST_ROUTE = "/_vercel/dev-manifest";
-const DEV_MANIFEST_ID = "#nitro/virtual/vercel-dev-manifest";
+const DEV_MANIFEST_ID = "#fastnode/virtual/vercel-dev-manifest";
 
 export interface VercelDevManifest {
   /** Functions with a deployment identity, and where the dev server serves them. Empty in `public` mode. */
@@ -28,7 +28,7 @@ export interface VercelDevManifest {
     invocation: { type: "http"; pathname: string };
     experimentalTriggers: VercelFunctionTrigger[];
   }[];
-  /** Build Output API `schedules` keyed by name, as emitted by `nitro build`. */
+  /** Build Output API `schedules` keyed by name, as emitted by `fastnode build`. */
   schedules: Record<string, VercelSchedule>;
 }
 
@@ -43,13 +43,13 @@ export interface VercelDevManifest {
  * broker, serves the scheduled task handler and hands scheduling over to the broker.
  *
  */
-export async function vercelDevModule(nitro: Nitro) {
-  if (!nitro.options.dev) {
+export async function vercelDevModule(fastnode: Fastnode) {
+  if (!fastnode.options.dev) {
     return;
   }
 
-  setupVercelSchedulesDev(nitro);
-  setupVercelQueuesDev(nitro);
+  setupVercelSchedulesDev(fastnode);
+  setupVercelQueuesDev(fastnode);
 }
 
 /**
@@ -57,14 +57,14 @@ export async function vercelDevModule(nitro: Nitro) {
  * scheduled tasks with its local Schedules broker, and the handler the broker invokes. The
  * broker then owns task scheduling instead of the in-process scheduler.
  */
-export function setupVercelSchedulesDev(nitro: Nitro) {
+export function setupVercelSchedulesDev(fastnode: Fastnode) {
   if (!process.env.VERCEL_SCHEDULE_DEV_API_VERSION) {
     return;
   }
 
-  nitro.options.virtual[DEV_MANIFEST_ID] = () =>
-    /* js */ `export default () => (${JSON.stringify(getVercelDevManifest(nitro))});`;
-  nitro.options.handlers.push({
+  fastnode.options.virtual[DEV_MANIFEST_ID] = () =>
+    /* js */ `export default () => (${JSON.stringify(getVercelDevManifest(fastnode))});`;
+  fastnode.options.handlers.push({
     route: DEV_MANIFEST_ROUTE,
     method: "GET",
     lazy: true,
@@ -72,40 +72,40 @@ export function setupVercelSchedulesDev(nitro: Nitro) {
   });
 
   const localRoutes = [DEV_MANIFEST_ROUTE];
-  const mode = getVercelSchedulesMode(nitro.options);
+  const mode = getVercelSchedulesMode(fastnode.options);
   if (mode) {
-    localRoutes.push(registerScheduleHandler(nitro, mode));
+    localRoutes.push(registerScheduleHandler(fastnode, mode));
     // The broker invokes the handler on schedule, so the in-process scheduler must not.
-    nitro.options.scheduler.runner = false;
-    nitro.logger
+    fastnode.options.scheduler.runner = false;
+    fastnode.logger
       .withTag("vercel")
       .info("Scheduled tasks are run by the `vercel dev` Schedules broker.");
   }
-  assertLocalDevRoutes(nitro, localRoutes);
+  assertLocalDevRoutes(fastnode, localRoutes);
 }
 
-function setupVercelQueuesDev(nitro: Nitro) {
-  const triggers = nitro.options.vercel?.queues?.triggers;
+function setupVercelQueuesDev(fastnode: Fastnode) {
+  const triggers = fastnode.options.vercel?.queues?.triggers;
   if (!triggers?.length) {
     return;
   }
 
-  if (nitro.options.devServer.runner !== "vercel") {
+  if (fastnode.options.devServer.runner !== "vercel") {
     throw new Error(
-      `[vercel:queue] Local queue delivery requires the \`vercel\` dev runner, but \`devServer.runner\` is set to "${nitro.options.devServer.runner}". Remove the \`devServer.runner\` override in your \`nitro.config.ts\` or set it explicitly to \`"vercel"\`.`
+      `[vercel:queue] Local queue delivery requires the \`vercel\` dev runner, but \`devServer.runner\` is set to "${fastnode.options.devServer.runner}". Remove the \`devServer.runner\` override in your \`fastnode.config.ts\` or set it explicitly to \`"vercel"\`.`
     );
   }
 
   // Propagate triggers to the runtime plugin via runtimeConfig.
-  nitro.options.runtimeConfig.vercel = {
-    ...nitro.options.runtimeConfig.vercel,
+  fastnode.options.runtimeConfig.vercel = {
+    ...fastnode.options.runtimeConfig.vercel,
     queues: {
       triggers: triggers.map((t) => ({ ...t })),
     },
   };
 
-  nitro.options.plugins = nitro.options.plugins || [];
-  nitro.options.plugins.unshift(
+  fastnode.options.plugins = fastnode.options.plugins || [];
+  fastnode.options.plugins.unshift(
     resolveModulePath("./vercel/runtime/queue.dev", {
       from: presetsDir,
       extensions: [".mjs", ".ts"],
@@ -114,18 +114,21 @@ function setupVercelQueuesDev(nitro: Nitro) {
 }
 
 /** The functions and schedules that `vercel dev` registers with its local Schedules broker. */
-function getVercelDevManifest(nitro: Nitro): VercelDevManifest {
-  const schedules = getVercelBuildOutputSchedules(nitro);
-  if (Object.keys(schedules).length === 0 || getVercelSchedulesMode(nitro.options) === "public") {
+function getVercelDevManifest(fastnode: Fastnode): VercelDevManifest {
+  const schedules = getVercelBuildOutputSchedules(fastnode);
+  if (
+    Object.keys(schedules).length === 0 ||
+    getVercelSchedulesMode(fastnode.options) === "public"
+  ) {
     return { functions: [], schedules };
   }
   return {
     functions: [
       {
-        outputPath: getScheduleFunctionPath(nitro),
+        outputPath: getScheduleFunctionPath(fastnode),
         invocation: {
           type: "http",
-          pathname: joinURL(nitro.options.baseURL, SCHEDULE_HANDLER_ROUTE),
+          pathname: joinURL(fastnode.options.baseURL, SCHEDULE_HANDLER_ROUTE),
         },
         experimentalTriggers: [SCHEDULE_TRIGGER],
       },
@@ -136,9 +139,9 @@ function getVercelDevManifest(nitro: Nitro): VercelDevManifest {
 
 /**
  * Rejects non-local requests to the dev-only routes before they reach the worker, like the
- * `/_nitro/tasks` routes: the dev server binds all interfaces by default.
+ * `/_fastnode/tasks` routes: the dev server binds all interfaces by default.
  */
-function assertLocalDevRoutes(nitro: Nitro, routes: string[]) {
+function assertLocalDevRoutes(fastnode: Fastnode, routes: string[]) {
   const assertLocal = (event: H3Event) => {
     if (!isLocalDevRequest(event)) {
       throw new HTTPError({ statusText: "Forbidden IP", status: 403 });
@@ -146,8 +149,8 @@ function assertLocalDevRoutes(nitro: Nitro, routes: string[]) {
   };
   for (const route of routes) {
     for (const pattern of [route, joinURL(route, "**")]) {
-      nitro.options.devHandlers.push({
-        route: joinURL(nitro.options.baseURL, pattern),
+      fastnode.options.devHandlers.push({
+        route: joinURL(fastnode.options.baseURL, pattern),
         middleware: true,
         handler: assertLocal,
       });

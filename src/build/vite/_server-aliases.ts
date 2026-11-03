@@ -1,5 +1,5 @@
 import type { Plugin as VitePlugin } from "vite";
-import type { NitroPluginContext } from "./types.ts";
+import type { FastnodePluginContext } from "./types.ts";
 import { normalizeAliases, resolveAlias } from "pathe/utils";
 
 /**
@@ -7,11 +7,11 @@ import { normalizeAliases, resolveAlias } from "pathe/utils";
  * resolve them). `resolveAlias` re-normalizes a plain alias map on each call, so the map is
  * normalized once per bundler config instead, as this hook runs for every module id.
  */
-export function nitroServerAliases(ctx: NitroPluginContext): VitePlugin {
+export function fastnodeServerAliases(ctx: FastnodePluginContext): VitePlugin {
   let source: Record<string, string> | undefined;
   let aliases: Record<string, string> = {};
   return {
-    name: "nitro:server-aliases",
+    name: "fastnode:server-aliases",
     enforce: "pre",
     applyToEnvironment: (env) => env.name !== "client" && env.config?.consumer !== "client",
 

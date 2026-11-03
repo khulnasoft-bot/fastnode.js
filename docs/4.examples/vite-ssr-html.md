@@ -6,7 +6,7 @@ icon: i-material-symbols-html
 
 # Vite SSR HTML
 
-> Server-side rendering with vanilla HTML, Vite, and Nitro.
+> Server-side rendering with vanilla HTML, Vite, and Fastnode.
 
 
 <!-- automd:ui-code-tree src="../../examples/vite-ssr-html" default="app/entry-server.ts" ignore="README.md,GUIDE.md" expandAll -->
@@ -19,7 +19,7 @@ icon: i-material-symbols-html
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nitro Quotes</title>
+    <title>Fastnode Quotes</title>
     <style>
       @import "tailwindcss";
     </style>
@@ -57,8 +57,8 @@ icon: i-material-symbols-html
         and
         <a
           class="text-white no-underline border-b border-white/30 hover:border-white transition-colors"
-          href="https://github.com/nitrojs/nitro"
-          >Nitro v3</a
+          href="https://github.com/khulnasoft/fastnode"
+          >Fastnode v1</a
         >.
       </div>
     </div>
@@ -120,7 +120,7 @@ icon: i-material-symbols-html
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
-    "nitro": "latest",
+    "fastnode": "latest",
     "tailwindcss": "^4.3.3",
     "vite": "latest"
   }
@@ -129,19 +129,19 @@ icon: i-material-symbols-html
 
 ```json [tsconfig.json]
 {
-  "extends": "nitro/tsconfig"
+  "extends": "fastnode/tsconfig"
 }
 ```
 
 ```ts [vite.config.ts]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   plugins: [
-    nitro({
+    fastnode({
       serverDir: "./",
     }),
     tailwindcss(),
@@ -150,7 +150,7 @@ export default defineConfig({
 ```
 
 ```ts [app/entry-server.ts]
-import { fetch } from "nitro";
+import { fetch } from "fastnode";
 
 export default {
   async fetch() {
@@ -209,20 +209,20 @@ export default async function quotesHandler() {
 
 <!-- automd:file src="../../examples/vite-ssr-html/README.md" -->
 
-This example renders an HTML template with server-side data and streams the response word by word. It demonstrates how to use Nitro's Vite SSR integration without a framework.
+This example renders an HTML template with server-side data and streams the response word by word. It demonstrates how to use Fastnode's Vite SSR integration without a framework.
 
 ## Overview
 
-1. **Add the Nitro Vite plugin** to enable SSR
+1. **Add the Fastnode Vite plugin** to enable SSR
 2. **Create an HTML template** with a `<!--ssr-outlet-->` comment where server content goes
 3. **Create a server entry** that fetches data and returns a stream
 4. **Add API routes** for server-side data
 
 ## How It Works
 
-The `index.html` file contains an `<!--ssr-outlet-->` comment that marks where server-rendered content will be inserted. Nitro replaces this comment with the output from your server entry.
+The `index.html` file contains an `<!--ssr-outlet-->` comment that marks where server-rendered content will be inserted. Fastnode replaces this comment with the output from your server entry.
 
-The server entry exports an object with a `fetch` method. It calls the `/quote` API route using Nitro's internal fetch, then returns a `ReadableStream` that emits the quote text word by word with a 50ms delay between each word.
+The server entry exports an object with a `fetch` method. It calls the `/quote` API route using Fastnode's internal fetch, then returns a `ReadableStream` that emits the quote text word by word with a 50ms delay between each word.
 
 The quote route fetches a JSON file of quotes from GitHub, caches the result, and returns a random quote. The server entry calls this route to get content for the page.
 

@@ -3,7 +3,7 @@ import { viteAliased } from "@vite-aliased";
 import { defu } from "defu";
 import { fallback } from "@fallback";
 import { greeting } from "@greeting";
-import { HTTPError } from "nitro/h3";
+import { HTTPError } from "fastnode/h3";
 import { sum } from "~app/utils/math";
 // CommonJS packages mapped to types
 import etag from "etag";

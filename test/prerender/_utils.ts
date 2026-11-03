@@ -1,8 +1,8 @@
 import { mkdir, rm } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { join } from "pathe";
-import { build, copyPublicAssets, createNitro, prepare, prerender } from "nitro/builder";
-import type { LoadConfigOptions } from "nitro/types";
+import { build, copyPublicAssets, createFastnode, prepare, prerender } from "fastnode/builder";
+import type { LoadConfigOptions } from "fastnode/types";
 
 const tmpDir = fileURLToPath(new URL("./.tmp", import.meta.url));
 
@@ -11,7 +11,7 @@ export async function prerenderFixture(name: string, opts?: LoadConfigOptions) {
   await rm(outDir, { recursive: true, force: true });
   await mkdir(outDir, { recursive: true });
 
-  const nitro = await createNitro(
+  const fastnode = await createFastnode(
     {
       rootDir: fileURLToPath(new URL(`./${name}`, import.meta.url)),
       preset: "static",
@@ -22,15 +22,15 @@ export async function prerenderFixture(name: string, opts?: LoadConfigOptions) {
   );
 
   try {
-    await prepare(nitro);
-    await copyPublicAssets(nitro);
-    await prerender(nitro);
-    await build(nitro);
+    await prepare(fastnode);
+    await copyPublicAssets(fastnode);
+    await prerender(fastnode);
+    await build(fastnode);
   } finally {
-    await nitro.close();
+    await fastnode.close();
   }
 
-  return { nitro, outDir };
+  return { fastnode, outDir };
 }
 
 export async function cleanupFixtures(names: string[]) {

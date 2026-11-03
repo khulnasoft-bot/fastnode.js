@@ -1,6 +1,6 @@
 # Zerops
 
-> Deploy Nitro apps to [Zerops](https://zerops.io).
+> Deploy Fastnode apps to [Zerops](https://zerops.io).
 
 **Preset:** `zerops`
 
@@ -16,7 +16,7 @@ Projects and services can be added through the [Zerops dashboard](https://app.ze
 
 ```yml [zerops-project-import.yaml (node.js)]
 project:
-  name: nitro-app
+  name: fastnode-app
 
 services:
   - hostname: app
@@ -26,7 +26,7 @@ services:
 
 ```yml [zerops-project-import.yaml (static)]
 project:
-  name: nitro-app
+  name: fastnode-app
 
 services:
   - hostname: app
@@ -46,7 +46,7 @@ zerops:
     build:
       base: nodejs@22
       envVariables:
-        NITRO_PRESET: zerops
+        FASTNODE_PRESET: zerops
       buildCommands:
         - pnpm i
         - pnpm run build
@@ -68,7 +68,7 @@ zerops:
     build:
       base: nodejs@22
       envVariables:
-        NITRO_PRESET: zerops_static
+        FASTNODE_PRESET: zerops_static
       buildCommands:
         - pnpm i
         - pnpm build

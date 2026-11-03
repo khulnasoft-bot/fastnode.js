@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { consola } from "consola";
 import { findTypeExports } from "mlly";
-import type { NitroPreset, NitroPresetMeta } from "nitro/types";
+import type { FastnodePreset, FastnodePresetMeta } from "fastnode/types";
 import { camelCase, kebabCase, pascalCase, snakeCase } from "scule";
 
 const autoGenHeader = /* ts */ `// Auto-generated using gen-presets script\n`;
@@ -20,7 +20,7 @@ const presetDirs: string[] = readdirSync(presetsDir, { withFileTypes: true })
   .map((dir) => dir.name);
 
 // --- Load presets ---
-const allPresets: (NitroPreset & { _meta?: NitroPresetMeta })[] = [];
+const allPresets: (FastnodePreset & { _meta?: FastnodePresetMeta })[] = [];
 for (const preset of presetDirs) {
   const presetPath = resolve(presetsDir, preset, "preset.ts");
   const _presets = await import(pathToFileURL(presetPath).href).then(

@@ -1,17 +1,19 @@
-import type { NitroRuntimeConfig } from "nitro/types";
+import type { FastnodeRuntimeConfig } from "fastnode/types";
 import { snakeCase } from "scule";
-import { runtimeConfig } from "#nitro/virtual/runtime-config";
+import { runtimeConfig } from "#fastnode/virtual/runtime-config";
 
-export function useRuntimeConfig(): NitroRuntimeConfig {
+export function useRuntimeConfig(): FastnodeRuntimeConfig {
   return ((useRuntimeConfig as any)._cached ||= getRuntimeConfig());
 }
 
 function getRuntimeConfig() {
   const env = globalThis.process?.env || {};
   applyEnv(runtimeConfig, {
-    prefix: "NITRO_",
-    altPrefix: runtimeConfig.nitro?.envPrefix ?? env?.NITRO_ENV_PREFIX ?? "_",
-    envExpansion: Boolean(runtimeConfig.nitro?.envExpansion ?? env?.NITRO_ENV_EXPANSION ?? false),
+    prefix: "FASTNODE_",
+    altPrefix: runtimeConfig.fastnode?.envPrefix ?? env?.FASTNODE_ENV_PREFIX ?? "_",
+    envExpansion: Boolean(
+      runtimeConfig.fastnode?.envExpansion ?? env?.FASTNODE_ENV_EXPANSION ?? false
+    ),
   });
   return runtimeConfig;
 }

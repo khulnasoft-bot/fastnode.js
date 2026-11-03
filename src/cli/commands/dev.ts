@@ -1,7 +1,7 @@
-import type { Nitro, NitroConfig } from "nitro/types";
+import type { Fastnode, FastnodeConfig } from "fastnode/types";
 import { defineCommand } from "citty";
 import { consola } from "consola";
-import { build, createNitro, prepare } from "nitro/builder";
+import { build, createFastnode, prepare } from "fastnode/builder";
 import { resolve } from "pathe";
 import { commonArgs } from "../common.ts";
 import { createDevServer } from "../../dev/server.ts";
@@ -39,25 +39,25 @@ export async function runDev(opts: {
   port?: string;
   host?: string;
   envName?: string;
-  config?: NitroConfig;
+  config?: FastnodeConfig;
 }) {
-  let nitro: Nitro;
+  let fastnode: Fastnode;
   // Watcher errors (e.g. ENOSPC) from bundler internals cannot be handled at the source
   process.on("uncaughtException", (error) => {
     if ((error as NodeJS.ErrnoException)?.syscall !== "watch") {
       throw error;
     }
-    onWatchError(nitro || { logger: consola }, error);
+    onWatchError(fastnode || { logger: consola }, error);
   });
   const reload = async () => {
-    if (nitro) {
+    if (fastnode) {
       consola.info("Restarting dev server...");
-      if ("unwatch" in nitro.options._c12) {
-        await nitro.options._c12.unwatch();
+      if ("unwatch" in fastnode.options._c12) {
+        await fastnode.options._c12.unwatch();
       }
-      await nitro.close();
+      await fastnode.close();
     }
-    nitro = await createNitro(
+    fastnode = await createFastnode(
       {
         ...opts.config,
         rootDir: opts.rootDir,
@@ -76,25 +76,25 @@ export async function runDev(opts: {
             }
 
             consola.info(
-              "Nitro config updated:\n" + diff.map((entry) => `  ${entry.toString()}`).join("\n")
+              "Fastnode config updated:\n" + diff.map((entry) => `  ${entry.toString()}`).join("\n")
             );
 
             await (diff.every((e) => hmrKeyRe.test(e.key))
-              ? nitro.updateConfig(newConfig.config || {}) // Hot reload
+              ? fastnode.updateConfig(newConfig.config || {}) // Hot reload
               : reload()); // Full reload
           },
         },
       }
     );
-    nitro.hooks.hookOnce("restart", reload);
-    const server = createDevServer(nitro);
+    fastnode.hooks.hookOnce("restart", reload);
+    const server = createDevServer(fastnode);
 
     await server.listen({
-      port: opts.port || nitro.options.devServer.port,
-      hostname: opts.host || nitro.options.devServer.hostname,
+      port: opts.port || fastnode.options.devServer.port,
+      hostname: opts.host || fastnode.options.devServer.hostname,
     });
-    await prepare(nitro);
-    await build(nitro);
+    await prepare(fastnode);
+    await build(fastnode);
   };
   await reload();
 }

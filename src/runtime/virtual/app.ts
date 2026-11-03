@@ -1,18 +1,18 @@
 import "./_runtime_warn.ts";
-import type { NitroApp } from "nitro/types";
+import type { FastnodeApp } from "fastnode/types";
 import type { ServerRequest } from "srvx";
 import { H3Core } from "h3";
-import errorHandler from "#nitro/virtual/error-handler";
+import errorHandler from "#fastnode/virtual/error-handler";
 
-export function createNitroApp(): NitroApp {
+export function createFastnodeApp(): FastnodeApp {
   const h3App = new H3Core({
     onError(error, event) {
       return errorHandler(error, event);
     },
   });
-  const captureError: NonNullable<NitroApp["captureError"]> = (error, errorCtx) => {
+  const captureError: NonNullable<FastnodeApp["captureError"]> = (error, errorCtx) => {
     if (errorCtx?.event) {
-      const errors = errorCtx.event.req.context?.nitro?.errors;
+      const errors = errorCtx.event.req.context?.fastnode?.errors;
       if (errors) {
         errors.push({ error, context: errorCtx });
       }
@@ -21,7 +21,7 @@ export function createNitroApp(): NitroApp {
   return {
     fetch: (req: ServerRequest) => {
       req.context ||= {};
-      req.context.nitro = req.context.nitro || { errors: [] };
+      req.context.fastnode = req.context.fastnode || { errors: [] };
       return h3App.fetch(req);
     },
     h3: h3App,
@@ -30,6 +30,6 @@ export function createNitroApp(): NitroApp {
   };
 }
 
-export function initNitroPlugins(app: NitroApp): NitroApp {
+export function initFastnodePlugins(app: FastnodeApp): FastnodeApp {
   return app;
 }

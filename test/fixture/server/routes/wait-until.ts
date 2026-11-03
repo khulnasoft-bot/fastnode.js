@@ -1,4 +1,4 @@
-import { defineHandler } from "nitro/h3";
+import { defineHandler } from "fastnode/h3";
 
 const timeTakingOperation = async () => {
   // console.log("wait-until.ts: timeTakingOperation() start");

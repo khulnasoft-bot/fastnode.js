@@ -1,6 +1,6 @@
-import { defineNitroPreset } from "../_utils/preset.ts";
+import { defineFastnodePreset } from "../_utils/preset.ts";
 
-const koyeb = defineNitroPreset(
+const koyeb = defineFastnodePreset(
   {
     extends: "node-server",
     serveStatic: true,

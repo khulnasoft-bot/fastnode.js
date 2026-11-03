@@ -1,8 +1,8 @@
-import { definePlugin } from "nitro";
+import { definePlugin } from "fastnode";
 
-export default definePlugin(async (nitroApp) => {
+export default definePlugin(async (fastnodeApp) => {
   const value = await Promise.resolve("async plugin works!");
-  nitroApp.hooks.hook("response", (res) => {
+  fastnodeApp.hooks.hook("response", (res) => {
     res.headers.set("x-async-plugin", value);
   });
 });

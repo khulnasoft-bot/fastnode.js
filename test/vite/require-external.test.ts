@@ -2,25 +2,25 @@ import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { glob, readFile, rm } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
-import { createNitro, build, prepare } from "nitro/builder";
+import { createFastnode, build, prepare } from "fastnode/builder";
 
-// #4171: a `require()` of an SSR external from bundled CommonJS must resolve to the copy Nitro bundles
+// #4171: a `require()` of an SSR external from bundled CommonJS must resolve to the copy Fastnode bundles
 describe("vite: require of SSR externals", () => {
   const rootDir = fileURLToPath(new URL("./require-external-fixture", import.meta.url));
   const outDir = join(rootDir, ".tmp/output");
 
   it("build", async () => {
     await rm(outDir, { recursive: true, force: true });
-    const nitro = await createNitro({
+    const fastnode = await createFastnode({
       rootDir,
       output: { dir: outDir },
       builder: "vite",
       // @ts-expect-error for testing
-      __vitePkg__: process.env.NITRO_VITE_PKG,
+      __vitePkg__: process.env.FASTNODE_VITE_PKG,
     });
-    await prepare(nitro);
-    await build(nitro);
-    await nitro.close();
+    await prepare(fastnode);
+    await build(fastnode);
+    await fastnode.close();
   });
 
   it("does not leave a runtime require in the output", async () => {

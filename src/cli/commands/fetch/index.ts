@@ -105,7 +105,7 @@ export default defineCommand({
       if (abort.signal.aborted) {
         // Interrupted
       } else if (outputError) {
-        // Like curl, also when stdout is closed early (`nitro fetch | head`)
+        // Like curl, also when stdout is closed early (`fastnode fetch | head`)
         exitCode = 23;
         if (!opts.silent && (outputError as NodeJS.ErrnoException).code !== "EPIPE") {
           consola.error(`Failed writing the output: ${outputError.message}`);

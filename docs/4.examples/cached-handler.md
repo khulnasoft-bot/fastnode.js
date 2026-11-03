@@ -12,8 +12,8 @@ icon: i-lucide-clock
 
 ::code-tree{defaultValue="server.ts" expandAll}
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({});
 ```
@@ -22,19 +22,19 @@ export default defineConfig({});
 {
   "type": "module",
   "scripts": {
-    "dev": "nitro dev",
-    "build": "nitro build"
+    "dev": "fastnode dev",
+    "build": "fastnode build"
   },
   "devDependencies": {
-    "nitro": "latest",
+    "fastnode": "latest",
     "rolldown": "latest"
   }
 }
 ```
 
 ```ts [server.ts]
-import { html } from "nitro";
-import { defineCachedHandler } from "nitro/cache";
+import { html } from "fastnode";
+import { defineCachedHandler } from "fastnode/cache";
 
 export default defineCachedHandler(
   async () => {
@@ -50,15 +50,15 @@ export default defineCachedHandler(
 
 ```json [tsconfig.json]
 {
-  "extends": "nitro/tsconfig"
+  "extends": "fastnode/tsconfig"
 }
 ```
 
 ```ts [vite.config.ts]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
-export default defineConfig({ plugins: [nitro()] });
+export default defineConfig({ plugins: [fastnode()] });
 ```
 
 ::
@@ -72,8 +72,8 @@ This example shows how to cache an expensive operation (a 500 ms delay) and cond
 ## How It Works
 
 ```ts [server.ts]
-import { html } from "nitro";
-import { defineCachedHandler } from "nitro/cache";
+import { html } from "fastnode";
+import { defineCachedHandler } from "fastnode/cache";
 
 export default defineCachedHandler(
   async () => {

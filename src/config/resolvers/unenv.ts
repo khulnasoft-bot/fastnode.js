@@ -1,12 +1,12 @@
 import consola from "consola";
 import type { ConsolaInstance } from "../../types/_consola.ts";
 import { resolveModulePath } from "exsolve";
-import type { LegacyUnenvPreset, NitroOptions } from "nitro/types";
+import type { LegacyUnenvPreset, FastnodeOptions } from "fastnode/types";
 import type { PresetEnv } from "../../build/env.ts";
 
 let warned = false;
 
-export async function resolveUnenv(options: NitroOptions) {
+export async function resolveUnenv(options: FastnodeOptions) {
   options.inject ??= {};
   options.polyfills ??= [];
   options.builtinModules ??= [];
@@ -16,13 +16,13 @@ export async function resolveUnenv(options: NitroOptions) {
 
 /**
  * Converts presets of the deprecated `unenv` option (including ones pushed to
- * `nitro.options.unenv` from hooks) to build env layers.
+ * `fastnode.options.unenv` from hooks) to build env layers.
  *
  * They apply after preset layers and before user `alias`, `inject`,
  * `polyfills` and `builtinModules`.
  */
 export function legacyUnenvLayers(
-  options: NitroOptions,
+  options: FastnodeOptions,
   logger: ConsolaInstance = consola
 ): PresetEnv[] {
   warnLegacyUnenv(options, logger);
@@ -51,7 +51,7 @@ export function legacyUnenvLayers(
     });
 }
 
-function warnLegacyUnenv(options: NitroOptions, logger: ConsolaInstance = consola) {
+function warnLegacyUnenv(options: FastnodeOptions, logger: ConsolaInstance = consola) {
   if (warned || !(options.unenv as LegacyUnenvPreset[] | undefined)?.length) {
     return;
   }

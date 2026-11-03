@@ -14,7 +14,7 @@ import Button from 'undocs/src/app/components/ui/Button.vue'
       icon="i-simple-icons-github"
       size="lg"
       target="_blank"
-      to="https://github.com/nitrojs/nitro"
+      to="https://github.com/khulnasoft/fastnode"
     >
       Star on GitHub
     </Button>

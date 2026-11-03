@@ -1,14 +1,14 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 
 export type PrerenderMeta = Record<string, { contentType?: string }>;
 
-const prerenderMetas = new WeakMap<Nitro, PrerenderMeta>();
+const prerenderMetas = new WeakMap<Fastnode, PrerenderMeta>();
 
-export function getPrerenderMeta(nitro: Nitro): PrerenderMeta {
-  let meta = prerenderMetas.get(nitro);
+export function getPrerenderMeta(fastnode: Fastnode): PrerenderMeta {
+  let meta = prerenderMetas.get(fastnode);
   if (!meta) {
     meta = {};
-    prerenderMetas.set(nitro, meta);
+    prerenderMetas.set(fastnode, meta);
   }
   return meta;
 }

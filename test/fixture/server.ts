@@ -1,4 +1,4 @@
-import { defineServerEntry } from "nitro";
+import { defineServerEntry } from "fastnode";
 
 // Exported from the Cloudflare Worker entry
 export function myScheduled() {

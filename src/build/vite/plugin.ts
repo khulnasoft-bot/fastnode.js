@@ -9,94 +9,98 @@ import type {
   Plugin as VitePlugin,
 } from "vite";
 import type { InputOption } from "rollup";
-import type { NitroPluginConfig, NitroPluginContext } from "./types.ts";
+import type { FastnodePluginConfig, FastnodePluginContext } from "./types.ts";
 import { resolve, join } from "pathe";
 import { normalizeAliases, resolveAlias } from "pathe/utils";
-import { createNitro, prepare } from "../../builder.ts";
+import { createFastnode, prepare } from "../../builder.ts";
 import { installModules } from "../../module.ts";
 import { getBundlerConfig } from "./bundler.ts";
 import { buildEnvironments } from "./prod.ts";
 import {
   initEnvRunner,
   closeEnvRunner,
-  createNitroEnvironment,
+  createFastnodeEnvironment,
   createServiceEnvironments,
   createServiceEnvironment,
 } from "./env.ts";
-import { runtimeDir } from "#nitro/meta";
+import { runtimeDir } from "#fastnode/meta";
 import { resolveModulePath } from "exsolve";
 import { mergeConfig } from "../../config/_merge.ts";
 import { prettyPath } from "../../utils/fs.ts";
 import { escapeRegExp } from "../../utils/regex.ts";
-import { NitroDevApp } from "../../dev/app.ts";
-import { nitroPreviewPlugin } from "./preview.ts";
-import { nitroAssetsImport } from "./_assets.ts";
+import { FastnodeDevApp } from "../../dev/app.ts";
+import { fastnodePreviewPlugin } from "./preview.ts";
+import { fastnodeAssetsImport } from "./_assets.ts";
 import { defu } from "defu";
-import type { Nitro, NitroConfig, NitroModule } from "nitro/types";
-import { nitroDevServiceProxy, SERVICE_MANIFEST_FILE, viteServicesTemplate } from "./services.ts";
-import { nitroRequireExternals } from "./_require-externals.ts";
-import { nitroServerAliases } from "./_server-aliases.ts";
+import type { Fastnode, FastnodeConfig, FastnodeModule } from "fastnode/types";
+import {
+  fastnodeDevServiceProxy,
+  SERVICE_MANIFEST_FILE,
+  viteServicesTemplate,
+} from "./services.ts";
+import { fastnodeRequireExternals } from "./_require-externals.ts";
+import { fastnodeServerAliases } from "./_server-aliases.ts";
 import { importVite, setRunningVite, viteImportOptions } from "./_import.ts";
-import { isVitest, nitroVitest } from "./vitest.ts";
+import { isVitest, fastnodeVitest } from "./vitest.ts";
 
 // https://vite.dev/guide/api-environment-plugins
 // https://vite.dev/guide/api-environment-frameworks.html
 
 const DEFAULT_EXTENSIONS = [".ts", ".js", ".mts", ".mjs", ".tsx", ".jsx"];
 
-const debug = process.env.NITRO_DEBUG
-  ? (...args: any[]) => console.log("[nitro]", ...args)
+const debug = process.env.FASTNODE_DEBUG
+  ? (...args: any[]) => console.log("[fastnode]", ...args)
   : () => {};
 
-export function nitro(pluginConfig: NitroPluginConfig = {}): VitePlugin[] {
-  if ((globalThis as any).__nitro_build__) {
-    // We are in `nitro build` context. Nitro injects vite plugin itself
+export function fastnode(pluginConfig: FastnodePluginConfig = {}): VitePlugin[] {
+  if ((globalThis as any).__fastnode_build__) {
+    // We are in `fastnode build` context. Fastnode injects vite plugin itself
     return [];
   }
-  const ctx: NitroPluginContext = createContext(pluginConfig);
+  const ctx: FastnodePluginContext = createContext(pluginConfig);
   return [
-    nitroInit(ctx),
-    nitroEnv(ctx),
-    nitroServerAliases(ctx),
-    nitroMain(ctx),
-    nitroPrepare(ctx),
-    nitroDevServiceProxy(ctx),
-    nitroRequireExternals(),
-    nitroPreviewPlugin(ctx),
-    nitroVitest(ctx),
-    ...nitroAssetsImport(ctx),
+    fastnodeInit(ctx),
+    fastnodeEnv(ctx),
+    fastnodeServerAliases(ctx),
+    fastnodeMain(ctx),
+    fastnodePrepare(ctx),
+    fastnodeDevServiceProxy(ctx),
+    fastnodeRequireExternals(),
+    fastnodePreviewPlugin(ctx),
+    fastnodeVitest(ctx),
+    ...fastnodeAssetsImport(ctx),
   ];
 }
 
-function nitroInit(ctx: NitroPluginContext): VitePlugin {
+function fastnodeInit(ctx: FastnodePluginContext): VitePlugin {
   return {
-    name: "nitro:init",
+    name: "fastnode:init",
     sharedDuringBuild: true,
     apply: (_config, configEnv) => !configEnv.isPreview,
 
     async config(config, configEnv) {
       ctx._isRolldown = !!(this.meta as Record<string, string>).rolldownVersion;
       if (!ctx._initialized) {
-        debug("[init] Initializing nitro");
+        debug("[init] Initializing fastnode");
         ctx._initialized = true;
         ctx._isVitest = isVitest(config);
-        await setupNitroContext(ctx, configEnv, config);
+        await setupFastnodeContext(ctx, configEnv, config);
       }
     },
 
     async configResolved(config) {
-      setRunningVite(useNitro(ctx), config);
+      setRunningVite(useFastnode(ctx), config);
       // Inline plugins are reused on `server.restart()`
       if (config.command === "serve" && !ctx._viteVersionChecked) {
         ctx._viteVersionChecked = true;
         await checkViteVersion(ctx, this.meta.viteVersion);
       }
       // Vite resolves its plugin list *before* running config hooks, so a plugin added by
-      // another plugin's `config` hook is discovered by Nitro but silently ignored by Vite.
+      // another plugin's `config` hook is discovered by Fastnode but silently ignored by Vite.
       for (const plugin of ctx._pluginModules || []) {
-        if (!config.plugins.some((p) => p === plugin || p.nitro === plugin.nitro)) {
-          useNitro(ctx).logger.warn(
-            `Vite plugin \`${plugin.name}\` registers a Nitro module but is not applied by Vite. ` +
+        if (!config.plugins.some((p) => p === plugin || p.fastnode === plugin.fastnode)) {
+          useFastnode(ctx).logger.warn(
+            `Vite plugin \`${plugin.name}\` registers a Fastnode module but is not applied by Vite. ` +
               `Plugins added from a \`config\` hook are ignored by Vite; add it to \`plugins\` instead.`
           );
         }
@@ -104,14 +108,14 @@ function nitroInit(ctx: NitroPluginContext): VitePlugin {
     },
 
     applyToEnvironment(env) {
-      if (env.name !== "nitro") {
+      if (env.name !== "fastnode") {
         return;
       }
       const plugins: VitePlugin[] = [];
-      if (ctx._nitroEnvAliases?.length) {
-        plugins.push(nitroEnvAliases(ctx.bundlerConfig!.base.aliases, ctx._nitroEnvAliases));
+      if (ctx._fastnodeEnvAliases?.length) {
+        plugins.push(fastnodeEnvAliases(ctx.bundlerConfig!.base.aliases, ctx._fastnodeEnvAliases));
       }
-      if (ctx.nitro?.options.dev) {
+      if (ctx.fastnode?.options.dev) {
         debug("[init] Adding rollup plugins for dev");
         plugins.push(
           ...((ctx.bundlerConfig?.rolldownConfig?.plugins as VitePlugin[]) ||
@@ -126,9 +130,9 @@ function nitroInit(ctx: NitroPluginContext): VitePlugin {
   };
 }
 
-function nitroEnv(ctx: NitroPluginContext): VitePlugin {
+function fastnodeEnv(ctx: FastnodePluginContext): VitePlugin {
   return {
-    name: "nitro:env",
+    name: "fastnode:env",
     sharedDuringBuild: true,
     apply: (_config, configEnv) => !configEnv.isPreview,
 
@@ -136,7 +140,7 @@ function nitroEnv(ctx: NitroPluginContext): VitePlugin {
       debug("[env]  Extending config (environments)");
       const environments: Record<string, EnvironmentOptions> = {
         ...createServiceEnvironments(ctx),
-        nitro: createNitroEnvironment(ctx),
+        fastnode: createFastnodeEnvironment(ctx),
       };
       environments.client = {
         consumer: userConfig.environments?.client?.consumer ?? "client",
@@ -144,7 +148,7 @@ function nitroEnv(ctx: NitroPluginContext): VitePlugin {
           rollupOptions: {
             input:
               userConfig.environments?.client?.build?.rollupOptions?.input ??
-              useNitro(ctx).options.renderer?.template,
+              useFastnode(ctx).options.renderer?.template,
           },
         },
       };
@@ -157,19 +161,19 @@ function nitroEnv(ctx: NitroPluginContext): VitePlugin {
     configEnvironment(name, config) {
       if (config.consumer === "client") {
         debug("[env]  Configuring client environment", name === "client" ? "" : ` (${name})`);
-        const nitro = useNitro(ctx);
+        const fastnode = useFastnode(ctx);
         config.build!.emptyOutDir = false;
-        config.build!.outDir = nitro.options.output.publicDir;
+        config.build!.outDir = fastnode.options.output.publicDir;
         config.build!.copyPublicDir ??= false;
         // Relocate generated client assets (e.g. under `_vercel/immutable`) so
         // both client and SSR references point at the immutable base.
-        if (nitro.options.buildAssetsDir) {
-          config.build!.assetsDir = nitro.options.buildAssetsDir;
+        if (fastnode.options.buildAssetsDir) {
+          config.build!.assetsDir = fastnode.options.buildAssetsDir;
           // Content-addressed (immutable) assets benefit from longer content
           // hashes to reduce collision risk across deployments. Only upgrade the
           // default `[hash]` token to a longer one; never override filename
           // patterns explicitly set by the user or other plugins.
-          useLongerAssetHashes(config.build!, ctx._isRolldown, nitro.options.buildAssetsDir);
+          useLongerAssetHashes(config.build!, ctx._isRolldown, fastnode.options.buildAssetsDir);
         }
         return;
       }
@@ -179,16 +183,16 @@ function nitroEnv(ctx: NitroPluginContext): VitePlugin {
       // where the client build actually emits the files. Only asset naming is
       // aligned (`assetsOnly`): entry/chunk filenames are left at their defaults
       // so each service keeps a flat entry that frameworks import by path.
-      const nitro = useNitro(ctx);
-      if (name !== "nitro" && nitro.options.buildAssetsDir) {
-        config.build!.assetsDir = nitro.options.buildAssetsDir;
-        useLongerAssetHashes(config.build!, ctx._isRolldown, nitro.options.buildAssetsDir, {
+      const fastnode = useFastnode(ctx);
+      if (name !== "fastnode" && fastnode.options.buildAssetsDir) {
+        config.build!.assetsDir = fastnode.options.buildAssetsDir;
+        useLongerAssetHashes(config.build!, ctx._isRolldown, fastnode.options.buildAssetsDir, {
           assetsOnly: true,
         });
       }
 
       // Skip if already registered as a service
-      if (name === "nitro" || ctx.services[name]) {
+      if (name === "fastnode" || ctx.services[name]) {
         return;
       }
 
@@ -203,7 +207,7 @@ function nitroEnv(ctx: NitroPluginContext): VitePlugin {
       // Resolve and register as a service
       const resolvedEntry =
         resolveModulePath(entry, {
-          from: [ctx.nitro!.options.rootDir, ...ctx.nitro!.options.scanDirs],
+          from: [ctx.fastnode!.options.rootDir, ...ctx.fastnode!.options.scanDirs],
           extensions: DEFAULT_EXTENSIONS,
           suffixes: ["", "/index"],
           try: true,
@@ -219,23 +223,23 @@ function nitroEnv(ctx: NitroPluginContext): VitePlugin {
     configResolved() {
       // Setup default SSR renderer after all environments are configured
       if (
-        !ctx.nitro!.options.renderer?.handler &&
-        !ctx.nitro!.options.renderer?.template &&
+        !ctx.fastnode!.options.renderer?.handler &&
+        !ctx.fastnode!.options.renderer?.template &&
         ctx.services.ssr?.entry
       ) {
-        ctx.nitro!.options.renderer ??= {};
-        ctx.nitro!.options.renderer.handler = resolve(runtimeDir, "internal/vite/ssr-renderer");
-        ctx.nitro!.routing.sync();
+        ctx.fastnode!.options.renderer ??= {};
+        ctx.fastnode!.options.renderer.handler = resolve(runtimeDir, "internal/vite/ssr-renderer");
+        ctx.fastnode!.routing.sync();
       }
     },
   };
 }
 
-function nitroEnvAliases(_aliases: Record<string, string>, keys: string[]): VitePlugin {
+function fastnodeEnvAliases(_aliases: Record<string, string>, keys: string[]): VitePlugin {
   const aliases = normalizeAliases(_aliases);
   const keysRE = keys.map((key) => escapeRegExp(key.replace(/\/$/, ""))).join("|");
   return {
-    name: "nitro:env-aliases",
+    name: "fastnode:env-aliases",
     resolveId: {
       order: "pre",
       filter: { id: new RegExp(`^(?:${keysRE})(?:/|$)`) },
@@ -251,9 +255,9 @@ function nitroEnvAliases(_aliases: Record<string, string>, keys: string[]): Vite
   };
 }
 
-function nitroMain(ctx: NitroPluginContext): VitePlugin {
+function fastnodeMain(ctx: FastnodePluginContext): VitePlugin {
   return {
-    name: "nitro:main",
+    name: "fastnode:main",
     sharedDuringBuild: true,
     apply: (_config, configEnv) => !configEnv.isPreview,
 
@@ -266,14 +270,14 @@ function nitroMain(ctx: NitroPluginContext): VitePlugin {
       const aliases = Object.entries(ctx.bundlerConfig.base.aliases).filter(
         ([, replacement]) => !replacement.startsWith("node:")
       );
-      // Scoped to the `nitro` environment (not with Vitest): `nitro/*` in dev, so
+      // Scoped to the `fastnode` environment (not with Vitest): `fastnode/*` in dev, so
       // they do not bypass the dev service proxy, and keys the host config maps elsewhere
-      const scopeSelfAliases = ctx.nitro?.options.dev && !ctx._isVitest;
+      const scopeSelfAliases = ctx.fastnode?.options.dev && !ctx._isVitest;
       const hostAliases = ctx._isVitest ? new Map() : stringAliases(userConfig.resolve?.alias);
       const isScoped = ([find, replacement]: [string, string]) =>
-        (scopeSelfAliases && /^nitro(\/|$)/.test(find)) ||
+        (scopeSelfAliases && /^fastnode(\/|$)/.test(find)) ||
         (hostAliases.has(find) && hostAliases.get(find) !== replacement);
-      ctx._nitroEnvAliases = aliases.filter(isScoped).map(([find]) => find);
+      ctx._fastnodeEnvAliases = aliases.filter(isScoped).map(([find]) => find);
       return {
         appType: userConfig.appType || "custom",
         resolve: {
@@ -291,9 +295,9 @@ function nitroMain(ctx: NitroPluginContext): VitePlugin {
           port:
             Number.parseInt(process.env.PORT || "") ||
             userConfig.server?.port ||
-            useNitro(ctx).options.devServer?.port ||
+            useFastnode(ctx).options.devServer?.port ||
             3000,
-          // #3673, disable Vite's `cors` by default as Nitro handles all requests
+          // #3673, disable Vite's `cors` by default as Fastnode handles all requests
           cors: false,
         },
       };
@@ -303,20 +307,20 @@ function nitroMain(ctx: NitroPluginContext): VitePlugin {
       if (ctx._isVitest) {
         return;
       }
-      // Aliases added by later `config` hooks take precedence over Nitro's
-      const nitroAliases = ctx.bundlerConfig!.base.aliases;
-      const scoped = new Set(ctx._nitroEnvAliases);
+      // Aliases added by later `config` hooks take precedence over Fastnode's
+      const fastnodeAliases = ctx.bundlerConfig!.base.aliases;
+      const scoped = new Set(ctx._fastnodeEnvAliases);
       for (const { find, replacement } of config.resolve.alias) {
         if (
           typeof find === "string" &&
-          Object.hasOwn(nitroAliases, find) &&
-          nitroAliases[find] !== replacement &&
-          !nitroAliases[find].startsWith("node:")
+          Object.hasOwn(fastnodeAliases, find) &&
+          fastnodeAliases[find] !== replacement &&
+          !fastnodeAliases[find].startsWith("node:")
         ) {
           scoped.add(find);
         }
       }
-      ctx._nitroEnvAliases = [...scoped];
+      ctx._fastnodeEnvAliases = [...scoped];
     },
 
     buildApp: {
@@ -380,15 +384,15 @@ function nitroMain(ctx: NitroPluginContext): VitePlugin {
     },
 
     // Closing the dev server closes every environment, and each of them runs `closeBundle`.
-    // Nitro is shared by all of them, so its `close` hooks run once (#4586). The production
-    // build closes Nitro itself (see `prod.ts`).
+    // Fastnode is shared by all of them, so its `close` hooks run once (#4586). The production
+    // build closes Fastnode itself (see `prod.ts`).
     closeBundle: {
       order: "post",
       handler() {
-        if (!ctx.nitro?.options.dev) {
+        if (!ctx.fastnode?.options.dev) {
           return;
         }
-        return (ctx._closePromise ??= ctx.nitro.close());
+        return (ctx._closePromise ??= ctx.fastnode.close());
       },
     },
 
@@ -399,7 +403,7 @@ function nitroMain(ctx: NitroPluginContext): VitePlugin {
       if (env.config.consumer === "client" || ctx._isVitest) {
         return;
       }
-      if (ctx.nitro?.options.vite?.serverReload === false) {
+      if (ctx.fastnode?.options.vite?.serverReload === false) {
         // Keep the server module graph in sync but opt out of the reload:
         // returning an empty list also suppresses Vite's own `full-reload`,
         // which would otherwise still reach (and reload) the dev worker.
@@ -438,19 +442,19 @@ function nitroMain(ctx: NitroPluginContext): VitePlugin {
   };
 }
 
-function nitroPrepare(ctx: NitroPluginContext): VitePlugin {
+function fastnodePrepare(ctx: FastnodePluginContext): VitePlugin {
   return {
-    name: "nitro:prepare",
+    name: "fastnode:prepare",
     sharedDuringBuild: true,
-    applyToEnvironment: (env) => env.name === "nitro",
+    applyToEnvironment: (env) => env.name === "fastnode",
 
     buildApp: {
       // Clean the output directory before any environment is built
       order: "pre",
       async handler() {
         debug("[prepare] Preparing output directory");
-        const nitro = ctx.nitro!;
-        await prepare(nitro, {
+        const fastnode = ctx.fastnode!;
+        await prepare(fastnode, {
           generatedAssetDirs: ctx._publicDistDir ? [ctx._publicDistDir] : [],
         });
       },
@@ -460,7 +464,7 @@ function nitroPrepare(ctx: NitroPluginContext): VitePlugin {
 
 // --- internal helpers ---
 
-function createContext(pluginConfig: NitroPluginConfig): NitroPluginContext {
+function createContext(pluginConfig: FastnodePluginConfig): FastnodePluginContext {
   return {
     pluginConfig,
     services: {},
@@ -469,56 +473,56 @@ function createContext(pluginConfig: NitroPluginConfig): NitroPluginContext {
 }
 
 /**
- * The dev environments and module runner are created from the `vite` Nitro imports, which has
+ * The dev environments and module runner are created from the `vite` Fastnode imports, which has
  * to be the one running the dev server (in a monorepo, another version can be hoisted next to
  * the app).
  */
-async function checkViteVersion(ctx: NitroPluginContext, runningVersion?: string) {
-  const nitro = useNitro(ctx);
-  const { version } = await importVite(viteImportOptions(nitro));
+async function checkViteVersion(ctx: FastnodePluginContext, runningVersion?: string) {
+  const fastnode = useFastnode(ctx);
+  const { version } = await importVite(viteImportOptions(fastnode));
   if (runningVersion && version !== runningVersion) {
-    nitro.logger.warn(
-      `Nitro resolved \`vite@${version}\` but \`vite@${runningVersion}\` is running. ` +
+    fastnode.logger.warn(
+      `Fastnode resolved \`vite@${version}\` but \`vite@${runningVersion}\` is running. ` +
         `Set the \`vite.path\` option to the running \`vite\` package (e.g. \`import.meta.resolve("vite")\`).`
     );
   }
 }
 
-function useNitro(ctx: NitroPluginContext) {
-  if (!ctx.nitro) {
-    throw new Error("Nitro instance is not initialized yet.");
+function useFastnode(ctx: FastnodePluginContext) {
+  if (!ctx.fastnode) {
+    throw new Error("Fastnode instance is not initialized yet.");
   }
-  return ctx.nitro;
+  return ctx.fastnode;
 }
 
-async function setupNitroContext(
-  ctx: NitroPluginContext,
+async function setupFastnodeContext(
+  ctx: FastnodePluginContext,
   configEnv: ConfigEnv,
   userConfig: UserConfig
 ) {
-  // When using `nitro build`, a pre-initialized nitro instance is provided
-  const providedNitro = ctx.pluginConfig._nitro;
+  // When using `fastnode build`, a pre-initialized fastnode instance is provided
+  const providedFastnode = ctx.pluginConfig._fastnode;
 
-  // Nitro config overrides
-  const nitroConfig: NitroConfig = {
+  // Fastnode config overrides
+  const fastnodeConfig: FastnodeConfig = {
     dev: configEnv.command === "serve",
     builder: "vite",
     rootDir: userConfig.root,
-    ...mergeConfig(ctx.pluginConfig, userConfig.nitro),
+    ...mergeConfig(ctx.pluginConfig, userConfig.fastnode),
   };
 
-  // Register Nitro modules from Vite plugins
-  ctx._pluginModules = (await flattenPlugins(userConfig, configEnv)).filter((p) => p.nitro);
-  const pluginModules = ctx._pluginModules.map((p) => p.nitro!);
-  nitroConfig.modules = [...(nitroConfig.modules || []), ...pluginModules];
+  // Register Fastnode modules from Vite plugins
+  ctx._pluginModules = (await flattenPlugins(userConfig, configEnv)).filter((p) => p.fastnode);
+  const pluginModules = ctx._pluginModules.map((p) => p.fastnode!);
+  fastnodeConfig.modules = [...(fastnodeConfig.modules || []), ...pluginModules];
 
   // Register service entries VFS
-  const vServicesId = "#nitro/virtual/vite-services";
-  nitroConfig.virtual ??= {};
-  nitroConfig.virtual[vServicesId] = () => viteServicesTemplate(ctx);
-  if (providedNitro) {
-    providedNitro.options.virtual[vServicesId] = nitroConfig.virtual[vServicesId];
-    applyInlineViteOptions(providedNitro, nitroConfig);
+  const vServicesId = "#fastnode/virtual/vite-services";
+  fastnodeConfig.virtual ??= {};
+  fastnodeConfig.virtual[vServicesId] = () => viteServicesTemplate(ctx);
+  if (providedFastnode) {
+    providedFastnode.options.virtual[vServicesId] = fastnodeConfig.virtual[vServicesId];
+    applyInlineViteOptions(providedFastnode, fastnodeConfig);
   }
 
   // @see https://vite.dev/guide/env-and-mode#env-files
@@ -527,18 +531,19 @@ async function setupNitroContext(
     dotenvFileNames.push(`.env.${configEnv.mode}`, `.env.${configEnv.mode}.local`);
   }
 
-  // Initialize a new Nitro instance
-  ctx.nitro =
-    providedNitro || (await createNitro(nitroConfig, { dotenv: { fileName: dotenvFileNames } }));
+  // Initialize a new Fastnode instance
+  ctx.fastnode =
+    providedFastnode ||
+    (await createFastnode(fastnodeConfig, { dotenv: { fileName: dotenvFileNames } }));
 
-  // Install Vite plugin modules on the provided instance (`nitro build`)
-  if (providedNitro && pluginModules.length > 0) {
-    providedNitro.options.modules = nitroConfig.modules;
-    await installModules(providedNitro, pluginModules);
+  // Install Vite plugin modules on the provided instance (`fastnode build`)
+  if (providedFastnode && pluginModules.length > 0) {
+    providedFastnode.options.modules = fastnodeConfig.modules;
+    await installModules(providedFastnode, pluginModules);
   }
 
   // Register services from config
-  ctx.services = { ...ctx.nitro.options.vite?.services };
+  ctx.services = { ...ctx.fastnode.options.vite?.services };
 
   // Config ssr env as a fetchable ssr service
   if (!ctx.services.ssr) {
@@ -549,21 +554,23 @@ async function setupNitroContext(
     if (userSsrEnv === undefined || (ctx._isVitest && !userSsrInput)) {
       const ssrEntry = resolveModulePath("./entry-server", {
         from: ["app", "src", ""].flatMap((d) =>
-          [ctx.nitro!.options.rootDir, ...ctx.nitro!.options.scanDirs].map((s) => join(s, d) + "/")
+          [ctx.fastnode!.options.rootDir, ...ctx.fastnode!.options.scanDirs].map(
+            (s) => join(s, d) + "/"
+          )
         ),
         extensions: DEFAULT_EXTENSIONS,
         try: true,
       });
       if (ssrEntry) {
         ctx.services.ssr = { entry: ssrEntry };
-        ctx.nitro!.logger.info(`Using \`${prettyPath(ssrEntry)}\` as vite ssr entry.`);
+        ctx.fastnode!.logger.info(`Using \`${prettyPath(ssrEntry)}\` as vite ssr entry.`);
       }
     } else {
       let ssrEntry = getEntry(userSsrInput);
       if (typeof ssrEntry === "string") {
         ssrEntry =
           resolveModulePath(ssrEntry, {
-            from: [ctx.nitro.options.rootDir, ...ctx.nitro.options.scanDirs],
+            from: [ctx.fastnode.options.rootDir, ...ctx.fastnode.options.scanDirs],
             extensions: DEFAULT_EXTENSIONS,
             suffixes: ["", "/index"],
             try: true,
@@ -573,19 +580,19 @@ async function setupNitroContext(
     }
   }
   if (
-    ctx.nitro.options.serverEntry &&
-    ctx.nitro.options.serverEntry.handler === ctx.services.ssr?.entry
+    ctx.fastnode.options.serverEntry &&
+    ctx.fastnode.options.serverEntry.handler === ctx.services.ssr?.entry
   ) {
-    ctx.nitro.logger.warn(
-      `Nitro server entry and Vite SSR both set to ${prettyPath(ctx.services.ssr.entry)}. Use a separate SSR entry (e.g. \`src/server.ts\`).`
+    ctx.fastnode.logger.warn(
+      `Fastnode server entry and Vite SSR both set to ${prettyPath(ctx.services.ssr.entry)}. Use a separate SSR entry (e.g. \`src/server.ts\`).`
     );
-    ctx.nitro.options.serverEntry = false;
+    ctx.fastnode.options.serverEntry = false;
   }
 
   // Determine default Vite dist directory
   const publicDistDir = (ctx._publicDistDir =
-    userConfig.build?.outDir || resolve(ctx.nitro.options.buildDir, "vite/public"));
-  ctx.nitro.options.publicAssets.push({
+    userConfig.build?.outDir || resolve(ctx.fastnode.options.buildDir, "vite/public"));
+  ctx.fastnode.options.publicAssets.push({
     dir: publicDistDir,
     maxAge: 0,
     baseURL: "/",
@@ -594,36 +601,36 @@ async function setupNitroContext(
 
   // Vitest runs test files in its own Node.js workers, so hooks must not set up another runner
   if (ctx._isVitest) {
-    ctx.nitro.options.devServer.runner = "node-worker";
+    ctx.fastnode.options.devServer.runner = "node-worker";
   }
 
   // Call build:before hook **before resolving rollup config** for compatibility
-  await ctx.nitro.hooks.callHook("build:before", ctx.nitro);
+  await ctx.fastnode.hooks.callHook("build:before", ctx.fastnode);
 
   // Resolve common rollup options
   ctx.bundlerConfig = await getBundlerConfig(ctx);
 
   // Call build:config hook to allow modifying the bundler config
-  await ctx.nitro.hooks.callHook(
+  await ctx.fastnode.hooks.callHook(
     "build:config",
-    ctx.nitro,
+    ctx.fastnode,
     ctx.bundlerConfig.rollupConfig
       ? { builder: "vite", rollup: ctx.bundlerConfig.rollupConfig }
       : { builder: "vite", rolldown: ctx.bundlerConfig.rolldownConfig! }
   );
 
-  // Attach nitro.fetch to the dev env runner (started lazily, not when resolving config)
-  if (ctx.nitro.options.dev && !ctx._isVitest) {
-    ctx.nitro.fetch = async (req) => (await initEnvRunner(ctx)).fetch(req);
+  // Attach fastnode.fetch to the dev env runner (started lazily, not when resolving config)
+  if (ctx.fastnode.options.dev && !ctx._isVitest) {
+    ctx.fastnode.fetch = async (req) => (await initEnvRunner(ctx)).fetch(req);
   }
 
   // Create dev app
-  if (ctx.nitro.options.dev && !ctx._isVitest && !ctx.devApp) {
-    ctx.devApp = new NitroDevApp(ctx.nitro);
+  if (ctx.fastnode.options.dev && !ctx._isVitest && !ctx.devApp) {
+    ctx.devApp = new FastnodeDevApp(ctx.fastnode);
   }
 
   // Cleanup resources after close {
-  ctx.nitro.hooks.hook("close", async () => {
+  ctx.fastnode.hooks.hook("close", async () => {
     await closeEnvRunner(ctx);
   });
 }
@@ -721,8 +728,8 @@ async function flattenPlugins(userConfig: UserConfig, configEnv: ConfigEnv): Pro
   });
 }
 
-function applyInlineViteOptions(nitro: Nitro, nitroConfig: NitroConfig) {
-  if (nitroConfig.vite) {
-    nitro.options.vite = defu(nitroConfig.vite, nitro.options.vite);
+function applyInlineViteOptions(fastnode: Fastnode, fastnodeConfig: FastnodeConfig) {
+  if (fastnodeConfig.vite) {
+    fastnode.options.vite = defu(fastnodeConfig.vite, fastnode.options.vite);
   }
 }

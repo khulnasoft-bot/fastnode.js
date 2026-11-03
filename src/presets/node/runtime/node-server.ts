@@ -1,21 +1,21 @@
-import "#nitro/virtual/polyfills";
+import "#fastnode/virtual/polyfills";
 import { NodeRequest, serve } from "srvx/node";
 import wsAdapter from "crossws/adapters/node";
 
-import { useNitroApp } from "nitro/app";
-import { startScheduleRunner } from "#nitro/runtime/task";
-import { trapUnhandledErrors } from "#nitro/runtime/error/hooks";
-import { resolveWebsocketHooks } from "#nitro/runtime/app";
-import { resolveServeOptions } from "#nitro/runtime/serve";
-import { setupCloseHooks } from "#nitro/runtime/shutdown";
+import { useFastnodeApp } from "fastnode/app";
+import { startScheduleRunner } from "#fastnode/runtime/task";
+import { trapUnhandledErrors } from "#fastnode/runtime/error/hooks";
+import { resolveWebsocketHooks } from "#fastnode/runtime/app";
+import { resolveServeOptions } from "#fastnode/runtime/serve";
+import { setupCloseHooks } from "#fastnode/runtime/shutdown";
 
-const nitroApp = useNitroApp();
+const fastnodeApp = useFastnodeApp();
 
-const server = serve(resolveServeOptions({ fetch: nitroApp.fetch }));
+const server = serve(resolveServeOptions({ fetch: fastnodeApp.fetch }));
 
 // srvx only sets `process.exitCode` on listen errors; other handles (e.g. scheduled tasks) would keep the process alive.
 server.ready().catch((error) => {
-  console.error("[nitro] Failed to start server:", error);
+  console.error("[fastnode] Failed to start server:", error);
   process.exit(1);
 });
 

@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
-import { serverFetch } from "nitro/app";
-import { useRuntimeConfig } from "nitro/runtime-config";
-import { useKV } from "nitro/kv";
+import { serverFetch } from "fastnode/app";
+import { useRuntimeConfig } from "fastnode/runtime-config";
+import { useKV } from "fastnode/kv";
 
 test("runtime config", () => {
   expect(useRuntimeConfig().greeting).toBe("hello");

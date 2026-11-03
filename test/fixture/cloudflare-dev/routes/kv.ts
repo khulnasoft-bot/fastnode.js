@@ -1,4 +1,4 @@
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 import type { KVNamespace } from "@cloudflare/workers-types";
 
 export default defineHandler(async (event) => {

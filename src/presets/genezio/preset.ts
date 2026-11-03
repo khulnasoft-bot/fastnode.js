@@ -1,6 +1,6 @@
-import { defineNitroPreset } from "../_utils/preset.ts";
+import { defineFastnodePreset } from "../_utils/preset.ts";
 
-const genezio = defineNitroPreset(
+const genezio = defineFastnodePreset(
   {
     extends: "aws_lambda",
   },

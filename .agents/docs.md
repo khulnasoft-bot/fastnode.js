@@ -3,7 +3,7 @@
 ## The docs system
 
 `docs/` is a standalone [UnDocs](https://undocs.unjs.io) site (its own `package.json` / lockfile).
-`pnpm dev` / `pnpm build` inside `docs/`. UnDocs is a plain Vue + Vite + Nitro app — **not Nuxt**.
+`pnpm dev` / `pnpm build` inside `docs/`. UnDocs is a plain Vue + Vite + Fastnode app — **not Nuxt**.
 
 ```
 docs/
@@ -93,7 +93,7 @@ items:
 | `:pm-install` `:pm-run` `:pm-x` | package-manager command blocks |
 | `::mermaid` | diagram |
 
-Nitro's own landing blocks live in `docs/.docs/components/` (`::app-hero-links`, `::hero-features`,
+Fastnode's own landing blocks live in `docs/.docs/components/` (`::app-hero-links`, `::hero-features`,
 `::performance-showcase`, `::landing-features`, `::feature-card`, `::sponsors`, `:hero-background`).
 
 ## Content conventions
@@ -105,19 +105,19 @@ forms resolve at runtime, but docs use the underscore form.
 
 ### Import paths
 
-Nitro v3 uses subpath exports — not deep runtime imports:
+Fastnode v1 uses subpath exports — not deep runtime imports:
 
 ```ts
-import { defineConfig } from "nitro"; // nitro config (nitro.config.ts)
-import { defineHandler } from "nitro"; // event handlers
-import { definePlugin } from "nitro"; // runtime plugin
-import { defineRouteMeta } from "nitro"; // route meta macro
-import { readBody, getQuery } from "nitro/h3"; // other h3 utilities
-import { defineCachedHandler, defineCachedFunction } from "nitro/cache";
-import { useKV } from "nitro/kv";
-import { useDatabase } from "nitro/database";
-import { useRuntimeConfig } from "nitro/runtime-config";
-import { defineTask, runTask } from "nitro/task";
+import { defineConfig } from "fastnode"; // fastnode config (fastnode.config.ts)
+import { defineHandler } from "fastnode"; // event handlers
+import { definePlugin } from "fastnode"; // runtime plugin
+import { defineRouteMeta } from "fastnode"; // route meta macro
+import { readBody, getQuery } from "fastnode/h3"; // other h3 utilities
+import { defineCachedHandler, defineCachedFunction } from "fastnode/cache";
+import { useKV } from "fastnode/kv";
+import { useDatabase } from "fastnode/database";
+import { useRuntimeConfig } from "fastnode/runtime-config";
+import { defineTask, runTask } from "fastnode/task";
 ```
 
 ### H3 v2 API
@@ -132,18 +132,18 @@ import { defineTask, runTask } from "nitro/task";
 ### Code examples
 
 - Auto imports are not available — always show explicit imports
-- Always use `defineHandler` from `"nitro"` (not `eventHandler`)
-- Always use `defineConfig` from `"nitro"` for nitro config (not `defineNuxtConfig` or Vite's `defineConfig`)
-- Use `"nitro/*"` imports, never `"nitropack/*"`
+- Always use `defineHandler` from `"fastnode"` (not `eventHandler`)
+- Always use `defineConfig` from `"fastnode"` for fastnode config (not `defineNuxtConfig` or Vite's `defineConfig`)
+- Use `"fastnode/*"` imports, never `"fastnodepack/*"`
 - Node.js >= 20 in all deployment examples
-- Preset env var is `NITRO_PRESET`; runtime config overrides use the `NITRO_` prefix
+- Preset env var is `FASTNODE_PRESET`; runtime config overrides use the `FASTNODE_` prefix
   (camelCase in config, UPPER_SNAKE_CASE in env)
 
 ### Common mistakes
 
 - `send(event, value)`, `createError()`, `eventHandler()` — all removed in h3 v2
-- Importing `defineConfig`/`defineHandler` from subpaths — both come from the main `"nitro"` entry
-- Duplicate imports (e.g. `defineHandler` from both `nitro/h3` and `nitro/cache`)
+- Importing `defineConfig`/`defineHandler` from subpaths — both come from the main `"fastnode"` entry
+- Duplicate imports (e.g. `defineHandler` from both `fastnode/h3` and `fastnode/cache`)
 - Hyphenated preset names, outdated Node.js versions, wrong env var names
 - Nuxt-era idioms in `.docs/`: `U*` components, `NuxtLink`, `ContentRenderer`, `queryCollection`,
   `~/` aliases, `definePageMeta` as a macro, `nuxt.config.ts` / `app.config.ts`

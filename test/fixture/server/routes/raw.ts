@@ -1,7 +1,7 @@
 // @ts-ignore
 import sql from "raw:../files/sql.sql";
 
-// https://github.com/nitrojs/nitro/issues/2836
+// https://github.com/khulnasoft/fastnode/issues/2836
 // @ts-ignore
 import sqlts from "../files/sqlts.sql";
 
@@ -11,9 +11,9 @@ import json from "raw:../assets/test.json";
 
 // Virtual modules have no file to read: their rendered source is inlined
 // @ts-ignore
-import virtualText from "#nitro/virtual/feature-flags" with { type: "text" };
+import virtualText from "#fastnode/virtual/feature-flags" with { type: "text" };
 // @ts-ignore
-import virtualBytes from "#nitro/virtual/feature-flags" with { type: "bytes" };
+import virtualBytes from "#fastnode/virtual/feature-flags" with { type: "bytes" };
 
 export default async () => {
   const jsonText = json as unknown as string;

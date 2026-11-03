@@ -1,4 +1,4 @@
-import type { Nitro, RollupConfig } from "nitro/types";
+import type { Fastnode, RollupConfig } from "fastnode/types";
 import { formatCompatibilityDate } from "compatx";
 import { scanHandlers } from "../../scan.ts";
 import { generateFSTree } from "../../utils/fs-tree.ts";
@@ -8,50 +8,50 @@ import { compressPublicAssets } from "../../utils/compress.ts";
 import type { RollupOptions, RollupOutput } from "rollup";
 import { importRollup } from "./_import.ts";
 
-export async function buildProduction(nitro: Nitro, rollupConfig: RollupConfig) {
-  const rollup = await importRollup(nitro);
+export async function buildProduction(fastnode: Fastnode, rollupConfig: RollupConfig) {
+  const rollup = await importRollup(fastnode);
 
   const buildStartTime = Date.now();
 
-  await scanHandlers(nitro);
+  await scanHandlers(fastnode);
 
-  if (nitro.options.compressPublicAssets) {
-    await compressPublicAssets(nitro);
+  if (fastnode.options.compressPublicAssets) {
+    await compressPublicAssets(fastnode);
   }
 
   let output: RollupOutput | undefined;
-  if (!nitro.options.static) {
-    nitro.logger.info(
-      `Building server (builder: \`rollup\`, preset: \`${nitro.options.preset}\`, compatibility date: \`${formatCompatibilityDate(nitro.options.compatibilityDate)}\`)`
+  if (!fastnode.options.static) {
+    fastnode.logger.info(
+      `Building server (builder: \`rollup\`, preset: \`${fastnode.options.preset}\`, compatibility date: \`${formatCompatibilityDate(fastnode.options.compatibilityDate)}\`)`
     );
     const build = await rollup.rollup(rollupConfig as RollupOptions).catch((error) => {
-      nitro.logger.error(formatRollupError(error));
+      fastnode.logger.error(formatRollupError(error));
       throw error;
     });
 
     output = await build.write(rollupConfig.output!);
   }
 
-  const buildInfo = await writeBuildInfo(nitro, output);
+  const buildInfo = await writeBuildInfo(fastnode, output);
 
-  if (!nitro.options.static) {
-    if (nitro.options.logging.buildSuccess) {
-      nitro.logger.success(`Server built in ${Date.now() - buildStartTime}ms`);
+  if (!fastnode.options.static) {
+    if (fastnode.options.logging.buildSuccess) {
+      fastnode.logger.success(`Server built in ${Date.now() - buildStartTime}ms`);
     }
-    if (nitro.options.logLevel > 1) {
+    if (fastnode.options.logLevel > 1) {
       process.stdout.write(
-        (await generateFSTree(nitro.options.output.serverDir, {
-          compressedSizes: nitro.options.logging.compressedSizes,
+        (await generateFSTree(fastnode.options.output.serverDir, {
+          compressedSizes: fastnode.options.logging.compressedSizes,
         })) || ""
       );
     }
   }
 
-  await nitro.hooks.callHook("compiled", nitro);
+  await fastnode.hooks.callHook("compiled", fastnode);
 
   // Show deploy and preview hints
-  nitro.logger.success("You can preview this build using `npx nitro preview`");
-  if (nitro.options.commands.deploy) {
-    nitro.logger.success("You can deploy this build using `npx nitro deploy --prebuilt`");
+  fastnode.logger.success("You can preview this build using `npx fastnode preview`");
+  if (fastnode.options.commands.deploy) {
+    fastnode.logger.success("You can deploy this build using `npx fastnode deploy --prebuilt`");
   }
 }

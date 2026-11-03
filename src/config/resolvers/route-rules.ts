@@ -1,20 +1,20 @@
-import type { NitroConfig, NitroOptions, NormalizedRouteRules } from "nitro/types";
+import type { FastnodeConfig, FastnodeOptions, NormalizedRouteRules } from "fastnode/types";
 import { normalizeRouteRules as _normalizeRouteRules } from "h3/rules";
 
-export async function resolveRouteRulesOptions(options: NitroOptions) {
+export async function resolveRouteRulesOptions(options: FastnodeOptions) {
   options.routeRules = normalizeRouteRules(options);
 }
 
 // Normalization (shortcut expansion, `redirect`/`proxy` string forms, the `/**`
-// scope `base` field) is owned by `h3/rules`. Nitro keeps this thin wrapper so
+// scope `base` field) is owned by `h3/rules`. Fastnode keeps this thin wrapper so
 // callers can pass a config object and get back the `path -> rules` map.
-export function normalizeRouteRules(config: NitroConfig): Record<string, NormalizedRouteRules> {
+export function normalizeRouteRules(config: FastnodeConfig): Record<string, NormalizedRouteRules> {
   const routeRules = config.routeRules || {};
   for (const route in routeRules) {
     // Authentication needs executable logic, so it is middleware, not a rule.
     if (routeRules[route] && "basicAuth" in routeRules[route]) {
       throw new Error(
-        `[nitro] \`basicAuth\` is not a route rule (\`${route}\`). Register h3's \`basicAuth\` middleware instead: globally from \`middleware/\`, or per route with \`defineHandler({ middleware: [basicAuth({ ... })], handler })\`.`
+        `[fastnode] \`basicAuth\` is not a route rule (\`${route}\`). Register h3's \`basicAuth\` middleware instead: globally from \`middleware/\`, or per route with \`defineHandler({ middleware: [basicAuth({ ... })], handler })\`.`
       );
     }
   }

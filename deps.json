@@ -5,7 +5,7 @@
     "vite": { "version": "^8", "reason": "the `vite` builder" },
     "unstorage": {
       "version": "^2.0.0-alpha.10",
-      "reason": "KV storage (`nitro/kv`)",
+      "reason": "KV storage (`fastnode/kv`)",
       "dev": false,
       "autoInstall": true,
       "runtime": true,
@@ -13,7 +13,7 @@
     },
     "db0": {
       "version": "^0.4.1",
-      "reason": "the database layer (`nitro/database`)",
+      "reason": "the database layer (`fastnode/database`)",
       "dev": false,
       "autoInstall": true,
       "runtime": true,

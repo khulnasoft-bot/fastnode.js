@@ -7,7 +7,7 @@
  *
  * Spec: https://pages.edgeone.ai/document/building-output-configuration
  */
-import type { Nitro, RedirectRuleOptions } from "nitro/types";
+import type { Fastnode, RedirectRuleOptions } from "fastnode/types";
 import { join } from "pathe";
 import { compareRoutes, routeToRegExp } from "rou3";
 import { joinURL } from "ufo";
@@ -37,10 +37,10 @@ interface EdgeOneConfig {
   routes: Route[];
 }
 
-export async function writeEdgeOneConfig(nitro: Nitro) {
-  nitro.routing.sync();
+export async function writeEdgeOneConfig(fastnode: Fastnode) {
+  fastnode.routing.sync();
 
-  const baseURL = nitro.options.baseURL || "/";
+  const baseURL = fastnode.options.baseURL || "/";
 
   const config: EdgeOneConfig = {
     version: 3,
@@ -48,8 +48,8 @@ export async function writeEdgeOneConfig(nitro: Nitro) {
   };
 
   // Phase 1 — rules evaluated before the filesystem handler (headers, redirects).
-  const rules = sortRoutes(Object.keys(nitro.options.routeRules || {})).map(
-    (key) => [parseRouteKey(key), nitro.options.routeRules[key]] as const
+  const rules = sortRoutes(Object.keys(fastnode.options.routeRules || {})).map(
+    (key) => [parseRouteKey(key), fastnode.options.routeRules[key]] as const
   );
 
   config.routes.push(
@@ -64,7 +64,7 @@ export async function writeEdgeOneConfig(nitro: Nitro) {
         continue: true,
       })),
     // CORS headers of public asset dirs, which the server function does not serve
-    ...getPublicAssetCorsHeaders(nitro).map(({ base, headers }) => ({
+    ...getPublicAssetCorsHeaders(fastnode).map(({ base, headers }) => ({
       src: routeToRE2(joinURL(baseURL, base, "**")).source,
       headers,
       continue: true,
@@ -93,7 +93,7 @@ export async function writeEdgeOneConfig(nitro: Nitro) {
   config.routes.push({ handle: "filesystem" });
 
   // Phase 2 — dynamic routes evaluated after the filesystem handler.
-  const apiRoutes = nitro.routing.routes.routes
+  const apiRoutes = fastnode.routing.routes.routes
     .filter((route) => {
       const handler = Array.isArray(route.data) ? route.data[0] : route.data;
       return handler && !handler.middleware && route.route !== "/**";
@@ -116,8 +116,8 @@ export async function writeEdgeOneConfig(nitro: Nitro) {
   // SSR page routes declared by the framework (e.g. Nuxt) plus any scanned handlers.
   const ssrRoutes = [
     ...new Set([
-      ...(nitro.options.ssrRoutes || []),
-      ...[...nitro.scannedHandlers, ...nitro.options.handlers]
+      ...(fastnode.options.ssrRoutes || []),
+      ...[...fastnode.scannedHandlers, ...fastnode.options.handlers]
         .filter((h) => !h.middleware && h.route && h.route !== "/**")
         .map((h) => h.route!),
     ]),
@@ -145,7 +145,7 @@ export async function writeEdgeOneConfig(nitro: Nitro) {
   }
 
   const configContent = JSON.stringify(config, null, 2);
-  await writeFile(join(nitro.options.output.serverDir, "config.json"), configContent, true);
+  await writeFile(join(fastnode.options.output.serverDir, "config.json"), configContent, true);
 
   return {
     apiRoutes,

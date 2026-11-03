@@ -1,5 +1,5 @@
 import type { ViteBuilder } from "vite";
-import type { NitroPluginContext } from "./types.ts";
+import type { FastnodePluginContext } from "./types.ts";
 
 import { basename, dirname, resolve } from "pathe";
 import { formatCompatibilityDate } from "compatx";
@@ -14,16 +14,16 @@ import { readBuiltServiceEntry } from "./services.ts";
 import type { RolldownOutput } from "rolldown";
 
 const BuilderNames = {
-  nitro: C.magenta("Nitro"),
+  fastnode: C.magenta("Fastnode"),
   client: C.green("Client"),
   ssr: C.blue("SSR"),
 } as Record<string, string>;
 
-export async function buildEnvironments(ctx: NitroPluginContext, builder: ViteBuilder) {
-  const nitro = ctx.nitro!;
+export async function buildEnvironments(ctx: FastnodePluginContext, builder: ViteBuilder) {
+  const fastnode = ctx.fastnode!;
 
   // ----------------------------------------------
-  // Stage 1: Build all environments before Nitro
+  // Stage 1: Build all environments before Fastnode
   // ----------------------------------------------
 
   for (const [envName, env] of Object.entries(builder.environments)) {
@@ -36,9 +36,9 @@ export async function buildEnvironments(ctx: NitroPluginContext, builder: ViteBu
         ctx._entryPoints[envName] = entry;
       }
     }
-    if (envName === "nitro" || !env.config.build.rollupOptions.input || env.isBuilt) {
-      if (!["nitro", "ssr", "client"].includes(envName)) {
-        nitro.logger.info(
+    if (envName === "fastnode" || !env.config.build.rollupOptions.input || env.isBuilt) {
+      if (!["fastnode", "ssr", "client"].includes(envName)) {
+        fastnode.logger.info(
           env.isBuilt
             ? `Skipping ${fmtName} (already built)`
             : `Skipping ${fmtName} (no input defined)`
@@ -47,24 +47,24 @@ export async function buildEnvironments(ctx: NitroPluginContext, builder: ViteBu
       continue;
     }
     if (!isTest && !isCI) console.log();
-    nitro.logger.start(`Building [${fmtName}]`);
+    fastnode.logger.start(`Building [${fmtName}]`);
     await builder.build(env);
   }
 
   // Use transformed client input for renderer template generation
-  const nitroOptions = ctx.nitro!.options;
+  const fastnodeOptions = ctx.fastnode!.options;
   const clientInput = builder.environments.client?.config?.build?.rollupOptions?.input;
-  if (nitroOptions.renderer?.template && nitroOptions.renderer?.template === clientInput) {
-    const outputPath = resolve(nitroOptions.output.publicDir, basename(clientInput as string));
+  if (fastnodeOptions.renderer?.template && fastnodeOptions.renderer?.template === clientInput) {
+    const outputPath = resolve(fastnodeOptions.output.publicDir, basename(clientInput as string));
     if (existsSync(outputPath)) {
       const html = await readFile(outputPath, "utf8").then((r) =>
         r.replace("<!--ssr-outlet-->", `{{{ fetchViteEnv("ssr", $REQUEST) || "" }}}`)
       );
       await rm(outputPath);
-      const tmp = resolve(nitroOptions.buildDir, "vite/index.html");
+      const tmp = resolve(fastnodeOptions.buildDir, "vite/index.html");
       await mkdir(dirname(tmp), { recursive: true });
       await writeFile(tmp, html, "utf8");
-      nitroOptions.renderer.template = tmp;
+      fastnodeOptions.renderer.template = tmp;
     }
   }
 
@@ -73,20 +73,20 @@ export async function buildEnvironments(ctx: NitroPluginContext, builder: ViteBu
   await builder.writeAssetsManifest?.();
 
   // ----------------------------------------------
-  // Stage 2: Build Nitro
+  // Stage 2: Build Fastnode
   // ----------------------------------------------
 
   if (!isTest && !isCI) console.log();
   const buildInfo = [
-    ["preset", nitro.options.preset],
-    ["compatibility", formatCompatibilityDate(nitro.options.compatibilityDate)],
+    ["preset", fastnode.options.preset],
+    ["compatibility", formatCompatibilityDate(fastnode.options.compatibilityDate)],
   ].filter((e) => e[1]);
-  nitro.logger.start(
-    `Building [${BuilderNames.nitro}] ${C.dim(`(${buildInfo.map(([k, v]) => `${k}: \`${v}\``).join(", ")})`)}`
+  fastnode.logger.start(
+    `Building [${BuilderNames.fastnode}] ${C.dim(`(${buildInfo.map(([k, v]) => `${k}: \`${v}\``).join(", ")})`)}`
   );
 
   // Copy public assets to the final output directory
-  await copyPublicAssets(nitro);
+  await copyPublicAssets(fastnode);
 
   // Add route rule for asset dirs
   const assetDirs = new Set(
@@ -96,10 +96,10 @@ export async function buildEnvironments(ctx: NitroPluginContext, builder: ViteBu
       .filter(Boolean) as string[]
   );
   for (const assetsDir of assetDirs) {
-    if (!existsSync(resolve(nitro.options.output.publicDir, assetsDir))) {
+    if (!existsSync(resolve(fastnode.options.output.publicDir, assetsDir))) {
       continue;
     }
-    const rule = (ctx.nitro!.options.routeRules[`/${assetsDir}/**`] ??= {});
+    const rule = (ctx.fastnode!.options.routeRules[`/${assetsDir}/**`] ??= {});
     if (rule.headers !== false && !rule.headers?.["cache-control"]) {
       rule.headers = {
         ...rule.headers,
@@ -107,47 +107,48 @@ export async function buildEnvironments(ctx: NitroPluginContext, builder: ViteBu
       };
     }
   }
-  ctx.nitro!.routing.sync();
+  ctx.fastnode!.routing.sync();
 
   // Prerender routes if configured
-  await prerender(nitro);
+  await prerender(fastnode);
 
   // Call vite:compile:before hook
-  await nitro.hooks.callHook("vite:compile:before", nitro);
+  await fastnode.hooks.callHook("vite:compile:before", fastnode);
 
-  if (nitro.options.compressPublicAssets) {
-    await compressPublicAssets(nitro);
+  if (fastnode.options.compressPublicAssets) {
+    await compressPublicAssets(fastnode);
   }
 
-  // Build the Nitro server bundle
+  // Build the Fastnode server bundle
   let output: RolldownOutput | undefined;
-  if (nitro.options.static) {
+  if (fastnode.options.static) {
     // Mark as built to opt out of Vite's fallback that builds every environment
     // when a `buildApp` hook left all of them unbuilt.
-    builder.environments.nitro.isBuilt = true;
+    builder.environments.fastnode.isBuilt = true;
   } else {
-    output = (await builder.build(builder.environments.nitro)) as RolldownOutput;
+    output = (await builder.build(builder.environments.fastnode)) as RolldownOutput;
   }
 
-  // Close the Nitro instance
-  await nitro.close();
+  // Close the Fastnode instance
+  await fastnode.close();
 
   // Call compiled hook
-  await nitro.hooks.callHook("compiled", nitro);
+  await fastnode.hooks.callHook("compiled", fastnode);
 
-  if (nitro.options.compressPublicAssets) {
-    await compressPublicAssets(nitro);
+  if (fastnode.options.compressPublicAssets) {
+    await compressPublicAssets(fastnode);
   }
 
   // Write build info
-  await writeBuildInfo(nitro, output);
+  await writeBuildInfo(fastnode, output);
 
   // Show deploy and preview commands
   if (!isTest && !isCI) console.log();
-  const previewCommand = nitro.options.framework.previewCommand || "npx vite preview";
-  nitro.logger.success(`You can preview this build using \`${previewCommand}\``);
-  if (nitro.options.commands.deploy) {
-    const deployCommand = nitro.options.framework.deployCommand || "npx nitro deploy --prebuilt";
-    nitro.logger.success(`You can deploy this build using \`${deployCommand}\``);
+  const previewCommand = fastnode.options.framework.previewCommand || "npx vite preview";
+  fastnode.logger.success(`You can preview this build using \`${previewCommand}\``);
+  if (fastnode.options.commands.deploy) {
+    const deployCommand =
+      fastnode.options.framework.deployCommand || "npx fastnode deploy --prebuilt";
+    fastnode.logger.success(`You can deploy this build using \`${deployCommand}\``);
   }
 }

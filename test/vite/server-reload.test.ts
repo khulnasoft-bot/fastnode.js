@@ -5,10 +5,10 @@ import type { ViteDevServer } from "vite";
 import { describe, test, expect, beforeAll, afterAll } from "vitest";
 
 const { createServer } = (await import(
-  process.env.NITRO_VITE_PKG || "vite"
+  process.env.FASTNODE_VITE_PKG || "vite"
 )) as typeof import("vite");
 
-describe("vite: `vite.serverReload` (nitro.config)", () => {
+describe("vite: `vite.serverReload` (fastnode.config)", () => {
   let server: ViteDevServer;
   let serverURL: string;
 
@@ -30,7 +30,7 @@ describe("vite: `vite.serverReload` (nitro.config)", () => {
   });
 
   // `serverReload: false` has to suppress the reload of the dev worker, not
-  // just nitro's own `full-reload`: Vite's default handling would otherwise
+  // just fastnode's own `full-reload`: Vite's default handling would otherwise
   // still send one for the same change.
   test("keeps the dev worker on the loaded modules", async () => {
     expect(await fetch(`${serverURL}/api/state`).then((r) => r.text())).toContain("original");
@@ -48,9 +48,10 @@ describe("vite: `vite.serverReload` (nitro.config)", () => {
       headers: { accept: "text/html", "sec-fetch-dest": "document" },
     });
     expect(res.status).toBe(500);
-    expect(await res.text()).toContain("/_nitro/dev/reload");
+    expect(await res.text()).toContain("/_fastnode/dev/reload");
 
-    const reloadState = () => fetch(`${serverURL}/_nitro/dev/reload?id=none`).then((r) => r.json());
+    const reloadState = () =>
+      fetch(`${serverURL}/_fastnode/dev/reload?id=none`).then((r) => r.json());
     const before = await reloadState();
     writeFileSync(handlerFile, originalContent.replace("original", "modified again"));
     await new Promise((resolve) => setTimeout(resolve, 1000));

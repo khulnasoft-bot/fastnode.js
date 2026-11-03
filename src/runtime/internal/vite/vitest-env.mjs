@@ -2,20 +2,20 @@
 
 /** @type {import("vitest/environments").Environment} */
 export default {
-  name: "nitro",
-  viteEnvironment: "nitro",
+  name: "fastnode",
+  viteEnvironment: "fastnode",
   setup() {
     return {
       async teardown() {
         // Read the descriptor: the lazy getter (see `vitest-setup.mjs`) would create the app
-        const nitroApp = Object.getOwnPropertyDescriptor(
-          globalThis.__nitro__ || {},
+        const fastnodeApp = Object.getOwnPropertyDescriptor(
+          globalThis.__fastnode__ || {},
           "default"
         )?.value;
         try {
-          await nitroApp?.hooks?.callHook("close");
+          await fastnodeApp?.hooks?.callHook("close");
         } finally {
-          delete globalThis.__nitro__?.default;
+          delete globalThis.__fastnode__?.default;
         }
       },
     };

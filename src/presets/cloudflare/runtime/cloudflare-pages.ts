@@ -1,4 +1,4 @@
-import "#nitro/virtual/polyfills";
+import "#fastnode/virtual/polyfills";
 import type {
   Request as CFRequest,
   EventContext,
@@ -6,10 +6,10 @@ import type {
 } from "@cloudflare/workers-types";
 import wsAdapter from "crossws/adapters/cloudflare";
 
-import { useNitroApp } from "nitro/app";
-import { isPublicAssetURL } from "#nitro/virtual/public-assets";
-import { runCronTasks } from "#nitro/runtime/task";
-import { resolveWebsocketHooks } from "#nitro/runtime/app";
+import { useFastnodeApp } from "fastnode/app";
+import { isPublicAssetURL } from "#fastnode/virtual/public-assets";
+import { runCronTasks } from "#fastnode/runtime/task";
+import { resolveWebsocketHooks } from "#fastnode/runtime/app";
 
 import { augmentReq, fetchPublicAsset } from "./_module-handler.ts";
 
@@ -26,7 +26,7 @@ interface CFPagesEnv {
   [key: string]: any;
 }
 
-const nitroApp = useNitroApp();
+const fastnodeApp = useFastnodeApp();
 
 const ws = import.meta._websocket ? wsAdapter({ resolve: resolveWebsocketHooks }) : undefined;
 
@@ -48,7 +48,7 @@ export default {
       return fetchPublicAsset(env.ASSETS, cfReq);
     }
 
-    return nitroApp.fetch(cfReq as any);
+    return fastnodeApp.fetch(cfReq as any);
   },
   scheduled(event: any, env: CFPagesEnv, context: ExecutionContext) {
     if (import.meta._tasks) {

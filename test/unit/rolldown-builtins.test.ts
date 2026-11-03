@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "pathe";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { rolldown } from "rolldown";
-import { createNitro } from "../../src/nitro.ts";
+import { createFastnode } from "../../src/fastnode.ts";
 import { getRolldownConfig } from "../../src/build/rolldown/config.ts";
 import { builtinExternals } from "../../src/build/plugins/builtins.ts";
 
@@ -14,17 +14,17 @@ vi.mock("node:module", async (importOriginal) => {
 });
 
 describe("rolldown builtins", () => {
-  const rootDir = mkdtempSync(join(tmpdir(), "nitro-rolldown-builtins-"));
+  const rootDir = mkdtempSync(join(tmpdir(), "fastnode-rolldown-builtins-"));
   afterAll(() => rmSync(rootDir, { recursive: true, force: true }));
 
   it("externalizes prefixed builtins by their own id", async () => {
-    const nitro = await createNitro({
+    const fastnode = await createFastnode({
       rootDir,
       preset: "node-server",
       compatibilityDate: "latest",
     });
-    const external = (await getRolldownConfig(nitro)).external as string[];
-    await nitro.close();
+    const external = (await getRolldownConfig(fastnode)).external as string[];
+    await fastnode.close();
     expect(external).toEqual(
       expect.arrayContaining(["events", "node:events", "node:sqlite", "bun:sqlite"])
     );
@@ -32,8 +32,8 @@ describe("rolldown builtins", () => {
   });
 });
 
-describe("nitro:builtins", () => {
-  const dir = mkdtempSync(join(tmpdir(), "nitro-builtins-plugin-"));
+describe("fastnode:builtins", () => {
+  const dir = mkdtempSync(join(tmpdir(), "fastnode-builtins-plugin-"));
   afterAll(() => rmSync(dir, { recursive: true, force: true }));
 
   it("turns `require()` of native builtins into imports without the node platform", async () => {

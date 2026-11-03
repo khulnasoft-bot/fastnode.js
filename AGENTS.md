@@ -1,6 +1,6 @@
 ## Project Identity
 
-Nitro is a framework-agnostic and deployment-agnostic server framework powered by [H3](https://github.com/h3js/h3) (v2), [UnJS] (https://github.com/unjs), and Vite | Rolldown | Rollup.
+Fastnode is a framework-agnostic and deployment-agnostic server framework powered by [H3](https://github.com/h3js/h3) (v2), [UnJS] (https://github.com/unjs), and Vite | Rolldown | Rollup.
 
 ## First-time Setup for Development
 
@@ -15,7 +15,7 @@ Nitro is a framework-agnostic and deployment-agnostic server framework powered b
 - `pnpm lint` — Check lint and formatting (`oxlint` + `oxfmt --check`).
 - `pnpm fmt` — Auto-fix lint and formatting (`automd` + `oxlint --fix` + `oxfmt`).
 - `pnpm test` — Full pipeline: `lint && build && typecheck && test:rollup && test:rolldown` (runs vitest against both the rollup and rolldown builders).
-- `pnpm test:rollup` / `pnpm test:rolldown` — Run vitest against a single builder (`NITRO_BUILDER`).
+- `pnpm test:rollup` / `pnpm test:rolldown` — Run vitest against a single builder (`FASTNODE_BUILDER`).
 - `pnpm typecheck` — Type-check with the TypeScript native-preview compiler (`tsgo --noEmit --skipLibCheck`).
 
 **Always run** `pnpm fmt` and `pnpm typecheck` after making changes.
@@ -33,7 +33,7 @@ Nitro is a framework-agnostic and deployment-agnostic server framework powered b
 Project source is centralized under `src/`:
 
 - `src/build` — Build logic (Vite | Rolldown | Rollup config, virtual templates in `src/build/virtual/`, plugins in `src/build/plugins/`).
-- `src/cli` — `nitro` CLI subcommands (each file in `src/cli/commands` is a command).
+- `src/cli` — `fastnode` CLI subcommands (each file in `src/cli/commands` is a command).
 - `src/config/` — Config defaults (`src/config/defaults.ts`) and resolvers/normalizers (`src/config/resolvers`).
 - `src/dev` — Development server logic (`app.ts`, `server.ts`, `vfs.ts`).
 - `src/prerender` — Prerender logic.
@@ -44,7 +44,7 @@ Project source is centralized under `src/`:
 
 ### Why Changes in `src/` Are High-Impact
 
-Code in `src/` affects all Nitro users:
+Code in `src/` affects all Fastnode users:
 
 - Changes in `src/runtime` are bundled and run across all deployment targets.
 - Changes in `src/build` affect build output and performance.
@@ -57,26 +57,26 @@ Review these changes carefully for backwards compatibility, bundle size, and cro
 
 - `pathe` — Cross-platform path operations (always prefer over `node:path`).
 - `defu` — Deep object merging and config defaults.
-- `consola` — Logging in build/dev code (use `nitro.logger` when available).
+- `consola` — Logging in build/dev code (use `fastnode.logger` when available).
 - `unstorage` — Storage abstraction.
 
 ### Optional Dependencies
 
 Packages that are only needed by some presets, builders, or opt-in features are imported on demand
 from the user project via `src/utils/dep.ts` (`ensureDep` / `importDep` / `isDepInstalled`), which
-resolves from `nitro.options.rootDir` and offers to install what is missing.
+resolves from `fastnode.options.rootDir` and offers to install what is missing.
 
 - Don't add a `peerDependencies` entry. Add the package to `devDependencies` (for tests and types)
   and to the `deps.json` manifest (supported `version` range, `reason` and install defaults, typed
-  in `src/utils/_deps.ts`), then import it with `importDep({ id, dir: nitro.options.rootDir, paths: nitro.options.deps?.paths })`
+  in `src/utils/_deps.ts`), then import it with `importDep({ id, dir: fastnode.options.rootDir, paths: fastnode.options.deps?.paths })`
   (`paths` honours the explicit packages of the `deps.paths` option, e.g. passed by frameworks).
 - Manifest entries are kept external in `build.config.ts`. A unit test checks that each range covers
   the `devDependencies` version: after bumping one out of its range, run `pnpm sync-deps`.
 - `import type` from such a package is fine; only value imports must go through `utils/dep.ts`.
-- Optional dependencies of the libraries Nitro *bundles* (e.g. `jiti` for `c12`) cannot resolve from
+- Optional dependencies of the libraries Fastnode *bundles* (e.g. `jiti` for `c12`) cannot resolve from
   `dist/`. Those are not in the manifest: they get a bundle-time alias to a shim in `src/shims/`
   (one file per package), with a range within the one of the bundled library (`shims` in `deps.json`).
-- Nitro has no peer dependencies at all: `vite` is imported from the user project too
+- Fastnode has no peer dependencies at all: `vite` is imported from the user project too
   (`src/build/vite/_import.ts`). Its `DevEnvironment` subclass is therefore defined lazily, against
   the class of the resolved instance (see `src/build/vite/dev.ts`).
 
@@ -93,7 +93,7 @@ Code in `src/runtime/` must be runtime-agnostic:
 
 ### Test Structure
 
-Main tests are defined in `test/tests.ts` and setup per each deployment provider in `test/presets` and run against `test/fixture` nitro app. Add new regression tests to `test/fixture`.
+Main tests are defined in `test/tests.ts` and setup per each deployment provider in `test/presets` and run against `test/fixture` fastnode app. Add new regression tests to `test/fixture`.
 
 Other tests:
 
@@ -146,7 +146,7 @@ Each preset in `src/presets/` defines deployment target behavior:
 ## Error & Logging Guidelines
 
 - Prefer explicit errors over silent failures.
-- Use `nitro.logger` in build/dev code, `consola` as fallback.
+- Use `fastnode.logger` in build/dev code, `consola` as fallback.
 - Use `console` only in `src/runtime/` code.
 - Use warnings for recoverable situations; throw for invalid states.
 - Include actionable context in error messages.
@@ -183,7 +183,7 @@ Each preset in `src/presets/` defines deployment target behavior:
 For deeper context, see `.agents/`:
 
 - [`.agents/architecture.md`](.agents/architecture.md) — Full architecture: core instance, build system, config resolution, virtual modules, runtime internals, dev server, routing, key libraries.
-- [`.agents/presets.md`](.agents/presets.md) — All presets (multiple deployment targets + internal `_nitro`/`_static`), preset structure, how to create presets, resolution logic.
+- [`.agents/presets.md`](.agents/presets.md) — All presets (multiple deployment targets + internal `_fastnode`/`_static`), preset structure, how to create presets, resolution logic.
 - [`.agents/testing.md`](.agents/testing.md) — Test structure, how tests work, adding regression tests, running tests.
 - [`.agents/vite.md`](.agents/vite.md) — Vite build system: plugin architecture (6 sub-plugins), environments API, dev server integration, production build stages, bundler config, HMR, runtime worker.
 - [`.agents/docs.md`](.agents/docs.md) — Docs site: UnDocs structure, the `.docs/` theme layer (imports, styling tokens, content queries), MDC blocks, and content conventions (preset naming, import paths, H3 v2 patterns, common mistakes).

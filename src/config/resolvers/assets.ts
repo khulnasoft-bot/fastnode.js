@@ -1,10 +1,10 @@
 import { existsSync } from "node:fs";
 import { defu } from "defu";
-import type { NitroOptions } from "nitro/types";
+import type { FastnodeOptions } from "fastnode/types";
 import { resolve } from "pathe";
 import { withLeadingSlash, withoutTrailingSlash } from "ufo";
 
-export async function resolveAssetsOptions(options: NitroOptions) {
+export async function resolveAssetsOptions(options: FastnodeOptions) {
   // Public Assets
   // 1. Normalize user paths
   for (const publicAsset of options.publicAssets) {

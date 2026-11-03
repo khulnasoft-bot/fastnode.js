@@ -14,7 +14,7 @@ export const unenvCfNodeCompat: PresetEnv = {
     ),
   },
   inject: {
-    global: "#nitro/runtime/polyfills/globalthis",
+    global: "#fastnode/runtime/polyfills/globalthis",
     process: "node:process",
     clearImmediate: ["node:timers", "clearImmediate"],
     setImmediate: ["node:timers", "setImmediate"],

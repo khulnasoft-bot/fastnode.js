@@ -10,13 +10,13 @@ body:
 
         Please use one of the templates below to create a minimal reproduction :
 
-        👉 https://stackblitz.com/github/nitrojs/nitro/tree/starter
-        👉 https://codesandbox.io/p/github/nitrojs/nitro/starter
+        👉 https://stackblitz.com/github/khulnasoft/fastnode/tree/starter
+        👉 https://codesandbox.io/p/github/khulnasoft/fastnode/starter
   - type: textarea
     id: bug-env
     attributes:
       label: Environment
-      description: Nitro and Node.js version possibly nitro config can be helpful to investigate issues
+      description: Fastnode and Node.js version possibly fastnode config can be helpful to investigate issues
       placeholder: Environment
     validations:
       required: true

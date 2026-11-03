@@ -1,6 +1,6 @@
 # Koyeb
 
-> Deploy Nitro apps to Koyeb.
+> Deploy Fastnode apps to Koyeb.
 
 **Preset:** `koyeb`
 
@@ -18,7 +18,7 @@
    node .output/server/index.mjs
    ```
 
-6. In the **Advanced** section, click **Add Variable** and add a `NITRO_PRESET` variable set to `koyeb`.
+6. In the **Advanced** section, click **Add Variable** and add a `FASTNODE_PRESET` variable set to `koyeb`.
 7. Name the App.
 8. Click the **Deploy** button.
 
@@ -33,7 +33,7 @@
    ```
 
    Paste your API credentials when prompted.
-4. Deploy your Nitro application from a GitHub repository with the following command. Be sure to substitute your own values for `<APPLICATION_NAME>`, `<YOUR_GITHUB_USERNAME>`, and `<YOUR_REPOSITORY_NAME>`:
+4. Deploy your Fastnode application from a GitHub repository with the following command. Be sure to substitute your own values for `<APPLICATION_NAME>`, `<YOUR_GITHUB_USERNAME>`, and `<YOUR_REPOSITORY_NAME>`:
 
    ```bash
    koyeb app init <APPLICATION_NAME> \
@@ -43,7 +43,7 @@
       --ports 3000:http \
       --routes /:3000 \
       --env PORT=3000 \
-      --env NITRO_PRESET=koyeb
+      --env FASTNODE_PRESET=koyeb
    ```
 
 ## Using a docker container
@@ -55,7 +55,7 @@
    .dockerignore
    node_modules
    npm-debug.log
-   .nitro
+   .fastnode
    .output
    .git
    dist
@@ -82,15 +82,15 @@
    FROM base AS runner
    WORKDIR /app
    RUN addgroup --system --gid 1001 nodejs
-   RUN adduser --system --uid 1001 nitro
+   RUN adduser --system --uid 1001 fastnode
    COPY --from=builder /app .
-   USER nitro
+   USER fastnode
    EXPOSE 3000
    ENV PORT 3000
    CMD ["npm", "run", "start"]
    ```
 
-The Dockerfile above provides the minimum requirements to run the Nitro application. You can easily extend it depending on your needs.
+The Dockerfile above provides the minimum requirements to run the Fastnode application. You can easily extend it depending on your needs.
 
 Next, push your Docker image to a registry, for example [Docker Hub](https://hub.docker.com/) or [GitHub Container Registry](https://docs.github.com/en/packages/guides/about-github-container-registry).
 

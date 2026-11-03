@@ -1,15 +1,15 @@
 import type { EnvRunnerPlugin, PluginContext } from "env-runner";
-import type { Nitro, NitroBuildPlugin } from "nitro/types";
+import type { Fastnode, FastnodeBuildPlugin } from "fastnode/types";
 
 import { existsSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import replace from "@rollup/plugin-replace";
 import MagicString from "magic-string";
-import { pkgDir } from "#nitro/meta";
+import { pkgDir } from "#fastnode/meta";
 import { dirname, isAbsolute, join, normalize, resolve } from "pathe";
 import { unwasm } from "unwasm/plugin";
 import { baseBuildConfig } from "../config.ts";
-import { NITRO_VIRTUAL_PREFIX, nitroVirtualPath } from "./entry.ts";
+import { FASTNODE_VIRTUAL_PREFIX, fastnodeVirtualPath } from "./entry.ts";
 import { importAttributes } from "../plugins/import-attributes.ts";
 import { resolveDep } from "../../utils/dep.ts";
 import { importOXC } from "../../utils/oxc.ts";
@@ -43,48 +43,48 @@ export interface UnbundledPluginsOptions {
  * WASM imports.
  */
 export async function unbundledPlugins(
-  nitro: Nitro,
+  fastnode: Fastnode,
   opts: UnbundledPluginsOptions = {}
 ): Promise<EnvRunnerPlugin[]> {
-  const base = await baseBuildConfig(nitro);
+  const base = await baseBuildConfig(fastnode);
 
-  // Sources Nitro would bundle: its own runtime and the app (`node_modules` needs a named include)
-  const sourceDirs = [pkgDir, nitro.options.rootDir, ...nitro.options.scanDirs].map(
+  // Sources Fastnode would bundle: its own runtime and the app (`node_modules` needs a named include)
+  const sourceDirs = [pkgDir, fastnode.options.rootDir, ...fastnode.options.scanDirs].map(
     (dir) => `${escapeGlob(normalize(dir).replace(/\/$/, ""))}/**`
   );
 
   const plugins: EnvRunnerPlugin[] = [
     virtualPlugin(),
-    runtimeDepsPlugin(nitro, opts.sync),
-    resolvePlugin(nitro, base.extensions),
+    runtimeDepsPlugin(fastnode, opts.sync),
+    resolvePlugin(fastnode, base.extensions),
     windowsPathPlugin(base.extensions),
-    await transformPlugin(nitro, sourceDirs),
+    await transformPlugin(fastnode, sourceDirs),
     replacePlugin(base.replacements, sourceDirs),
-    withoutSourceMap(fromRollup(await importAttributes(nitro))),
-    rawVirtualPlugin(nitro),
+    withoutSourceMap(fromRollup(await importAttributes(fastnode))),
+    rawVirtualPlugin(fastnode),
     fromRollup(raw()),
   ];
 
   if (Object.keys(base.aliases).length > 0) {
-    plugins.push(await aliasPlugin(nitro, base.aliases, sourceDirs));
+    plugins.push(await aliasPlugin(fastnode, base.aliases, sourceDirs));
   }
 
-  const tsconfigPathsPlugin = tsconfigPaths(nitro, base.aliases);
+  const tsconfigPathsPlugin = tsconfigPaths(fastnode, base.aliases);
   if (tsconfigPathsPlugin) {
     plugins.push(fromRollup(tsconfigPathsPlugin));
   }
 
-  if (nitro.options.experimental.openAPI) {
-    plugins.push(fromRollup(await routeMeta(nitro)));
+  if (fastnode.options.experimental.openAPI) {
+    plugins.push(fromRollup(await routeMeta(fastnode)));
   }
 
-  if (nitro.options.wasm !== false) {
-    plugins.push(fromRollup(unwasm(nitro.options.wasm || {})));
+  if (fastnode.options.wasm !== false) {
+    plugins.push(fromRollup(unwasm(fastnode.options.wasm || {})));
   }
 
   // User build plugins (ordered by `enforce` in env-runner)
-  for (const plugin of await resolveBuildPlugins(nitro)) {
-    warnUnsupportedHooks(nitro, plugin);
+  for (const plugin of await resolveBuildPlugins(fastnode)) {
+    warnUnsupportedHooks(fastnode, plugin);
     plugins.push(fromRollup(plugin));
   }
 
@@ -92,17 +92,17 @@ export async function unbundledPlugins(
 }
 
 /**
- * Resolve `#nitro/virtual/*` to their path keys.
+ * Resolve `#fastnode/virtual/*` to their path keys.
  *
  * Runtimes resolve them natively to the stub files the keys override, except on miniflare,
  * which only serves the keys for this redirect.
  */
 function virtualPlugin(): EnvRunnerPlugin {
   return {
-    name: "nitro:virtual",
+    name: "fastnode:virtual",
     resolveId: {
-      filter: { id: new RegExp(`^${NITRO_VIRTUAL_PREFIX}`) },
-      handler: (source) => nitroVirtualPath(source),
+      filter: { id: new RegExp(`^${FASTNODE_VIRTUAL_PREFIX}`) },
+      handler: (source) => fastnodeVirtualPath(source),
     },
   };
 }
@@ -110,26 +110,26 @@ function virtualPlugin(): EnvRunnerPlugin {
 /**
  * Resolve imports the runtime fails to resolve (`fallback`), like bundlers do:
  * - relative and absolute paths without extension or to a directory index.
- * - project dependencies imported by Nitro virtual modules (keyed under the Nitro package).
+ * - project dependencies imported by Fastnode virtual modules (keyed under the Fastnode package).
  */
-function resolvePlugin(nitro: Nitro, extensions: string[]): EnvRunnerPlugin {
-  const virtualDir = nitroVirtualPath("");
+function resolvePlugin(fastnode: Fastnode, extensions: string[]): EnvRunnerPlugin {
+  const virtualDir = fastnodeVirtualPath("");
   return {
-    name: "nitro:resolve",
+    name: "fastnode:resolve",
     resolveId: {
       fallback: true,
-      filter: { id: /^(?!#nitro\/)/ },
+      filter: { id: /^(?!#fastnode\/)/ },
       handler(this: PluginContext, source, importer) {
         if (/^(?:\.{1,2}\/|\/|[a-zA-Z]:[\\/]|file:)/.test(source)) {
           const [specifier, query] = splitQuery(source);
           const path = specifier.startsWith("file:") ? fileURLToPath(specifier) : specifier;
           const base = isAbsolute(path)
             ? path
-            : resolve(importer ? dirname(splitQuery(importer)[0]) : nitro.options.rootDir, path);
+            : resolve(importer ? dirname(splitQuery(importer)[0]) : fastnode.options.rootDir, path);
           return resolveFile(base, query, extensions);
         }
         if (importer && normalize(importer).startsWith(virtualDir)) {
-          return this.resolve(source, join(nitro.options.rootDir, "_"));
+          return this.resolve(source, join(fastnode.options.rootDir, "_"));
         }
       },
     },
@@ -137,12 +137,12 @@ function resolvePlugin(nitro: Nitro, extensions: string[]): EnvRunnerPlugin {
 }
 
 /**
- * Optional runtime dependencies (`unstorage`, `db0`) imported by the Nitro runtime: installed
+ * Optional runtime dependencies (`unstorage`, `db0`) imported by the Fastnode runtime: installed
  * on demand (not in `sync` mode) and resolved from the project when the runtime fails to resolve them.
  */
-function runtimeDepsPlugin(nitro: Nitro, sync?: boolean): EnvRunnerPlugin {
+function runtimeDepsPlugin(fastnode: Fastnode, sync?: boolean): EnvRunnerPlugin {
   return {
-    name: "nitro:runtime-deps",
+    name: "fastnode:runtime-deps",
     resolveId: {
       fallback: true,
       filter: { id: OPTIONAL_RUNTIME_DEPS_RE },
@@ -150,26 +150,26 @@ function runtimeDepsPlugin(nitro: Nitro, sync?: boolean): EnvRunnerPlugin {
         if (!isRuntimeImporter(importer && normalize(importer))) {
           return;
         }
-        const resolve = () => this.resolve(source, join(nitro.options.rootDir, "_"));
-        if (resolveDep(source, { dir: nitro.options.rootDir, deps: nitro.options.deps })) {
+        const resolve = () => this.resolve(source, join(fastnode.options.rootDir, "_"));
+        if (resolveDep(source, { dir: fastnode.options.rootDir, deps: fastnode.options.deps })) {
           return resolve();
         }
         if (sync) {
-          throw missingRuntimeDepError(nitro, source);
+          throw missingRuntimeDepError(fastnode, source);
         }
-        return ensureRuntimeDep(nitro, source).then(resolve);
+        return ensureRuntimeDep(fastnode, source).then(resolve);
       },
     },
   };
 }
 
 /**
- * Windows absolute paths (Nitro virtual modules import sources by path): Node.js rejects them
+ * Windows absolute paths (Fastnode virtual modules import sources by path): Node.js rejects them
  * as a `d:` URL scheme instead of failing to resolve, so they skip `fallback` resolvers.
  */
 function windowsPathPlugin(extensions: string[]): EnvRunnerPlugin {
   return {
-    name: "nitro:windows-path",
+    name: "fastnode:windows-path",
     resolveId: {
       filter: { id: /^[a-zA-Z]:[\\/]/ },
       handler(source) {
@@ -181,14 +181,14 @@ function windowsPathPlugin(extensions: string[]): EnvRunnerPlugin {
 }
 
 /** TypeScript and JSX, with the same options as the bundled build. */
-async function transformPlugin(nitro: Nitro, sourceDirs: string[]): Promise<EnvRunnerPlugin> {
+async function transformPlugin(fastnode: Fastnode, sourceDirs: string[]): Promise<EnvRunnerPlugin> {
   const { transformSync } = await importOXC({
-    dir: nitro.options.rootDir,
-    paths: nitro.options.deps?.paths,
+    dir: fastnode.options.rootDir,
+    paths: fastnode.options.deps?.paths,
   });
-  const tsc = nitro.options.typescript.tsConfig?.compilerOptions;
+  const tsc = fastnode.options.typescript.tsConfig?.compilerOptions;
   return {
-    name: "nitro:transform",
+    name: "fastnode:transform",
     transform: {
       filter: { id: sourceDirs, moduleType: ["ts", "tsx", "jsx"] },
       handler(this: PluginContext, code, id, { moduleType }) {
@@ -200,7 +200,7 @@ async function transformPlugin(nitro: Nitro, sourceDirs: string[]): Promise<EnvR
             pragma: tsc?.jsxFactory,
             pragmaFrag: tsc?.jsxFragmentFactory,
             importSource: tsc?.jsxImportSource,
-            development: nitro.options.dev,
+            development: fastnode.options.dev,
           },
         });
         if (result.errors.length > 0) {
@@ -213,22 +213,22 @@ async function transformPlugin(nitro: Nitro, sourceDirs: string[]): Promise<EnvR
 }
 
 /**
- * Raw imports of virtual modules (`text:#nitro/virtual/...`) inline their rendered source.
+ * Raw imports of virtual modules (`text:#fastnode/virtual/...`) inline their rendered source.
  *
  * Runs before the raw plugin, which would read the stub file behind the path key instead
  * (bundlers keep virtual ids, for which it uses `this.load()`, unsupported by env-runner).
  */
-function rawVirtualPlugin(nitro: Nitro): EnvRunnerPlugin {
+function rawVirtualPlugin(fastnode: Fastnode): EnvRunnerPlugin {
   const prefixRe = /^(raw|bytes|text):/;
   return {
-    name: "nitro:raw-virtual",
+    name: "fastnode:raw-virtual",
     resolveId: {
       order: "pre",
       filter: { id: [/^raw:/, /^bytes:/, /^text:/] },
       handler(source) {
         const [, type] = prefixRe.exec(source) || [];
         const id = source.slice(`${type}:`.length);
-        if (type && nitro.vfs.has(id)) {
+        if (type && fastnode.vfs.has(id)) {
           return `${RAW_PREFIX}${type}:${id}.js`;
         }
       },
@@ -239,7 +239,7 @@ function rawVirtualPlugin(nitro: Nitro): EnvRunnerPlugin {
       handler(id) {
         const [, type] = RAW_RE.exec(id) || [];
         const vfsId = id.replace(RAW_RE, "").slice(0, -".js".length);
-        const mod = nitro.vfs.get(vfsId);
+        const mod = fastnode.vfs.get(vfsId);
         if (!mod) {
           return;
         }
@@ -263,7 +263,7 @@ function replacePlugin(
   });
   const keys = Object.keys(values).map((key) => key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
   return {
-    name: "nitro:replace",
+    name: "fastnode:replace",
     transform: {
       order: "post",
       filter: {
@@ -278,11 +278,11 @@ function replacePlugin(
 
 /** `alias` option (and unenv aliases), resolved like bundlers do (relative targets from `rootDir`). */
 async function aliasPlugin(
-  nitro: Nitro,
+  fastnode: Fastnode,
   _aliases: Record<string, string>,
   sourceDirs: string[]
 ): Promise<EnvRunnerPlugin> {
-  const { rootDir } = nitro.options;
+  const { rootDir } = fastnode.options;
   const aliases = Object.fromEntries(
     Object.entries(_aliases).map(([key, target]) => [
       key,
@@ -298,7 +298,7 @@ async function aliasPlugin(
     }
   };
   const plugin: EnvRunnerPlugin = {
-    name: "nitro:alias",
+    name: "fastnode:alias",
     resolveId: {
       filter: { id: new RegExp(`^(?:${keys.join("|")})`) },
       handler(this: PluginContext, source, importer) {
@@ -312,12 +312,12 @@ async function aliasPlugin(
       },
     },
   };
-  const runner = nitro.options.devServer?.runner || process.env.NITRO_DEV_RUNNER;
+  const runner = fastnode.options.devServer?.runner || process.env.FASTNODE_DEV_RUNNER;
   if (!process.versions.bun && runner !== "bun-process") {
     return plugin;
   }
   // Bun runtime plugins do not resolve the bare specifiers of static imports: rewrite them instead
-  const { parseSync } = await importOXC({ dir: rootDir, paths: nitro.options.deps?.paths });
+  const { parseSync } = await importOXC({ dir: rootDir, paths: fastnode.options.deps?.paths });
   plugin.transform = {
     filter: { id: sourceDirs, code: new RegExp(`["'\`](?:${keys.join("|")})`) },
     handler(code, id) {
@@ -349,7 +349,7 @@ async function aliasPlugin(
 
 /**
  * Drop the source map of a line-preserving transform: env-runner does not compose maps, so a
- * second one (from `nitro:transform`) would drop both.
+ * second one (from `fastnode:transform`) would drop both.
  */
 function withoutSourceMap(plugin: EnvRunnerPlugin): EnvRunnerPlugin {
   const transform = plugin.transform as Exclude<
@@ -397,7 +397,7 @@ function escapeGlob(path: string) {
 }
 
 /** Warn about `buildPlugins` hooks env-runner ignores. */
-function warnUnsupportedHooks(nitro: Nitro, plugin: NitroBuildPlugin) {
+function warnUnsupportedHooks(fastnode: Fastnode, plugin: FastnodeBuildPlugin) {
   const hooks = Object.keys(plugin).filter((key) => {
     const value = plugin[key];
     // `apply` is a Vite option, not a hook
@@ -408,7 +408,7 @@ function warnUnsupportedHooks(nitro: Nitro, plugin: NitroBuildPlugin) {
     );
   });
   if (hooks.length > 0) {
-    nitro.logger.warn(
+    fastnode.logger.warn(
       `Build plugin \`${plugin.name}\` uses hooks not supported with \`builder: false\`, they are ignored: ${hooks.map((hook) => `\`${hook}\``).join(", ")}.`
     );
   }

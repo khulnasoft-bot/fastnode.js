@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "pathe";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("#nitro/meta", () => ({
+vi.mock("#fastnode/meta", () => ({
   version: "0.0.0-test",
   runtimeDir: "/tmp",
   presetsDir: "/tmp",
@@ -15,12 +15,12 @@ const originalNodeEnv = process.env.NODE_ENV;
 const tempDirs: string[] = [];
 
 async function createFixtureConfig() {
-  const rootDir = await mkdtemp(join(tmpdir(), "nitro-config-env-"));
+  const rootDir = await mkdtemp(join(tmpdir(), "fastnode-config-env-"));
   tempDirs.push(rootDir);
 
   await writeFile(
-    join(rootDir, "nitro.config.ts"),
-    `export default defineNitroConfig({
+    join(rootDir, "fastnode.config.ts"),
+    `export default defineFastnodeConfig({
   preset: 'node-server',
   routeRules: {
     '/base': { headers: { 'x-env': 'base' } }

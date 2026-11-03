@@ -1,4 +1,4 @@
-import type { Nitro, RolldownConfig } from "nitro/types";
+import type { Fastnode, RolldownConfig } from "fastnode/types";
 import type { OutputOptions, RolldownOptions, RolldownPlugin } from "rolldown";
 import { baseBuildConfig } from "../config.ts";
 import { baseBuildPlugins, withBuildPlugins } from "../plugins.ts";
@@ -8,38 +8,38 @@ import { defu } from "defu";
 import { getChunkName, libChunksGroup } from "../chunks.ts";
 import { builtinExternals, builtins } from "../plugins/builtins.ts";
 
-export const getRolldownConfig = async (nitro: Nitro): Promise<RolldownConfig> => {
-  const base = await baseBuildConfig(nitro);
+export const getRolldownConfig = async (fastnode: Fastnode): Promise<RolldownConfig> => {
+  const base = await baseBuildConfig(fastnode);
 
-  const tsc = nitro.options.typescript.tsConfig?.compilerOptions;
+  const tsc = fastnode.options.typescript.tsConfig?.compilerOptions;
 
   let config: RolldownOptions = {
-    platform: nitro.options.node ? "node" : "neutral",
-    cwd: nitro.options.rootDir,
-    input: nitro.options.entry,
-    // Nitro resolves `tsconfig` and passes relevant options (e.g. `transform.jsx`) explicitly.
+    platform: fastnode.options.node ? "node" : "neutral",
+    cwd: fastnode.options.rootDir,
+    input: fastnode.options.entry,
+    // Fastnode resolves `tsconfig` and passes relevant options (e.g. `transform.jsx`) explicitly.
     // Disable Rolldown's own tsconfig discovery to avoid `CONFIGURATION_FIELD_CONFLICT` warnings
     // and keep behavior consistent with the Rollup builder.
     tsconfig: false,
     // Rolldown checks `external` before aliases and plugins: builtins aliased to polyfills are
     // bundled, and the ones aliased to another id (all of them without the node platform) are
-    // left to `nitro:builtins`
-    external: nitro.options.node
+    // left to `fastnode:builtins`
+    external: fastnode.options.node
       ? [
           ...base.env.external,
           ...builtins.filter((id) => !base.env.alias[id] || base.env.alias[id] === id),
         ]
       : [],
-    plugins: await withBuildPlugins(nitro, [
-      builtinExternals(base.env, { node: nitro.options.node }),
-      ...((await baseBuildPlugins(nitro, base)) as RolldownPlugin[]),
+    plugins: await withBuildPlugins(fastnode, [
+      builtinExternals(base.env, { node: fastnode.options.node }),
+      ...((await baseBuildPlugins(fastnode, base)) as RolldownPlugin[]),
       // Emitted files are read from the filesystem, which worker runtimes do not have
-      nitro.options.node && ((await assetUrls(nitro)) as RolldownPlugin),
+      fastnode.options.node && ((await assetUrls(fastnode)) as RolldownPlugin),
     ]),
     resolve: {
       alias: base.aliases,
       extensions: base.extensions,
-      conditionNames: nitro.options.exportConditions,
+      conditionNames: fastnode.options.exportConditions,
     },
     transform: {
       inject: base.env.inject as Record<string, string>,
@@ -48,7 +48,7 @@ export const getRolldownConfig = async (nitro: Nitro): Promise<RolldownConfig> =
         pragma: tsc?.jsxFactory,
         pragmaFrag: tsc?.jsxFragmentFactory,
         importSource: tsc?.jsxImportSource,
-        development: nitro.options.dev,
+        development: fastnode.options.dev,
       },
     },
     onwarn(warning, warn) {
@@ -63,17 +63,17 @@ export const getRolldownConfig = async (nitro: Nitro): Promise<RolldownConfig> =
       format: "esm",
       entryFileNames: "index.mjs",
       minifyInternalExports: false,
-      chunkFileNames: (chunk) => getChunkName(chunk, nitro),
+      chunkFileNames: (chunk) => getChunkName(chunk, fastnode),
       codeSplitting: {
-        groups: [libChunksGroup(nitro)],
+        groups: [libChunksGroup(fastnode)],
       },
-      dir: nitro.options.output.serverDir,
-      inlineDynamicImports: nitro.options.inlineDynamicImports,
+      dir: fastnode.options.output.serverDir,
+      inlineDynamicImports: fastnode.options.inlineDynamicImports,
       // https://github.com/rolldown/rolldown/issues/7235
-      minify: nitro.options.minify ? true : "dce-only",
-      sourcemap: nitro.options.sourcemap,
-      // nitro:sourcemap removes `sourcesContent` from production maps, so don't generate it
-      sourcemapExcludeSources: excludeSourcemapSources(nitro),
+      minify: fastnode.options.minify ? true : "dce-only",
+      sourcemap: fastnode.options.sourcemap,
+      // fastnode:sourcemap removes `sourcesContent` from production maps, so don't generate it
+      sourcemapExcludeSources: excludeSourcemapSources(fastnode),
       sourcemapIgnoreList(relativePath) {
         return relativePath.includes("node_modules");
       },
@@ -81,8 +81,8 @@ export const getRolldownConfig = async (nitro: Nitro): Promise<RolldownConfig> =
   } satisfies RolldownOptions;
 
   config = defu(
-    nitro.options.rolldownConfig as RolldownOptions,
-    nitro.options.rollupConfig as RolldownOptions,
+    fastnode.options.rolldownConfig as RolldownOptions,
+    fastnode.options.rollupConfig as RolldownOptions,
     config
   );
 

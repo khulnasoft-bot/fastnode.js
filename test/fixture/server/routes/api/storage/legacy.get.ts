@@ -1,5 +1,5 @@
-import { defineHandler } from "nitro/h3";
-import { useStorage } from "nitro/storage";
+import { defineHandler } from "fastnode/h3";
+import { useStorage } from "fastnode/storage";
 
 export default defineHandler(async (event) => {
   const base = event.url.searchParams.get("base") || "";

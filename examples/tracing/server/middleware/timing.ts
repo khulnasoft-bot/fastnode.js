@@ -1,4 +1,4 @@
-import { defineMiddleware } from "nitro";
+import { defineMiddleware } from "fastnode";
 
 // A trivial middleware — each request produces its own `middleware` span.
 export default defineMiddleware((event) => {

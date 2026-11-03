@@ -1,9 +1,9 @@
-import { defineNitroPreset } from "../_utils/preset.ts";
+import { defineFastnodePreset } from "../_utils/preset.ts";
 import { writeFile } from "../_utils/fs.ts";
 import { resolve } from "pathe";
 import { builtinModules } from "node:module";
 
-const denoServer = defineNitroPreset(
+const denoServer = defineFastnodePreset(
   {
     entry: "./deno/runtime/deno-server",
     serveStatic: true,
@@ -19,7 +19,7 @@ const denoServer = defineNitroPreset(
       },
     },
     hooks: {
-      async compiled(nitro) {
+      async compiled(fastnode) {
         // https://docs.deno.com/runtime/fundamentals/configuration/
         const denoJSON = {
           tasks: {
@@ -27,7 +27,7 @@ const denoServer = defineNitroPreset(
           },
         };
         await writeFile(
-          resolve(nitro.options.output.dir, "deno.json"),
+          resolve(fastnode.options.output.dir, "deno.json"),
           JSON.stringify(denoJSON, null, 2)
         );
       },

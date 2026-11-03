@@ -1,6 +1,6 @@
 import { resolveCompatibilityDatesFromEnv, formatCompatibilityDate } from "compatx";
 import type { CompatibilityDateSpec, PlatformName } from "compatx";
-import type { NitroPreset, NitroPresetMeta } from "nitro/types";
+import type { FastnodePreset, FastnodePresetMeta } from "fastnode/types";
 import { kebabCase } from "scule";
 import { provider, runtime } from "std-env";
 import type { ProviderName } from "std-env";
@@ -19,9 +19,9 @@ export async function resolvePreset(
     static?: boolean;
     compatibilityDate?: false | CompatibilityDateSpec;
     dev?: boolean;
-    defaultPreset?: string | NitroPreset;
+    defaultPreset?: string | FastnodePreset;
   } = {}
-): Promise<(NitroPreset & { _meta?: NitroPresetMeta }) | undefined> {
+): Promise<(FastnodePreset & { _meta?: FastnodePresetMeta }) | undefined> {
   if (name === ".") {
     return undefined; // invalid input
   }
@@ -91,7 +91,7 @@ export async function resolvePreset(
         typeof opts.defaultPreset === "function" ? opts.defaultPreset() : opts.defaultPreset;
       return {
         ...config,
-        _meta: { name: "default", ...(config as { _meta?: NitroPresetMeta })._meta },
+        _meta: { name: "default", ...(config as { _meta?: FastnodePresetMeta })._meta },
       };
     }
     const runtimeMap = { deno: "deno", bun: "bun" } as Record<string, string>;

@@ -7,7 +7,7 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
-    "nitro": "latest",
+    "fastnode": "latest",
     "tailwindcss": "^4.3.3",
     "vite": "latest"
   }

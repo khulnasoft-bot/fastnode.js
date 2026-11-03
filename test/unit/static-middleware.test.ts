@@ -10,7 +10,7 @@ const { getAsset, isPublicAssetURL, readAsset } = vi.hoisted(() => ({
   readAsset: vi.fn(),
 }));
 
-vi.mock("#nitro/virtual/public-assets", () => ({
+vi.mock("#fastnode/virtual/public-assets", () => ({
   getAsset,
   hasAsset: (id: string) => [id, `${id}.gz`, `${id}.br`, `${id}.zst`].some((i) => getAsset(i)),
   isPublicAssetURL,

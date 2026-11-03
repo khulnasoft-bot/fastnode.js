@@ -1,6 +1,6 @@
-import { defineNitroPreset } from "../_utils/preset.ts";
+import { defineFastnodePreset } from "../_utils/preset.ts";
 
-const bun = defineNitroPreset(
+const bun = defineFastnodePreset(
   {
     entry: "./bun/runtime/bun",
     serveStatic: true,

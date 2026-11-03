@@ -1,19 +1,25 @@
-import { serverFetch as runtimeServerFetch, fetch as runtimeFetch, useNitroApp } from "nitro/app";
+import {
+  serverFetch as runtimeServerFetch,
+  fetch as runtimeFetch,
+  useFastnodeApp,
+} from "fastnode/app";
 
-import { serverFetch as nitroServerFetch, fetch as nitroFetch } from "nitro";
+import { serverFetch as fastnodeServerFetch, fetch as fastnodeFetch } from "fastnode";
 
 export default async () => {
-  const nitroApp = useNitroApp();
+  const fastnodeApp = useFastnodeApp();
   return {
-    "nitroApp.fetch": await Promise.resolve(
-      nitroApp.fetch(new Request(new URL("/api/hello", "http://localhost")))
+    "fastnodeApp.fetch": await Promise.resolve(
+      fastnodeApp.fetch(new Request(new URL("/api/hello", "http://localhost")))
     ).then((res) => res.json()),
-    "nitro/runtime.serverFetch": await runtimeServerFetch("/api/hello").then((res) => res.json()),
-    "nitro/runtime.fetch": await runtimeFetch("/api/hello").then((res) => res.json()),
-    "nitro/runtime.fetch.url": await runtimeFetch(new URL("http://localhost/api/hello")).then(
+    "fastnode/runtime.serverFetch": await runtimeServerFetch("/api/hello").then((res) =>
+      res.json()
+    ),
+    "fastnode/runtime.fetch": await runtimeFetch("/api/hello").then((res) => res.json()),
+    "fastnode/runtime.fetch.url": await runtimeFetch(new URL("http://localhost/api/hello")).then(
       (res) => res.json()
     ),
-    "nitro/serverFetch": await nitroServerFetch("/api/hello").then((res) => res.json()),
-    "nitro/fetch": await nitroFetch("/api/hello").then((res) => res.json()),
+    "fastnode/serverFetch": await fastnodeServerFetch("/api/hello").then((res) => res.json()),
+    "fastnode/fetch": await fastnodeFetch("/api/hello").then((res) => res.json()),
   };
 };

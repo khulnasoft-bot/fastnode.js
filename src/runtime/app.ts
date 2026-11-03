@@ -1,1 +1,7 @@
-export { useNitroApp, useNitroHooks, serverFetch, getRouteRules, fetch } from "./internal/app.ts";
+export {
+  useFastnodeApp,
+  useFastnodeHooks,
+  serverFetch,
+  getRouteRules,
+  fetch,
+} from "./internal/app.ts";

@@ -4,10 +4,10 @@ import { resolve } from "pathe";
 import { writeFile } from "../_utils/fs.ts";
 import { deps } from "../../utils/_deps.ts";
 import { ensureDep } from "../../utils/dep.ts";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 
-export async function setupAzureFunctions(nitro: Nitro) {
-  const azure = (nitro.options.azure ??= {});
+export async function setupAzureFunctions(fastnode: Fastnode) {
+  const azure = (fastnode.options.azure ??= {});
   azure.functionsVersion ??= 4;
   if (azure.functionsVersion !== 3 && azure.functionsVersion !== 4) {
     throw new Error(
@@ -17,12 +17,12 @@ export async function setupAzureFunctions(nitro: Nitro) {
 
   if (azure.functionsVersion === 4) {
     const { reason, version } = deps["@azure/functions"];
-    const installedVersion = await getInstalledFunctionsVersion(nitro.options.rootDir);
+    const installedVersion = await getInstalledFunctionsVersion(fastnode.options.rootDir);
     if (!installedVersion) {
       const resolved = await ensureDep({
         id: "@azure/functions",
-        dir: nitro.options.rootDir,
-        deps: nitro.options.deps,
+        dir: fastnode.options.rootDir,
+        deps: fastnode.options.deps,
       });
       if (!resolved) {
         throw new Error(
@@ -34,15 +34,18 @@ export async function setupAzureFunctions(nitro: Nitro) {
         `\`@azure/functions@${installedVersion}\` is installed, but ${reason} requires \`@azure/functions@${version}\`. Please update it in your dependencies, or set \`azure.functionsVersion\` to \`3\` to use the legacy programming model.`
       );
     }
-    (nitro.options.traceDeps ??= []).push("@azure/functions");
+    (fastnode.options.traceDeps ??= []).push("@azure/functions");
   }
 
-  nitro.options.entry = nitro.options.entry.replace("{version}", `v${azure.functionsVersion}`);
+  fastnode.options.entry = fastnode.options.entry.replace(
+    "{version}",
+    `v${azure.functionsVersion}`
+  );
 }
 
-export async function writeFunctionFiles(nitro: Nitro) {
-  const serverDir = nitro.options.output.serverDir;
-  if (nitro.options.azure?.functionsVersion === 4) {
+export async function writeFunctionFiles(fastnode: Fastnode) {
+  const serverDir = fastnode.options.output.serverDir;
+  if (fastnode.options.azure?.functionsVersion === 4) {
     await writeFile(
       resolve(serverDir, "../package.json"),
       JSON.stringify({ private: true, type: "module", main: "functions/index.mjs" }, null, 2)

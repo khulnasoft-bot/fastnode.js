@@ -1,19 +1,19 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 
-export default function app(nitro: Nitro) {
+export default function app(fastnode: Fastnode) {
   return {
-    id: "#nitro/virtual/app",
+    id: "#fastnode/virtual/app",
     template: () => {
-      const hasRoutes = nitro.routing.routes.hasRoutes();
-      const hasRouteRules = nitro.routing.routeRules.hasRoutes();
-      const hasRoutedMiddleware = nitro.routing.routedMiddleware.hasRoutes();
-      const hasGlobalMiddleware = nitro.routing.globalMiddleware.length > 0;
-      const hasPlugins = nitro.options.plugins.length > 0;
-      const hasHooks = nitro.options.features?.runtimeHooks ?? hasPlugins;
-      const hasAsyncContext = !!nitro.options.experimental.asyncContext;
+      const hasRoutes = fastnode.routing.routes.hasRoutes();
+      const hasRouteRules = fastnode.routing.routeRules.hasRoutes();
+      const hasRoutedMiddleware = fastnode.routing.routedMiddleware.hasRoutes();
+      const hasGlobalMiddleware = fastnode.routing.globalMiddleware.length > 0;
+      const hasPlugins = fastnode.options.plugins.length > 0;
+      const hasHooks = fastnode.options.features?.runtimeHooks ?? hasPlugins;
+      const hasAsyncContext = !!fastnode.options.experimental.asyncContext;
       const routeMethods = [
         ...new Set(
-          nitro.routing.routes.routes.filter((r) => r.method).map((r) => r.method.toUpperCase())
+          fastnode.routing.routes.routes.filter((r) => r.method).map((r) => r.method.toUpperCase())
         ),
       ].sort();
       const hasMethodRoutes = routeMethods.length > 0;
@@ -29,15 +29,15 @@ export default function app(nitro: Nitro) {
 
       imports.push(
         `import { H3Core } from "h3";`,
-        `import errorHandler from "#nitro/virtual/error-handler";`
+        `import errorHandler from "#fastnode/virtual/error-handler";`
       );
 
-      // --- createNitroApp() ---
+      // --- createFastnodeApp() ---
 
-      code.push(``, `export function createNitroApp() {`);
+      code.push(``, `export function createFastnodeApp() {`);
 
       if (hasHooks) {
-        imports.push(`import { HookableCore } from "#nitro/runtime/hookable";`);
+        imports.push(`import { HookableCore } from "#fastnode/runtime/hookable";`);
         code.push(`  const hooks = new HookableCore();`);
       }
 
@@ -51,7 +51,7 @@ export default function app(nitro: Nitro) {
       }
       code.push(
         `    if (errorCtx?.event) {`,
-        `      const errors = errorCtx.event.req.context?.nitro?.errors;`,
+        `      const errors = errorCtx.event.req.context?.fastnode?.errors;`,
         `      if (errors) {`,
         `        errors.push({ error, context: errorCtx });`,
         `      }`
@@ -91,18 +91,18 @@ export default function app(nitro: Nitro) {
         ``,
         `  let appHandler = (req) => {`,
         `    req.context ||= {};`,
-        `    req.context.nitro = req.context.nitro || { errors: [] };`,
+        `    req.context.fastnode = req.context.fastnode || { errors: [] };`,
         `    return h3App.fetch(req);`,
         `  };`
       );
 
       if (hasAsyncContext) {
-        imports.push(`import { nitroAsyncContext } from "#nitro/runtime/context";`);
+        imports.push(`import { fastnodeAsyncContext } from "#fastnode/runtime/context";`);
         code.push(
           ``,
           `  const originalHandler = appHandler;`,
           `  appHandler = (req) => {`,
-          `    return nitroAsyncContext.callAsync({ request: req }, () => originalHandler(req));`,
+          `    return fastnodeAsyncContext.callAsync({ request: req }, () => originalHandler(req));`,
           `  };`
         );
       }
@@ -118,13 +118,13 @@ export default function app(nitro: Nitro) {
         `}`
       );
 
-      // --- initNitroPlugins() ---
+      // --- initFastnodePlugins() ---
 
-      code.push(``, `export function initNitroPlugins(app) {`);
+      code.push(``, `export function initFastnodePlugins(app) {`);
       if (hasPlugins) {
         imports.push(
-          `import { plugins } from "#nitro/virtual/plugins";`,
-          `import { initAsyncPlugins } from "#nitro/runtime/async-plugins";`
+          `import { plugins } from "#fastnode/virtual/plugins";`,
+          `import { initAsyncPlugins } from "#fastnode/runtime/async-plugins";`
         );
         code.push(
           `  for (let i = 0; i < plugins.length; i++) {`,
@@ -150,7 +150,7 @@ export default function app(nitro: Nitro) {
       // --- createH3App() ---
 
       if (routingImports.length) {
-        imports.push(`import { ${routingImports.join(", ")} } from "#nitro/virtual/routing";`);
+        imports.push(`import { ${routingImports.join(", ")} } from "#fastnode/virtual/routing";`);
       }
 
       code.push(``, `function createH3App(config) {`, `  const h3App = new H3Core(config);`);
@@ -194,7 +194,7 @@ export default function app(nitro: Nitro) {
         hasMethodRoutes && "createMethodNotAllowedMatcher",
       ].filter(Boolean);
       if (runtimeAppImports.length) {
-        imports.push(`import { ${runtimeAppImports.join(", ")} } from "#nitro/runtime/app";`);
+        imports.push(`import { ${runtimeAppImports.join(", ")} } from "#fastnode/runtime/app";`);
       }
       if (hasMethodRoutes) {
         code.push(

@@ -1,16 +1,16 @@
-import "#nitro/virtual/polyfills";
+import "#fastnode/virtual/polyfills";
 
-import { useNitroApp, useNitroHooks } from "nitro/app";
-import { resolveWebsocketHooks } from "#nitro/runtime/app";
-import { startScheduleRunner } from "#nitro/runtime/task";
+import { useFastnodeApp, useFastnodeHooks } from "fastnode/app";
+import { resolveWebsocketHooks } from "#fastnode/runtime/app";
+import { startScheduleRunner } from "#fastnode/runtime/task";
 import {
   builtinWorkerExports,
   serverEntryExports as userExports,
-} from "#nitro/virtual/server-entry";
+} from "#fastnode/virtual/server-entry";
 
-const nitroApp = useNitroApp();
+const fastnodeApp = useFastnodeApp();
 
-export const fetch = nitroApp.fetch;
+export const fetch = fastnodeApp.fetch;
 
 export const websocket = import.meta._websocket ? { resolve: resolveWebsocketHooks } : undefined;
 
@@ -24,4 +24,4 @@ if (import.meta._tasks) {
 export const serverEntryExports = { ...builtinWorkerExports, ...userExports };
 
 // Called by the dev worker when the runner shuts down (see `ipc.onClose` in `dev-worker.mjs`).
-export const close = () => useNitroHooks().callHook("close");
+export const close = () => useFastnodeHooks().callHook("close");

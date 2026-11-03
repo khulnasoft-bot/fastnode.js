@@ -6,7 +6,7 @@ import { dirname, join, normalize } from "pathe";
 import { hasTTY, isAgent, isCI, isTest } from "std-env";
 import { depPackageName, resolveFromDepPath } from "./_dep-path.ts";
 import { getDepMeta } from "./_deps.ts";
-import type { NitroDepsOptions } from "nitro/types";
+import type { FastnodeDepsOptions } from "fastnode/types";
 import type { DepId, DepModules } from "./_deps.ts";
 
 /**
@@ -34,17 +34,17 @@ interface DepBaseOptions {
   /** Install without prompting, also in interactive environments (never in test mode). */
   autoInstall?: boolean;
   /**
-   * Only resolve from `dir`, ignoring Nitro's own dependencies.
+   * Only resolve from `dir`, ignoring Fastnode's own dependencies.
    *
    * Required for packages that end up as an import in the generated app bundle: those have to be
-   * resolvable from the user project, not only from where Nitro itself is installed.
+   * resolvable from the user project, not only from where Fastnode itself is installed.
    */
   projectOnly?: boolean;
   /**
    * The `deps` option: explicit package paths (`paths`), used instead of resolving (and
    * installing) them from `dir`, and whether missing ones may be installed (`install`).
    */
-  deps?: NitroDepsOptions;
+  deps?: FastnodeDepsOptions;
 }
 
 /**
@@ -83,7 +83,7 @@ export function missingDepError(depOpts: DepOptions): Error {
   const opts = _resolveDepOptions(depOpts);
   if (_isInNodeModules(opts.dir)) {
     return new Error(
-      `\`${opts.id}\` cannot be resolved from \`${opts.dir}\`, which is inside \`node_modules\`. It is required for ${opts.reason}. The package that configures Nitro with this \`rootDir\` must add \`${_depSpec(opts)}\` to its own dependencies (or provide it with the \`deps.paths\` option).`
+      `\`${opts.id}\` cannot be resolved from \`${opts.dir}\`, which is inside \`node_modules\`. It is required for ${opts.reason}. The package that configures Fastnode with this \`rootDir\` must add \`${_depSpec(opts)}\` to its own dependencies (or provide it with the \`deps.paths\` option).`
     );
   }
   const dev = opts.dev === false ? "" : "dev ";
@@ -157,7 +157,7 @@ export function isLibOption(option: string): boolean {
  */
 export async function ensureLibDeps(
   users: Array<{ name: string; options: Record<string, any>; deps: LibDep[] }>,
-  opts: { dir: string; label: string; deps?: NitroDepsOptions }
+  opts: { dir: string; label: string; deps?: FastnodeDepsOptions }
 ): Promise<void> {
   const required = new Map<string, { version?: string; users: Set<string> }>();
   for (const user of users) {
@@ -273,7 +273,7 @@ function _canInstall(install: boolean | undefined): boolean {
   return install ?? !isCI;
 }
 
-/** Whether a directory is inside `node_modules` (e.g. the `rootDir` of a framework built on Nitro). */
+/** Whether a directory is inside `node_modules` (e.g. the `rootDir` of a framework built on Fastnode). */
 function _isInNodeModules(dir: string): boolean {
   return `${normalize(dir)}/`.includes("/node_modules/");
 }
@@ -300,7 +300,7 @@ function _checkVersion(opts: ResolvedDepOptions, entry: string): void {
   if (!pkg?.version || _isSupportedVersion(pkg.version, opts.version)) {
     return;
   }
-  // Not `opts.dir`: an explicit path (or the `vite` running `nitro/vite`) can be outside of it
+  // Not `opts.dir`: an explicit path (or the `vite` running `fastnode/vite`) can be outside of it
   consola.warn(
     `\`${opts.id}@${pkg.version}\` is used from \`${pkg.dir}\` but ${opts.reason} requires \`${opts.version}\`. Please update it if you run into issues.`
   );

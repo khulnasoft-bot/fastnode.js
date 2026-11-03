@@ -9,11 +9,11 @@ import {
   cacheFunctionDefaults,
   cacheHandlerDefaults,
   createCacheStorage,
-} from "#nitro/virtual/cache";
-import { useNitroApp } from "./app.ts";
+} from "#fastnode/virtual/cache";
+import { useFastnodeApp } from "./app.ts";
 
 import type { EventHandler, H3Event } from "h3";
-import type { CachedFunctionOptions, CachedHandlerOptions } from "nitro/types";
+import type { CachedFunctionOptions, CachedHandlerOptions } from "fastnode/types";
 
 let _cacheStorage: StorageInterface | undefined;
 
@@ -23,7 +23,7 @@ export function cacheStorage(): StorageInterface {
 
 export function defaultOnError(error: unknown): void {
   console.error("[cache]", error);
-  useNitroApp().captureError?.(error as Error, { tags: ["cache"] });
+  useFastnodeApp().captureError?.(error as Error, { tags: ["cache"] });
 }
 
 export function defineCachedFunction<T, ArgsT extends unknown[] = any[]>(
@@ -32,7 +32,7 @@ export function defineCachedFunction<T, ArgsT extends unknown[] = any[]>(
 ): CachedFunction<T, ArgsT> {
   return _defineCachedFunction(fn, {
     storage: cacheStorage,
-    group: "nitro/functions",
+    group: "fastnode/functions",
     onError: defaultOnError,
     ...cacheFunctionDefaults,
     ...definedOptions(opts),
@@ -46,7 +46,7 @@ export function defineCachedHandler(
   const ocacheHandler = withCacheIsolation(
     _defineCachedHandler(handler as any, {
       storage: cacheStorage,
-      group: "nitro/handlers",
+      group: "fastnode/handlers",
       onError: defaultOnError,
       toResponse: (value, event) => toResponse(value, event as H3Event),
       createResponse: (body, init) => new FastResponse(body as BodyInit, init),

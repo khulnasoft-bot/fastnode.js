@@ -6,7 +6,7 @@ import type { ViteDevServer } from "vite";
 import { beforeAll, afterAll, describe, expect, test } from "vitest";
 
 const { createServer } = (await import(
-  process.env.NITRO_VITE_PKG || "vite"
+  process.env.FASTNODE_VITE_PKG || "vite"
 )) as typeof import("vite");
 
 describe.each(["/", "/app/"])("vite:dev handlers under base (baseURL: %s)", (baseURL) => {
@@ -21,8 +21,8 @@ describe.each(["/", "/app/"])("vite:dev handlers under base (baseURL: %s)", (bas
   beforeAll(async () => {
     upstream = createHTTPServer((req, res) => res.end(`upstream:${req.url}`));
     await new Promise<void>((resolve) => upstream.listen(0, "127.0.0.1", resolve));
-    process.env.NITRO_TEST_UPSTREAM = `http://127.0.0.1:${(upstream.address() as AddressInfo).port}`;
-    process.env.NITRO_TEST_BASE_URL = baseURL;
+    process.env.FASTNODE_TEST_UPSTREAM = `http://127.0.0.1:${(upstream.address() as AddressInfo).port}`;
+    process.env.FASTNODE_TEST_BASE_URL = baseURL;
     process.chdir(rootDir);
     server = await createServer({ root: rootDir, logLevel: "warn" });
     await server.listen("0" as unknown as number);
@@ -37,8 +37,8 @@ describe.each(["/", "/app/"])("vite:dev handlers under base (baseURL: %s)", (bas
   afterAll(async () => {
     await server?.close();
     upstream?.close();
-    delete process.env.NITRO_TEST_UPSTREAM;
-    delete process.env.NITRO_TEST_BASE_URL;
+    delete process.env.FASTNODE_TEST_UPSTREAM;
+    delete process.env.FASTNODE_TEST_BASE_URL;
     process.chdir(originalCwd);
   });
 

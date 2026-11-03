@@ -135,7 +135,7 @@ const themeButton =
 const pageScript: string = /* js */ `
 const root = document.documentElement;
 try {
-  root.dataset.theme = localStorage.getItem("nitro-error-theme") || "";
+  root.dataset.theme = localStorage.getItem("fastnode-error-theme") || "";
 } catch {}
 document.addEventListener("mousedown", (event) => {
   if (event.detail > 1 && event.target.closest("summary")) event.preventDefault();
@@ -145,7 +145,7 @@ document.addEventListener("click", async (event) => {
     const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
     root.dataset.theme = dark ? "light" : "dark";
     try {
-      localStorage.setItem("nitro-error-theme", root.dataset.theme);
+      localStorage.setItem("fastnode-error-theme", root.dataset.theme);
     } catch {}
     return;
   }

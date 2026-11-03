@@ -48,7 +48,7 @@ vi.mock("consola", () => ({
   },
 }));
 
-const missingDep = { id: "nitro-missing-dep", dir: process.cwd(), reason: "testing" };
+const missingDep = { id: "fastnode-missing-dep", dir: process.cwd(), reason: "testing" };
 const installEnv = { NODE_ENV: "development" };
 
 async function ensureDep(
@@ -81,7 +81,7 @@ afterAll(() => {
 
 /** A project directory without `node_modules`. */
 function createProject() {
-  const dir = mkdtempSync(join(tmpdir(), "nitro-dep-"));
+  const dir = mkdtempSync(join(tmpdir(), "fastnode-dep-"));
   tmpDirs.push(dir);
   return dir;
 }
@@ -272,7 +272,7 @@ describe("ensureDep (resolve cache)", () => {
     const opts = { ...missingDep, dir };
     expect(await ensureDep(opts)).toBeUndefined();
 
-    installStub(opts.id, dir); // e.g. installed manually while `nitro dev` is running
+    installStub(opts.id, dir); // e.g. installed manually while `fastnode dev` is running
     expect(await ensureDep(opts)).toBeTruthy();
     expect(await isDepInstalled(opts.id, dir)).toBe(true);
   });
@@ -290,7 +290,7 @@ describe("ensureDep (resolve cache)", () => {
     expect(await isDepInstalled(missingDep.id, dir)).toBe(false);
     expect(await resolveDep(`${missingDep.id}/sub`, dir)).toBeUndefined();
 
-    installStub(missingDep.id, dir); // e.g. installed manually while `nitro dev` is running
+    installStub(missingDep.id, dir); // e.g. installed manually while `fastnode dev` is running
     expect(await isDepInstalled(missingDep.id, dir)).toBe(true);
     expect(await resolveDep(`${missingDep.id}/sub`, dir)).toBeTruthy();
   });
@@ -367,10 +367,10 @@ describe("missing dependencies", () => {
     const { missingDepError } = await import("../../src/utils/dep.ts");
     const opts = { ...missingDep, version: "^2.0.0-rc.24", deps: { install: false } };
     expect(missingDepError(opts).message).toBe(
-      "`nitro-missing-dep` is not installed. It is required for testing. Please add it to your dev dependencies (e.g. `npx nypm add -D nitro-missing-dep@^2.0.0-rc.24`)."
+      "`fastnode-missing-dep` is not installed. It is required for testing. Please add it to your dev dependencies (e.g. `npx nypm add -D fastnode-missing-dep@^2.0.0-rc.24`)."
     );
     expect(missingDepError({ ...opts, dev: false }).message).toContain(
-      "Please add it to your dependencies (e.g. `npx nypm add nitro-missing-dep@^2.0.0-rc.24`)."
+      "Please add it to your dependencies (e.g. `npx nypm add fastnode-missing-dep@^2.0.0-rc.24`)."
     );
   });
 
@@ -390,7 +390,7 @@ describe("missing dependencies", () => {
     const users = [{ name: "redis", options: {}, deps: [{ option: "lib", name: missingDep.id }] }];
     const opts = { dir: createProject(), label: "storage driver" };
     await expect(ensureLibDeps(users, opts)).rejects.toThrow(
-      /`nitro-missing-dep` is not installed. It is required for the `redis` storage driver/
+      /`fastnode-missing-dep` is not installed. It is required for the `redis` storage driver/
     );
     env.isCI = false;
     await expect(ensureLibDeps(users, { ...opts, deps: { install: false } })).rejects.toThrow(
@@ -421,7 +421,7 @@ describe("missing dependencies", () => {
     mkdirSync(dir, { recursive: true });
     const opts = { ...missingDep, dir, version: "^1.0.0" };
     expect(missingDepError(opts).message).toBe(
-      `\`nitro-missing-dep\` cannot be resolved from \`${dir}\`, which is inside \`node_modules\`. It is required for testing. The package that configures Nitro with this \`rootDir\` must add \`nitro-missing-dep@^1.0.0\` to its own dependencies (or provide it with the \`deps.paths\` option).`
+      `\`fastnode-missing-dep\` cannot be resolved from \`${dir}\`, which is inside \`node_modules\`. It is required for testing. The package that configures Fastnode with this \`rootDir\` must add \`fastnode-missing-dep@^1.0.0\` to its own dependencies (or provide it with the \`deps.paths\` option).`
     );
     await expect(importDep(opts)).rejects.toThrow(missingDepError(opts).message);
     expect(addDevDependency).not.toHaveBeenCalled();

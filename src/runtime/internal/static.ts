@@ -1,8 +1,8 @@
 import { HTTPError, defineHandler } from "h3";
 import type { EventHandler, HTTPMethod } from "h3";
-import type { PublicAsset } from "nitro/types";
+import type { PublicAsset } from "fastnode/types";
 import { decodePath, joinURL, withLeadingSlash, withoutTrailingSlash } from "ufo";
-import { getAsset, hasAsset, isPublicAssetURL, readAsset } from "#nitro/virtual/public-assets";
+import { getAsset, hasAsset, isPublicAssetURL, readAsset } from "#fastnode/virtual/public-assets";
 
 const METHODS = new Set(["HEAD", "GET"] as HTTPMethod[]);
 

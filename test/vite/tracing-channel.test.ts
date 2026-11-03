@@ -3,7 +3,7 @@ import type { ViteDevServer } from "vite";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
 const { createServer } = (await import(
-  process.env.NITRO_VITE_PKG || "vite"
+  process.env.FASTNODE_VITE_PKG || "vite"
 )) as typeof import("vite");
 
 // #4923: the srvx tracing channels must be emitted by the Vite dev server too, not only by the

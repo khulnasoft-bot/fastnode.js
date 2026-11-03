@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "pathe";
 import { afterAll, describe, expect, it, vi } from "vitest";
-import type { Nitro, NitroOptions } from "nitro/types";
+import type { Fastnode, FastnodeOptions } from "fastnode/types";
 
 import { writeHeaders, writeRedirects } from "../../src/presets/netlify/utils.ts";
 import {
@@ -20,11 +20,11 @@ afterAll(async () => {
   await Promise.all(dirs.map((dir) => rm(dir, { recursive: true, force: true })));
 });
 
-async function createNitro(options: Partial<NitroOptions>) {
-  const dir = await mkdtemp(join(tmpdir(), "nitro-preset-route-config-"));
+async function createFastnode(options: Partial<FastnodeOptions>) {
+  const dir = await mkdtemp(join(tmpdir(), "fastnode-preset-route-config-"));
   dirs.push(dir);
   await mkdir(join(dir, "public"));
-  const nitro = {
+  const fastnode = {
     _prerenderedRoutes: [],
     scannedHandlers: [],
     routing: { sync: () => {}, routes: { routes: [] } },
@@ -43,8 +43,8 @@ async function createNitro(options: Partial<NitroOptions>) {
       },
       ...options,
     },
-  } as unknown as Nitro;
-  return { dir, nitro };
+  } as unknown as Fastnode;
+  return { dir, fastnode };
 }
 
 // `_redirects` rules are matched in order, first match wins
@@ -56,27 +56,27 @@ const redirectSources = (contents: string) =>
 
 describe("netlify _redirects and _headers", () => {
   it("lists more specific redirects first", async () => {
-    const { dir, nitro } = await createNitro({
+    const { dir, fastnode } = await createFastnode({
       routeRules: {
         "/a/b": { redirect: { to: "/b", status: 302 } },
         "/a/:id": { redirect: { to: "/id", status: 302 } },
         "/a/**": { redirect: { to: "/all", status: 302 } },
       },
     });
-    await writeRedirects(nitro);
+    await writeRedirects(fastnode);
     const redirects = await readFile(join(dir, "public/_redirects"), "utf8");
     expect(redirectSources(redirects)).toEqual(["/a/b", "/a/:id", "/a/*"]);
   });
 
   it("converts named catch-all params to a splat", async () => {
-    const { dir, nitro } = await createNitro({
+    const { dir, fastnode } = await createFastnode({
       routeRules: {
         "/old/**:path": { redirect: { to: "/new/**", status: 302 } },
         "/hdr/**:path": { headers: { "x-hdr": "1" } },
       },
     });
-    await writeRedirects(nitro);
-    await writeHeaders(nitro);
+    await writeRedirects(fastnode);
+    await writeHeaders(fastnode);
     expect(await readFile(join(dir, "public/_redirects"), "utf8")).toBe(
       "/old/*\t/new/:splat\t302\n"
     );
@@ -84,7 +84,7 @@ describe("netlify _redirects and _headers", () => {
   });
 
   it("prefixes sources with the baseURL and writes to the publish root", async () => {
-    const { dir, nitro } = await createNitro({
+    const { dir, fastnode } = await createFastnode({
       baseURL: "/base/",
       static: true,
       routeRules: {
@@ -93,19 +93,19 @@ describe("netlify _redirects and _headers", () => {
       },
     });
     // Netlify presets output public assets to `dist/{{ baseURL }}`
-    nitro.options.output.publicDir = join(dir, "public/base") + "/";
-    await mkdir(nitro.options.output.publicDir);
-    await writeFile(join(nitro.options.output.publicDir, "404.html"), "");
-    await writeRedirects(nitro);
-    await writeHeaders(nitro);
+    fastnode.options.output.publicDir = join(dir, "public/base") + "/";
+    await mkdir(fastnode.options.output.publicDir);
+    await writeFile(join(fastnode.options.output.publicDir, "404.html"), "");
+    await writeRedirects(fastnode);
+    await writeHeaders(fastnode);
     expect(await readFile(join(dir, "public/_redirects"), "utf8")).toBe(
       "/base/old/*\t/new/:splat\t301\n/base/* /base/404.html 404"
     );
     expect(await readFile(join(dir, "public/_headers"), "utf8")).toBe("/base/hdr/*\n  x-hdr: 1\n");
 
     // Rebuilding does not merge the previous output again
-    await writeRedirects(nitro);
-    await writeHeaders(nitro);
+    await writeRedirects(fastnode);
+    await writeHeaders(fastnode);
     expect(await readFile(join(dir, "public/_redirects"), "utf8")).toBe(
       "/base/old/*\t/new/:splat\t301\n/base/* /base/404.html 404"
     );
@@ -113,19 +113,19 @@ describe("netlify _redirects and _headers", () => {
   });
 
   it("moves user files from the baseURL dir to the publish root", async () => {
-    const { dir, nitro } = await createNitro({
+    const { dir, fastnode } = await createFastnode({
       baseURL: "/base/",
       routeRules: {
         "/old/**": { redirect: { to: "/new/**", status: 301 } },
         "/hdr/**": { headers: { "x-hdr": "1" } },
       },
     });
-    nitro.options.output.publicDir = join(dir, "public/base") + "/";
-    await mkdir(nitro.options.output.publicDir);
-    await writeFile(join(nitro.options.output.publicDir, "_redirects"), "/user /other 302");
-    await writeFile(join(nitro.options.output.publicDir, "_headers"), "/user\n  x-user: 1");
-    await writeRedirects(nitro);
-    await writeHeaders(nitro);
+    fastnode.options.output.publicDir = join(dir, "public/base") + "/";
+    await mkdir(fastnode.options.output.publicDir);
+    await writeFile(join(fastnode.options.output.publicDir, "_redirects"), "/user /other 302");
+    await writeFile(join(fastnode.options.output.publicDir, "_headers"), "/user\n  x-user: 1");
+    await writeRedirects(fastnode);
+    await writeHeaders(fastnode);
     expect(await readFile(join(dir, "public/_redirects"), "utf8")).toBe(
       "/user /other 302\n/base/old/*\t/new/:splat\t301\n"
     );
@@ -137,28 +137,28 @@ describe("netlify _redirects and _headers", () => {
   });
 
   it("keeps a user fallback under the baseURL", async () => {
-    const { dir, nitro } = await createNitro({
+    const { dir, fastnode } = await createFastnode({
       baseURL: "/base/",
       routeRules: { "/old/**": { redirect: { to: "/new/**", status: 301 } } },
     });
-    nitro.options.output.publicDir = join(dir, "public/base") + "/";
-    await mkdir(nitro.options.output.publicDir);
+    fastnode.options.output.publicDir = join(dir, "public/base") + "/";
+    await mkdir(fastnode.options.output.publicDir);
     await writeFile(
-      join(nitro.options.output.publicDir, "_redirects"),
+      join(fastnode.options.output.publicDir, "_redirects"),
       "/base/* /base/index.html 200"
     );
-    await writeRedirects(nitro);
+    await writeRedirects(fastnode);
     expect(await readFile(join(dir, "public/_redirects"), "utf8")).toBe(
       "/base/* /base/index.html 200"
     );
   });
 
   it("writes to a custom publicDir that does not end with the baseURL", async () => {
-    const { dir, nitro } = await createNitro({
+    const { dir, fastnode } = await createFastnode({
       baseURL: "/app/",
       routeRules: { "/old/**": { redirect: { to: "/new/**", status: 301 } } },
     });
-    await writeRedirects(nitro);
+    await writeRedirects(fastnode);
     expect(await readFile(join(dir, "public/_redirects"), "utf8")).toBe(
       "/app/old/*\t/new/:splat\t301\n"
     );
@@ -166,43 +166,44 @@ describe("netlify _redirects and _headers", () => {
   });
 
   it("skips rules without headers", async () => {
-    const { dir, nitro } = await createNitro({
+    const { dir, fastnode } = await createFastnode({
       routeRules: {
         "/**": { cors: {}, headers: {} },
         "/hdr/**": { headers: { "x-hdr": "1" } },
       },
     });
-    await writeHeaders(nitro);
+    await writeHeaders(fastnode);
     expect(await readFile(join(dir, "public/_headers"), "utf8")).toBe("/hdr/*\n  x-hdr: 1\n");
   });
 
   it("adds the CORS headers of public asset dirs", async () => {
-    const { dir, nitro } = await createNitro({
+    const { dir, fastnode } = await createFastnode({
       baseURL: "/app/",
       routeRules: { "/**": { cors: {} } },
       publicAssets: [{ dir: "public", baseURL: "/build" }],
     });
-    await writeHeaders(nitro);
+    await writeHeaders(fastnode);
     expect(await readFile(join(dir, "public/_headers"), "utf8")).toBe(
       "/app/build/*\n  access-control-allow-origin: *\n  access-control-expose-headers: *\n"
     );
   });
 
   it("keeps CORS headers of the user `_headers` for public asset dirs", async () => {
-    const { dir, nitro } = await createNitro({
+    const { dir, fastnode } = await createFastnode({
       routeRules: { "/**": { cors: {} } },
       publicAssets: [{ dir: "public", baseURL: "/build" }],
     });
-    const userHeaders = "/build/*\n  access-control-allow-origin: https://nitro.build\n";
+    const userHeaders =
+      "/build/*\n  access-control-allow-origin: https://fastnode.khulnasoft.com\n";
     await writeFile(join(dir, "public/_headers"), userHeaders);
-    await writeHeaders(nitro);
+    await writeHeaders(fastnode);
     expect(await readFile(join(dir, "public/_headers"), "utf8")).toBe(
       userHeaders + "\n/build/*\n  access-control-expose-headers: *\n"
     );
   });
 
   it("skips method-scoped rules with a warning", async () => {
-    const { dir, nitro } = await createNitro({
+    const { dir, fastnode } = await createFastnode({
       routeRules: {
         "GET /old/**": { redirect: { to: "/new/**", status: 302 } },
         "/plain/**": { redirect: { to: "/other/**", status: 302 } },
@@ -210,23 +211,23 @@ describe("netlify _redirects and _headers", () => {
         "/hdr/**": { headers: { "x-hdr": "1" } },
       },
     });
-    await writeRedirects(nitro);
-    await writeHeaders(nitro);
+    await writeRedirects(fastnode);
+    await writeHeaders(fastnode);
     expect(await readFile(join(dir, "public/_redirects"), "utf8")).toBe(
       "/plain/*\t/other/:splat\t302\n"
     );
     expect(await readFile(join(dir, "public/_headers"), "utf8")).toBe("/hdr/*\n  x-hdr: 1\n");
-    expect(nitro.logger.warn).toHaveBeenCalledTimes(2);
-    expect(nitro.logger.warn).toHaveBeenCalledWith(
+    expect(fastnode.logger.warn).toHaveBeenCalledTimes(2);
+    expect(fastnode.logger.warn).toHaveBeenCalledWith(
       expect.stringMatching(/`GET \/old\/\*\*`.*`_redirects`/)
     );
-    expect(nitro.logger.warn).toHaveBeenCalledWith(
+    expect(fastnode.logger.warn).toHaveBeenCalledWith(
       expect.stringMatching(/`GET \/hdr\/\*\*`.*`_headers`/)
     );
   });
 
   it("skips redirects that would shadow a skipped method-scoped redirect", async () => {
-    const { dir, nitro } = await createNitro({
+    const { dir, fastnode } = await createFastnode({
       routeRules: {
         "/old/**": { redirect: { to: "/a/**", status: 302 } },
         "GET /old/**": { redirect: { to: "/b/**", status: 302 } },
@@ -236,19 +237,19 @@ describe("netlify _redirects and _headers", () => {
         "/keep/**": { redirect: { to: "/k/**", status: 302 } },
       },
     });
-    await writeRedirects(nitro);
+    await writeRedirects(fastnode);
     const redirects = await readFile(join(dir, "public/_redirects"), "utf8");
     expect(redirectSources(redirects).sort()).toEqual(["/keep/*", "/old/specific"]);
-    expect(nitro.logger.warn).toHaveBeenCalledTimes(4);
-    expect(nitro.logger.warn).toHaveBeenCalledWith(
+    expect(fastnode.logger.warn).toHaveBeenCalledTimes(4);
+    expect(fastnode.logger.warn).toHaveBeenCalledWith(
       expect.stringMatching(/`\/old\/\*\*`.*`GET \/old\/\*\*`/)
     );
-    expect(nitro.logger.warn).toHaveBeenCalledWith(
+    expect(fastnode.logger.warn).toHaveBeenCalledWith(
       expect.stringMatching(/`\/s\/\*\*`.*`GET \/s\/a`/)
     );
   });
   it("skips route rules the splat syntax cannot express", async () => {
-    const { dir, nitro } = await createNitro({
+    const { dir, fastnode } = await createFastnode({
       routeRules: {
         "/ok/:id": { redirect: { to: "/id", status: 302 } },
         "/num/:id(\\d+)": { redirect: { to: "/num", status: 302 } },
@@ -258,30 +259,30 @@ describe("netlify _redirects and _headers", () => {
         "/a/**/b": { headers: { "x-ab": "1" } },
       },
     });
-    await writeRedirects(nitro);
-    await writeHeaders(nitro);
+    await writeRedirects(fastnode);
+    await writeHeaders(fastnode);
     expect(await readFile(join(dir, "public/_redirects"), "utf8")).toBe("/ok/:id\t/id\t302\n");
     expect(await readFile(join(dir, "public/_headers"), "utf8")).toBe(
       "/files/*.png\n  x-png: 1\n/ok/*\n  x-ok: 1\n"
     );
-    expect(nitro.logger.warn).toHaveBeenCalledTimes(3);
-    expect(nitro.logger.warn).toHaveBeenCalledWith(
+    expect(fastnode.logger.warn).toHaveBeenCalledTimes(3);
+    expect(fastnode.logger.warn).toHaveBeenCalledWith(
       expect.stringMatching(/`\/a\/\*\*\/b`.*`_headers`/)
     );
   });
 
   it("skips redirects that would shadow an unexpressible redirect", async () => {
-    const { dir, nitro } = await createNitro({
+    const { dir, fastnode } = await createFastnode({
       routeRules: {
         "/num/:id(\\d+)": { redirect: { to: "/n", status: 302 } },
         "/num/**": { redirect: { to: "/all", status: 302 } },
         "/keep/**": { redirect: { to: "/k", status: 302 } },
       },
     });
-    await writeRedirects(nitro);
+    await writeRedirects(fastnode);
     expect(await readFile(join(dir, "public/_redirects"), "utf8")).toBe("/keep/*\t/k\t302\n");
-    expect(nitro.logger.warn).toHaveBeenCalledTimes(2);
-    expect(nitro.logger.warn).toHaveBeenCalledWith(
+    expect(fastnode.logger.warn).toHaveBeenCalledTimes(2);
+    expect(fastnode.logger.warn).toHaveBeenCalledWith(
       expect.stringMatching(/`\/num\/\*\*`.*`\/num\/:id\(\\d\+\)`/)
     );
   });
@@ -289,73 +290,73 @@ describe("netlify _redirects and _headers", () => {
 
 describe("cloudflare pages _redirects and _headers", () => {
   it("lists more specific redirects first", async () => {
-    const { dir, nitro } = await createNitro({
+    const { dir, fastnode } = await createFastnode({
       routeRules: {
         "/a/b": { redirect: { to: "/b", status: 302 } },
         "/a/:id": { redirect: { to: "/id", status: 302 } },
         "/a/**": { redirect: { to: "/all", status: 302 } },
       },
     });
-    await writeCFPagesRedirects(nitro);
+    await writeCFPagesRedirects(fastnode);
     const redirects = await readFile(join(dir, "_redirects"), "utf8");
     expect(redirectSources(redirects)).toEqual(["/a/b", "/a/:id", "/a/*"]);
   });
 
   it("interpolates the splat into redirect targets", async () => {
-    const { dir, nitro } = await createNitro({
+    const { dir, fastnode } = await createFastnode({
       baseURL: "/base/",
       routeRules: {
         "/old/**:path": { redirect: { to: "/new/**", status: 301 } },
-        "/ext/**": { redirect: { to: "https://nitro.build/**", status: 302 } },
-        "/cdn/**": { redirect: { to: "//cdn.nitro.build/**", status: 302 } },
+        "/ext/**": { redirect: { to: "https://fastnode.khulnasoft.com/**", status: 302 } },
+        "/cdn/**": { redirect: { to: "//cdn.fastnode.khulnasoft.com/**", status: 302 } },
         "/hdr/**:path": { headers: { "x-hdr": "1" } },
       },
     });
-    await writeCFPagesRedirects(nitro);
-    await writeCFHeaders(nitro, "output");
+    await writeCFPagesRedirects(fastnode);
+    await writeCFHeaders(fastnode, "output");
     expect(await readFile(join(dir, "_redirects"), "utf8")).toBe(
-      "/base/cdn/*\t//cdn.nitro.build/:splat\t302\n/base/ext/*\thttps://nitro.build/:splat\t302\n/base/old/*\t/new/:splat\t301\n"
+      "/base/cdn/*\t//cdn.fastnode.khulnasoft.com/:splat\t302\n/base/ext/*\thttps://fastnode.khulnasoft.com/:splat\t302\n/base/old/*\t/new/:splat\t301\n"
     );
     expect(await readFile(join(dir, "_headers"), "utf8")).toBe("/base/hdr/*\n  x-hdr: 1");
   });
 
   it("skips rules without headers", async () => {
-    const { dir, nitro } = await createNitro({
+    const { dir, fastnode } = await createFastnode({
       routeRules: {
         "/**": { cors: {}, headers: {} },
         "/hdr/**": { headers: { "x-hdr": "1" } },
       },
     });
-    await writeCFHeaders(nitro, "output");
+    await writeCFHeaders(fastnode, "output");
     expect(await readFile(join(dir, "_headers"), "utf8")).toBe("/hdr/*\n  x-hdr: 1");
   });
 
   it("adds the CORS headers of public asset dirs", async () => {
-    const { dir, nitro } = await createNitro({
+    const { dir, fastnode } = await createFastnode({
       routeRules: { "/**": { cors: {} }, "/hdr/**": { headers: { "x-hdr": "1" } } },
       publicAssets: [{ dir: "public", baseURL: "/build" }],
     });
-    await writeCFHeaders(nitro, "output");
+    await writeCFHeaders(fastnode, "output");
     expect(await readFile(join(dir, "_headers"), "utf8")).toBe(
       "/hdr/*\n  x-hdr: 1\n/build/*\n  access-control-allow-origin: *\n  access-control-expose-headers: *"
     );
   });
 
   it("keeps CORS headers of the user `_headers` for public asset dirs", async () => {
-    const { dir, nitro } = await createNitro({
+    const { dir, fastnode } = await createFastnode({
       routeRules: { "/**": { cors: {} } },
       publicAssets: [{ dir: "public", baseURL: "/build" }],
     });
-    const userHeaders = "/build/*\n  access-control-allow-origin: https://nitro.build";
+    const userHeaders = "/build/*\n  access-control-allow-origin: https://fastnode.khulnasoft.com";
     await writeFile(join(dir, "_headers"), userHeaders);
-    await writeCFHeaders(nitro, "output");
+    await writeCFHeaders(fastnode, "output");
     expect(await readFile(join(dir, "_headers"), "utf8")).toBe(
       userHeaders + "\n/build/*\n  access-control-expose-headers: *"
     );
   });
 
   it("skips method-scoped rules with a warning", async () => {
-    const { dir, nitro } = await createNitro({
+    const { dir, fastnode } = await createFastnode({
       routeRules: {
         "GET /old/**": { redirect: { to: "/new/**", status: 302 } },
         "/plain/**": { redirect: { to: "/other/**", status: 302 } },
@@ -363,21 +364,21 @@ describe("cloudflare pages _redirects and _headers", () => {
         "/hdr/**": { headers: { "x-hdr": "1" } },
       },
     });
-    await writeCFPagesRedirects(nitro);
-    await writeCFHeaders(nitro, "output");
+    await writeCFPagesRedirects(fastnode);
+    await writeCFHeaders(fastnode, "output");
     expect(await readFile(join(dir, "_redirects"), "utf8")).toBe("/plain/*\t/other/:splat\t302\n");
     expect(await readFile(join(dir, "_headers"), "utf8")).toBe("/hdr/*\n  x-hdr: 1");
-    expect(nitro.logger.warn).toHaveBeenCalledTimes(2);
-    expect(nitro.logger.warn).toHaveBeenCalledWith(
+    expect(fastnode.logger.warn).toHaveBeenCalledTimes(2);
+    expect(fastnode.logger.warn).toHaveBeenCalledWith(
       expect.stringMatching(/`GET \/old\/\*\*`.*`_redirects`/)
     );
-    expect(nitro.logger.warn).toHaveBeenCalledWith(
+    expect(fastnode.logger.warn).toHaveBeenCalledWith(
       expect.stringMatching(/`GET \/hdr\/\*\*`.*`_headers`/)
     );
   });
 
   it("skips redirects that would shadow a skipped method-scoped redirect", async () => {
-    const { dir, nitro } = await createNitro({
+    const { dir, fastnode } = await createFastnode({
       routeRules: {
         "/old/**": { redirect: { to: "/a/**", status: 302 } },
         "GET /old/**": { redirect: { to: "/b/**", status: 302 } },
@@ -387,19 +388,19 @@ describe("cloudflare pages _redirects and _headers", () => {
         "/keep/**": { redirect: { to: "/k/**", status: 302 } },
       },
     });
-    await writeCFPagesRedirects(nitro);
+    await writeCFPagesRedirects(fastnode);
     const redirects = await readFile(join(dir, "_redirects"), "utf8");
     expect(redirectSources(redirects).sort()).toEqual(["/keep/*", "/old/specific"]);
-    expect(nitro.logger.warn).toHaveBeenCalledTimes(4);
-    expect(nitro.logger.warn).toHaveBeenCalledWith(
+    expect(fastnode.logger.warn).toHaveBeenCalledTimes(4);
+    expect(fastnode.logger.warn).toHaveBeenCalledWith(
       expect.stringMatching(/`\/old\/\*\*`.*`GET \/old\/\*\*`/)
     );
-    expect(nitro.logger.warn).toHaveBeenCalledWith(
+    expect(fastnode.logger.warn).toHaveBeenCalledWith(
       expect.stringMatching(/`\/s\/\*\*`.*`GET \/s\/a`/)
     );
   });
   it("skips route rules the splat syntax cannot express", async () => {
-    const { dir, nitro } = await createNitro({
+    const { dir, fastnode } = await createFastnode({
       routeRules: {
         "/ok/:id": { redirect: { to: "/id", status: 302 } },
         "/num/:id(\\d+)": { redirect: { to: "/num", status: 302 } },
@@ -409,29 +410,29 @@ describe("cloudflare pages _redirects and _headers", () => {
         "/a/**/b": { headers: { "x-ab": "1" } },
       },
     });
-    await writeCFPagesRedirects(nitro);
-    await writeCFHeaders(nitro, "output");
+    await writeCFPagesRedirects(fastnode);
+    await writeCFHeaders(fastnode, "output");
     expect(await readFile(join(dir, "_redirects"), "utf8")).toBe("/ok/:id\t/id\t302\n");
     expect(await readFile(join(dir, "_headers"), "utf8")).toBe(
       "/a/:id/*.png\n  x-png: 1\n/ok/*\n  x-ok: 1"
     );
-    expect(nitro.logger.warn).toHaveBeenCalledTimes(3);
+    expect(fastnode.logger.warn).toHaveBeenCalledTimes(3);
   });
 });
 
 describe("cloudflare workers _headers and _redirects", () => {
   it("writes `_headers` to the assets root and moves user files from the baseURL dir", async () => {
-    const { dir, nitro } = await createNitro({
+    const { dir, fastnode } = await createFastnode({
       baseURL: "/base/",
       routeRules: { "/hdr/**": { headers: { "x-hdr": "1" } } },
     });
     // Resolved output paths end with a slash
-    nitro.options.output.publicDir = join(dir, "public/base") + "/";
-    await mkdir(nitro.options.output.publicDir);
-    await writeFile(join(nitro.options.output.publicDir, "_headers"), "/user\n  x-user: 1");
-    await writeFile(join(nitro.options.output.publicDir, "_redirects"), "/user /other 302");
-    await writeCFHeaders(nitro, "assets");
-    await moveCFRedirects(nitro);
+    fastnode.options.output.publicDir = join(dir, "public/base") + "/";
+    await mkdir(fastnode.options.output.publicDir);
+    await writeFile(join(fastnode.options.output.publicDir, "_headers"), "/user\n  x-user: 1");
+    await writeFile(join(fastnode.options.output.publicDir, "_redirects"), "/user /other 302");
+    await writeCFHeaders(fastnode, "assets");
+    await moveCFRedirects(fastnode);
     expect(await readFile(join(dir, "public/_headers"), "utf8")).toBe(
       "/user\n  x-user: 1\n/base/hdr/*\n  x-hdr: 1"
     );
@@ -441,25 +442,25 @@ describe("cloudflare workers _headers and _redirects", () => {
   });
 
   it("keeps a user `_headers` with a fallback as is", async () => {
-    const { dir, nitro } = await createNitro({
+    const { dir, fastnode } = await createFastnode({
       baseURL: "/base/",
       routeRules: { "/hdr/**": { headers: { "x-hdr": "1" } } },
     });
-    nitro.options.output.publicDir = join(dir, "public/base") + "/";
-    await mkdir(nitro.options.output.publicDir);
-    await writeFile(join(nitro.options.output.publicDir, "_headers"), "/* \n  x-all: 1");
-    await writeCFHeaders(nitro, "assets");
+    fastnode.options.output.publicDir = join(dir, "public/base") + "/";
+    await mkdir(fastnode.options.output.publicDir);
+    await writeFile(join(fastnode.options.output.publicDir, "_headers"), "/* \n  x-all: 1");
+    await writeCFHeaders(fastnode, "assets");
     expect(await readFile(join(dir, "public/_headers"), "utf8")).toBe("/* \n  x-all: 1");
     expect(existsSync(join(dir, "public/base/_headers"))).toBe(false);
   });
 
   it("writes to the public dir without a baseURL", async () => {
-    const { dir, nitro } = await createNitro({
+    const { dir, fastnode } = await createFastnode({
       routeRules: { "/hdr/**": { headers: { "x-hdr": "1" } } },
     });
     await writeFile(join(dir, "public/_redirects"), "/user /other 302");
-    await writeCFHeaders(nitro, "assets");
-    await moveCFRedirects(nitro);
+    await writeCFHeaders(fastnode, "assets");
+    await moveCFRedirects(fastnode);
     expect(await readFile(join(dir, "public/_headers"), "utf8")).toBe("/hdr/*\n  x-hdr: 1");
     expect(await readFile(join(dir, "public/_redirects"), "utf8")).toBe("/user /other 302");
   });
@@ -499,9 +500,9 @@ describe("edgeone config.json", () => {
     continue?: boolean;
   };
 
-  async function buildRoutes(options: Partial<NitroOptions>): Promise<Route[]> {
-    const { dir, nitro } = await createNitro(options);
-    await writeEdgeOneConfig(nitro);
+  async function buildRoutes(options: Partial<FastnodeOptions>): Promise<Route[]> {
+    const { dir, fastnode } = await createFastnode(options);
+    await writeEdgeOneConfig(fastnode);
     return JSON.parse(await readFile(join(dir, "server/config.json"), "utf8")).routes;
   }
 
@@ -558,7 +559,7 @@ describe("edgeone config.json", () => {
       routeRules: {
         "/r/**": { redirect: { to: "/all/**", status: 302 } },
         "/r/special": { redirect: { to: "/special", status: 301 } },
-        "/ext/**": { redirect: { to: "https://nitro.build/**", status: 302 } },
+        "/ext/**": { redirect: { to: "https://fastnode.khulnasoft.com/**", status: 302 } },
       },
     });
     expect(firstMatch(routes, "/r/special")?.headers?.Location).toBe("/special");
@@ -568,7 +569,7 @@ describe("edgeone config.json", () => {
     );
     const external = firstMatch(routes, "/ext/a")!;
     expect("/ext/a".replace(new RegExp(external.src!), external.headers!.Location)).toBe(
-      "https://nitro.build/a"
+      "https://fastnode.khulnasoft.com/a"
     );
   });
 
@@ -578,8 +579,8 @@ describe("edgeone config.json", () => {
       routeRules: {
         "/r/**": { redirect: { to: "/all/**", status: 302 } },
         "/r/special": { redirect: { to: "/special", status: 301 } },
-        "/ext/**": { redirect: { to: "https://nitro.build/**", status: 302 } },
-        "/cdn/**": { redirect: { to: "//cdn.nitro.build/**", status: 302 } },
+        "/ext/**": { redirect: { to: "https://fastnode.khulnasoft.com/**", status: 302 } },
+        "/cdn/**": { redirect: { to: "//cdn.fastnode.khulnasoft.com/**", status: 302 } },
       },
     });
     const resolve = (path: string) => {
@@ -588,8 +589,8 @@ describe("edgeone config.json", () => {
     };
     expect(firstMatch(routes, "/base/r/special")?.headers?.Location).toBe("/special");
     expect(resolve("/base/r/a/b")).toBe("/all/a/b");
-    expect(resolve("/base/ext/a")).toBe("https://nitro.build/a");
-    expect(resolve("/base/cdn/a")).toBe("//cdn.nitro.build/a");
+    expect(resolve("/base/ext/a")).toBe("https://fastnode.khulnasoft.com/a");
+    expect(resolve("/base/cdn/a")).toBe("//cdn.fastnode.khulnasoft.com/a");
   });
 
   it("scopes method-scoped rules to their methods", async () => {

@@ -1,17 +1,17 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import { hash } from "../../utils/hash.ts";
 
-export default function plugins(nitro: Nitro) {
+export default function plugins(fastnode: Fastnode) {
   return {
-    id: "#nitro/virtual/plugins",
+    id: "#fastnode/virtual/plugins",
     template: () => {
-      const nitroPlugins = [...new Set(nitro.options.plugins)];
+      const fastnodePlugins = [...new Set(fastnode.options.plugins)];
 
       return /* js */ `
-  ${nitroPlugins.map((plugin) => /* js */ `import _${hash(plugin)} from "${plugin}";`).join("\n")}
+  ${fastnodePlugins.map((plugin) => /* js */ `import _${hash(plugin)} from "${plugin}";`).join("\n")}
 
   export const plugins = [
-    ${nitroPlugins.map((plugin) => `_${hash(plugin)}`).join(",\n")}
+    ${fastnodePlugins.map((plugin) => `_${hash(plugin)}`).join(",\n")}
   ]
       `;
     },

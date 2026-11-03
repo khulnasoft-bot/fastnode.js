@@ -1,9 +1,9 @@
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
 export default defineConfig({
   plugins: [
-    nitro({
+    fastnode({
       serverDir: "./",
       buildPlugins: [
         {

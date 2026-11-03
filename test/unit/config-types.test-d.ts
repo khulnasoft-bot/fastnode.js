@@ -1,5 +1,5 @@
 import type { SerializableOptions } from "../../src/types/_utils.ts";
-import type { DatabaseConnectionConfigs, KVMounts } from "nitro/types";
+import type { DatabaseConnectionConfigs, KVMounts } from "fastnode/types";
 import type { ChokidarOptions } from "chokidar";
 
 // Storage: options are mapped from the builtin driver name.
@@ -12,14 +12,14 @@ export const storage: KVMounts = {
   noLib: { driver: "fs", lib: null },
   // @ts-expect-error `fs-lite` ignore functions are not serializable
   fsLiteMatcher: { driver: "fs-lite", ignore: (path: string) => path.length > 0 },
-  // @ts-expect-error `lib` is provided by nitro
+  // @ts-expect-error `lib` is provided by fastnode
   lib: { driver: "fs", lib: () => import("chokidar") },
   // @ts-expect-error custom driver options are serialized too
   customFn: { driver: "./drivers/custom", transform: () => "x" },
 };
 
 // `unstorage`'s fs declaration loses its watch options type if its `chokidar` import cannot resolve.
-// Test that option shape through Nitro's direct `chokidar` dev dependency.
+// Test that option shape through Fastnode's direct `chokidar` dev dependency.
 const fsMatcherOptions: SerializableOptions<{ watchOptions?: ChokidarOptions }> = {
   watchOptions: {
     // @ts-expect-error `watchOptions.ignored` matcher functions are not serializable
@@ -54,12 +54,12 @@ export const connectorOptions: SerializableOptions<ConnectorOptionsShape> = { ur
 
 export const connectorLib: SerializableOptions<ConnectorOptionsShape> = {
   url: "",
-  // @ts-expect-error `lib` is provided by nitro
+  // @ts-expect-error `lib` is provided by fastnode
   lib: () => Promise.resolve({ connect() {} }),
 };
 
 export const connectorLibMessage: SerializableOptions<ConnectorOptionsShape> = {
   url: "",
   // @ts-expect-error the message of a rejected option is not a value it accepts
-  lib: "Library imports are not JSON-serializable; nitro injects them for installed driver dependencies (set `null` to opt out)",
+  lib: "Library imports are not JSON-serializable; fastnode injects them for installed driver dependencies (set `null` to opt out)",
 };

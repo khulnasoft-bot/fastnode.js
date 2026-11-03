@@ -1,10 +1,10 @@
-import "#nitro/virtual/polyfills";
-import { useNitroApp } from "nitro/app";
-import { isPublicAssetURL } from "#nitro/virtual/public-assets";
+import "#fastnode/virtual/polyfills";
+import { useFastnodeApp } from "fastnode/app";
+import { isPublicAssetURL } from "#fastnode/virtual/public-assets";
 import type { Context } from "@netlify/edge-functions";
 import type { ServerRequest } from "srvx";
 
-const nitroApp = useNitroApp();
+const fastnodeApp = useFastnodeApp();
 
 // https://docs.netlify.com/edge-functions/api/
 export default async function netlifyEdge(netlifyReq: Request, context: Context) {
@@ -24,5 +24,5 @@ export default async function netlifyEdge(netlifyReq: Request, context: Context)
     req.headers.set("x-forwarded-proto", "https");
   }
 
-  return nitroApp.fetch(req);
+  return fastnodeApp.fetch(req);
 }

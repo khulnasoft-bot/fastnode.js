@@ -8,7 +8,7 @@ export const builtins: string[] = builtinModules.flatMap((m) =>
   m.includes(":") ? [m] : [m, `node:${m}`]
 );
 
-const REQUIRE_PREFIX = "\0nitro-require-builtin:";
+const REQUIRE_PREFIX = "\0fastnode-require-builtin:";
 
 /**
  * Externalizes ids aliased to another `node:` id (e.g. `events` or `buffer/` to `node:events` or
@@ -47,7 +47,7 @@ export function builtinExternals(
     return false;
   }
   return {
-    name: "nitro:builtins",
+    name: "fastnode:builtins",
     // A user `external` would externalize them before `resolveId`
     options(options) {
       if (native.size > 0 && Array.isArray(options.external)) {

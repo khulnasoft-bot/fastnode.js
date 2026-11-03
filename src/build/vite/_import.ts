@@ -1,4 +1,4 @@
-import type { Nitro, NitroDepsOptions } from "nitro/types";
+import type { Fastnode, FastnodeDepsOptions } from "fastnode/types";
 import type { ResolvedConfig } from "vite";
 import { resolveModulePath } from "exsolve";
 import { resolveFromDepPath } from "../../utils/_dep-path.ts";
@@ -15,16 +15,16 @@ export interface ViteImportOptions {
    * as a path or `file://` URL (the `vite.path` or `deps.paths.vite` option).
    */
   path?: string;
-  /** Throw instead of installing `vite` when it cannot be resolved (the `nitro/vite` plugin). */
+  /** Throw instead of installing `vite` when it cannot be resolved (the `fastnode/vite` plugin). */
   plugin?: boolean;
   /** The `deps` option (`deps.paths.vite` is passed as `path`). */
-  deps?: NitroDepsOptions;
+  deps?: FastnodeDepsOptions;
 }
 
 /**
  * Import `vite` from the user project.
  *
- * Nitro does not depend on `vite` itself: the `vite` builder and the `nitro/vite`
+ * Fastnode does not depend on `vite` itself: the `vite` builder and the `fastnode/vite`
  * plugin are opt-in and the version installed next to the app is the version that runs.
  */
 export async function importVite(opts: ViteImportOptions): Promise<typeof import("vite")> {
@@ -35,7 +35,7 @@ export async function importVite(opts: ViteImportOptions): Promise<typeof import
 /**
  * Resolve `vite/module-runner` from the user project.
  *
- * The dev worker cannot import it by name: it is loaded from Nitro's own `dist/`, where the
+ * The dev worker cannot import it by name: it is loaded from Fastnode's own `dist/`, where the
  * optional `vite` dependency is not resolvable. The path is injected into the generated worker
  * entry instead (see `_dev-worker.ts`).
  */
@@ -58,48 +58,48 @@ export async function resolveViteModuleRunner(opts: ViteImportOptions): Promise<
 }
 
 /**
- * The `vite` to use: the one explicitly configured, the one running the `nitro/vite` plugin,
+ * The `vite` to use: the one explicitly configured, the one running the `fastnode/vite` plugin,
  * or the one of the project root.
  */
-export function viteImportOptions(nitro: Nitro): ViteImportOptions {
+export function viteImportOptions(fastnode: Fastnode): ViteImportOptions {
   return {
-    dir: nitro.options.rootDir,
-    path: nitro.options.vite?.path || _runningVite.get(nitro),
-    plugin: _runningVite.has(nitro),
-    deps: nitro.options.deps,
+    dir: fastnode.options.rootDir,
+    path: fastnode.options.vite?.path || _runningVite.get(fastnode),
+    plugin: _runningVite.has(fastnode),
+    deps: fastnode.options.deps,
   };
 }
 
 /**
  * The `deps.paths` option with the `vite` of {@link viteImportOptions}, so `rolldown` is also
- * resolved through the `vite` running the `nitro/vite` plugin.
+ * resolved through the `vite` running the `fastnode/vite` plugin.
  */
-export function viteDepPaths(nitro: Nitro): Record<string, string> | undefined {
-  const paths = nitro.options.deps?.paths;
-  const vite = viteImportOptions(nitro).path;
+export function viteDepPaths(fastnode: Fastnode): Record<string, string> | undefined {
+  const paths = fastnode.options.deps?.paths;
+  const vite = viteImportOptions(fastnode).path;
   return vite && !paths?.vite ? { ...paths, vite } : paths;
 }
 
-/** Use the `vite` package running the `nitro/vite` plugin, located from its resolved config. */
-export function setRunningVite(nitro: Nitro, config: ResolvedConfig): void {
+/** Use the `vite` package running the `fastnode/vite` plugin, located from its resolved config. */
+export function setRunningVite(fastnode: Fastnode, config: ResolvedConfig): void {
   let entry = _viteEnvEntry(config);
   if (entry) {
     try {
-      _resolveFromPath("vite", { dir: nitro.options.rootDir, path: entry });
+      _resolveFromPath("vite", { dir: fastnode.options.rootDir, path: entry });
     } catch {
       entry = undefined;
     }
   }
-  _runningVite.set(nitro, entry);
+  _runningVite.set(fastnode, entry);
 }
 
-const _runningVite = new WeakMap<Nitro, string | undefined>();
+const _runningVite = new WeakMap<Fastnode, string | undefined>();
 
 function _assertPluginVite(opts: ViteImportOptions): void {
   const dep = _viteDep(opts);
   if (opts.plugin && !opts.path && !resolveDep(dep.id, dep)) {
     throw new Error(
-      `Cannot locate the \`vite\` package running the \`nitro/vite\` plugin, and \`vite\` cannot be resolved from \`${opts.dir}\`. Set the \`vite.path\` option to the running \`vite\` package (e.g. \`import.meta.resolve("vite")\`).`
+      `Cannot locate the \`vite\` package running the \`fastnode/vite\` plugin, and \`vite\` cannot be resolved from \`${opts.dir}\`. Set the \`vite.path\` option to the running \`vite\` package (e.g. \`import.meta.resolve("vite")\`).`
     );
   }
 }

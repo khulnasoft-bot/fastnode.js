@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 
-import { initNitroRouting } from "../../src/routing.ts";
+import { initFastnodeRouting } from "../../src/routing.ts";
 import routing from "../../src/build/virtual/routing.ts";
 import routingMeta from "../../src/build/virtual/routing-meta.ts";
 
-function createNitro(): Nitro {
-  const nitro = {
+function createFastnode(): Fastnode {
+  const fastnode = {
     options: {
       dev: false,
       preset: "node-server",
@@ -19,9 +19,9 @@ function createNitro(): Nitro {
       publicAssets: [],
     },
     scannedHandlers: [],
-  } as unknown as Nitro;
-  initNitroRouting(nitro);
-  return nitro;
+  } as unknown as Fastnode;
+  initFastnodeRouting(fastnode);
+  return fastnode;
 }
 
 function importSpecifiers(code: string): string[] {
@@ -31,28 +31,28 @@ function importSpecifiers(code: string): string[] {
 }
 
 describe("virtual/routing with late-registered windows handler paths", () => {
-  const windowsPath = String.raw`C:\app\.nitro\workflow\handler.mjs`;
+  const windowsPath = String.raw`C:\app\.fastnode\workflow\handler.mjs`;
 
   it.each([false, true])("emits a valid import specifier (lazy: %s)", async (lazy) => {
-    const nitro = createNitro();
-    nitro.options.handlers.push({ route: "/hello", handler: windowsPath, lazy });
-    nitro.routing.sync();
+    const fastnode = createFastnode();
+    fastnode.options.handlers.push({ route: "/hello", handler: windowsPath, lazy });
+    fastnode.routing.sync();
 
-    expect(importSpecifiers(await routing(nitro).template())).toEqual([
-      "C:/app/.nitro/workflow/handler.mjs",
+    expect(importSpecifiers(await routing(fastnode).template())).toEqual([
+      "C:/app/.fastnode/workflow/handler.mjs",
     ]);
-    expect(importSpecifiers(routingMeta(nitro).template())).toEqual([
-      "C:/app/.nitro/workflow/handler.mjs?meta",
+    expect(importSpecifiers(routingMeta(fastnode).template())).toEqual([
+      "C:/app/.fastnode/workflow/handler.mjs?meta",
     ]);
   });
 
   it("emits a valid import specifier for middleware", async () => {
-    const nitro = createNitro();
-    nitro.options.handlers.push({ route: "/**", middleware: true, handler: windowsPath });
-    nitro.routing.sync();
+    const fastnode = createFastnode();
+    fastnode.options.handlers.push({ route: "/**", middleware: true, handler: windowsPath });
+    fastnode.routing.sync();
 
-    expect(importSpecifiers(await routing(nitro).template())).toEqual([
-      "C:/app/.nitro/workflow/handler.mjs",
+    expect(importSpecifiers(await routing(fastnode).template())).toEqual([
+      "C:/app/.fastnode/workflow/handler.mjs",
     ]);
   });
 });

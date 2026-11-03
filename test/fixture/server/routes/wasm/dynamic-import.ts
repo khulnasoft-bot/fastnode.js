@@ -1,4 +1,4 @@
-import { defineLazyEventHandler, defineHandler } from "nitro/h3";
+import { defineLazyEventHandler, defineHandler } from "fastnode/h3";
 
 export default defineLazyEventHandler(async () => {
   // @ts-ignore

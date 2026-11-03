@@ -37,7 +37,7 @@ describe("dev error: parseFrame", () => {
     ["    at Array.map (<anonymous>)", { fn: "Array.map", file: undefined, type: "native" }],
     ["    at async Promise.all (index 0)", { fn: "Promise.all", file: undefined, type: "native" }],
     ["    at native", { file: undefined, type: "native" }],
-    ["    at handler (/app/node_modules/.nitro/dev/index.mjs:1:2)", { type: "app" }],
+    ["    at handler (/app/node_modules/.fastnode/dev/index.mjs:1:2)", { type: "app" }],
     [
       "    at x (/app/node_modules/.pnpm/h3@2.0.0/node_modules/h3/dist/h3.mjs:1:2)",
       { type: "module" },
@@ -121,7 +121,7 @@ describe("dev error: loadStackTrace", () => {
   ].join("\n");
 
   beforeAll(async () => {
-    dir = await mkdtemp(join(tmpdir(), "nitro-dev-error-"));
+    dir = await mkdtemp(join(tmpdir(), "fastnode-dev-error-"));
     await writeFile(join(dir, "src.ts"), source);
     for (const [name, sourcemap] of [
       ["file", true],
@@ -190,7 +190,7 @@ describe("dev error: loadStackTrace", () => {
     const bundle = join(dir, "virtual/out.mjs");
     await copyFile(join(dir, "file/out.mjs"), bundle);
     const map = JSON.parse(await readFile(join(dir, "file/out.mjs.map"), "utf8"));
-    map.sources = ["../#nitro/virtual/app"];
+    map.sources = ["../#fastnode/virtual/app"];
     await writeFile(`${bundle}.map`, JSON.stringify(map));
     const { line, col } = await generatedPosition(bundle);
     const error = new TypeError("bad 1");
@@ -199,7 +199,12 @@ describe("dev error: loadStackTrace", () => {
     await loadStackTrace(error);
 
     const [frame] = getFrames(error);
-    expect(frame).toMatchObject({ file: join(dir, "#nitro/virtual/app"), line: 5, col: 3, source });
+    expect(frame).toMatchObject({
+      file: join(dir, "#fastnode/virtual/app"),
+      line: 5,
+      col: 3,
+      source,
+    });
     const codeFrame = await getCodeFrame(frame!, { context: 0 });
     expect(codeFrame!.lines[0]).toContainEqual({ text: "throw", type: "kwd" });
   });

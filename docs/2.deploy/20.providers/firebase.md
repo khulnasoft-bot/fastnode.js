@@ -1,6 +1,6 @@
 # Firebase
 
-> Deploy Nitro apps to Firebase.
+> Deploy Fastnode apps to Firebase.
 
 ::note
 You will need to be on the [**Blaze plan**](https://firebase.google.com/pricing) (Pay as you go) to get started.
@@ -32,10 +32,10 @@ When you deploy with Firebase App Hosting, the App Hosting preset is enabled aut
 
 ### Run configuration
 
-You can customize the generated [App Hosting output bundle](https://firebase.google.com/docs/app-hosting/build-config) run configuration using the `firebase.appHosting` option in your Nitro config:
+You can customize the generated [App Hosting output bundle](https://firebase.google.com/docs/app-hosting/build-config) run configuration using the `firebase.appHosting` option in your Fastnode config:
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   firebase: {

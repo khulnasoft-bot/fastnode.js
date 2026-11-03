@@ -12,8 +12,8 @@ icon: i-lucide-arrow-right-left
 
 ::code-tree{defaultValue="routes/index.ts" expandAll}
 
-```ts [nitro.config.ts]
-import { defineConfig, serverFetch } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig, serverFetch } from "fastnode";
 
 export default defineConfig({
   serverDir: "./",
@@ -21,7 +21,7 @@ export default defineConfig({
     "dev:start": async () => {
       const res = await serverFetch("/hello");
       const text = await res.text();
-      console.log("Fetched /hello in nitro module:", res.status, text);
+      console.log("Fetched /hello in fastnode module:", res.status, text);
     },
   },
 });
@@ -31,11 +31,11 @@ export default defineConfig({
 {
   "type": "module",
   "scripts": {
-    "dev": "nitro dev",
-    "build": "nitro build"
+    "dev": "fastnode dev",
+    "build": "fastnode build"
   },
   "devDependencies": {
-    "nitro": "latest",
+    "fastnode": "latest",
     "rolldown": "latest"
   }
 }
@@ -43,26 +43,26 @@ export default defineConfig({
 
 ```json [tsconfig.json]
 {
-  "extends": "nitro/tsconfig"
+  "extends": "fastnode/tsconfig"
 }
 ```
 
 ```ts [vite.config.ts]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
-export default defineConfig({ plugins: [nitro()] });
+export default defineConfig({ plugins: [fastnode()] });
 ```
 
 ```ts [routes/hello.ts]
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 
 export default defineHandler(() => "Hello!");
 ```
 
 ```ts [routes/index.ts]
-import { defineHandler } from "nitro";
-import { fetch } from "nitro";
+import { defineHandler } from "fastnode";
+import { fetch } from "fastnode";
 
 export default defineHandler(() => fetch("/hello"));
 ```
@@ -73,23 +73,23 @@ export default defineHandler(() => fetch("/hello"));
 
 <!-- automd:file src="../../examples/server-fetch/README.md" -->
 
-When you need one route to call another, use Nitro's `fetch` function instead of the global fetch. It makes internal requests that stay in-process, avoiding network round-trips. The request never leaves the server.
+When you need one route to call another, use Fastnode's `fetch` function instead of the global fetch. It makes internal requests that stay in-process, avoiding network round-trips. The request never leaves the server.
 
 ## Main Route
 
 ```ts [routes/index.ts]
-import { defineHandler } from "nitro";
-import { fetch } from "nitro";
+import { defineHandler } from "fastnode";
+import { fetch } from "fastnode";
 
 export default defineHandler(() => fetch("/hello"));
 ```
 
-The index route imports `fetch` from `nitro` (not the global fetch) and calls the `/hello` route. This request is handled internally without going through the network stack.
+The index route imports `fetch` from `fastnode` (not the global fetch) and calls the `/hello` route. This request is handled internally without going through the network stack.
 
 ## Internal API Route
 
 ```ts [routes/hello.ts]
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 
 export default defineHandler(() => "Hello!");
 ```

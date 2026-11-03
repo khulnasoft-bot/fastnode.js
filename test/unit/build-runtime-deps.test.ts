@@ -3,20 +3,20 @@ import { readdir, readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
 import { dirname, join } from "pathe";
-import { pkgDir } from "#nitro/meta";
+import { pkgDir } from "#fastnode/meta";
 import { glob } from "tinyglobby";
 import { parseAst } from "rolldown/parseAst";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import * as exsolve from "exsolve";
-import type { NitroConfig } from "nitro/types";
-import { build, createNitro, prepare } from "../../src/builder.ts";
+import type { FastnodeConfig } from "fastnode/types";
+import { build, createFastnode, prepare } from "../../src/builder.ts";
 import { getDepMeta } from "../../src/utils/_deps.ts";
 import * as dep from "../../src/utils/dep.ts";
 
 vi.mock("../../src/utils/dep.ts", { spy: true });
 vi.mock("exsolve", { spy: true });
 
-// The vite builder loads `nitro/vite` from `dist/`, so it would not use (or mock) the sources here
+// The vite builder loads `fastnode/vite` from `dist/`, so it would not use (or mock) the sources here
 const builders = ["rolldown", "rollup"] as const;
 
 // Config resolvers import (`importDep`), the bundler only resolves (`ensureDep`)
@@ -36,9 +36,9 @@ afterAll(() => {
 async function buildApp(
   builder: (typeof builders)[number],
   server: string,
-  config: Omit<NitroConfig, "rootDir"> = {}
+  config: Omit<FastnodeConfig, "rootDir"> = {}
 ) {
-  const rootDir = mkdtempSync(join(tmpdir(), "nitro-build-runtime-deps-"));
+  const rootDir = mkdtempSync(join(tmpdir(), "fastnode-build-runtime-deps-"));
   tmpDirs.push(rootDir);
   const appFiles = {
     "package.json": JSON.stringify({ type: "module" }),
@@ -49,8 +49,8 @@ async function buildApp(
     mkdirSync(dirname(join(rootDir, path)), { recursive: true });
     writeFileSync(join(rootDir, path), contents);
   }
-  symlinkSync(pkgDir, join(rootDir, "node_modules/nitro"), "junction");
-  const nitro = await createNitro({
+  symlinkSync(pkgDir, join(rootDir, "node_modules/fastnode"), "junction");
+  const fastnode = await createFastnode({
     rootDir,
     builder,
     preset: "cloudflare-module",
@@ -59,12 +59,12 @@ async function buildApp(
     ...config,
   });
   try {
-    await prepare(nitro);
-    await build(nitro);
+    await prepare(fastnode);
+    await build(fastnode);
   } finally {
-    await nitro.close();
+    await fastnode.close();
   }
-  const serverDir = nitro.options.output.serverDir;
+  const serverDir = fastnode.options.output.serverDir;
   const files = await readdir(serverDir, { recursive: true });
   const code = await Promise.all(
     files.filter((f) => f.endsWith(".mjs")).map((f) => readFile(join(serverDir, f), "utf8"))
@@ -88,16 +88,19 @@ describe.each(builders)("optional runtime dependencies (%s)", (builder) => {
     expect(depCalls("db0")).toEqual([]);
   });
 
-  it("requires unstorage when `nitro/kv` is imported", async () => {
+  it("requires unstorage when `fastnode/kv` is imported", async () => {
     const code = await buildApp(
       builder,
-      `import { useKV } from "nitro/kv";\nexport default { fetch: async () => new Response(String(await useKV().getItem("foo"))) };`
+      `import { useKV } from "fastnode/kv";\nexport default { fetch: async () => new Response(String(await useKV().getItem("foo"))) };`
     );
     // Once per import (`unstorage`, `unstorage/tracing`), `ensureDep` installs only once
     expect(depCalls("unstorage")).not.toEqual([]);
     expect(depCalls("unstorage")).toEqual(
       depCalls("unstorage").map(() => [
-        expect.objectContaining({ autoInstall: true, reason: expect.stringContaining("nitro/kv") }),
+        expect.objectContaining({
+          autoInstall: true,
+          reason: expect.stringContaining("fastnode/kv"),
+        }),
       ])
     );
     expect(depCalls("db0")).toEqual([]);
@@ -111,16 +114,16 @@ describe.each(builders)("optional runtime dependencies (%s)", (builder) => {
     expect(uncachedLookups).toEqual([]);
   });
 
-  it("requires db0 when `nitro/database` is imported", async () => {
+  it("requires db0 when `fastnode/database` is imported", async () => {
     await buildApp(
       builder,
-      `import { useDatabase } from "nitro/database";\nexport default { fetch: () => new Response(typeof useDatabase) };`
+      `import { useDatabase } from "fastnode/database";\nexport default { fetch: () => new Response(typeof useDatabase) };`
     );
     expect(depCalls("db0")).toEqual([
       [
         expect.objectContaining({
           autoInstall: true,
-          reason: expect.stringContaining("nitro/database"),
+          reason: expect.stringContaining("fastnode/database"),
         }),
       ],
     ]);
@@ -130,7 +133,7 @@ describe.each(builders)("optional runtime dependencies (%s)", (builder) => {
   it("bundles ocache (a dependency) without installing it", async () => {
     const code = await buildApp(
       builder,
-      `import { defineCachedFunction } from "nitro/cache";\nconst cached = defineCachedFunction(() => "ok", { maxAge: 60 });\nexport default { fetch: async () => new Response(await cached()) };`,
+      `import { defineCachedFunction } from "fastnode/cache";\nconst cached = defineCachedFunction(() => "ok", { maxAge: 60 });\nexport default { fetch: async () => new Response(await cached()) };`,
       { routeRules: { "/**": { swr: 60 } } }
     );
     expect(depCalls("ocache")).toEqual([]);
@@ -188,9 +191,9 @@ describe.each(builders)("optional runtime dependencies (%s)", (builder) => {
     await expect(
       buildApp(
         builder,
-        `import { useKV } from "nitro/kv";\nexport default { fetch: () => new Response(typeof useKV) };`
+        `import { useKV } from "fastnode/kv";\nexport default { fetch: () => new Response(typeof useKV) };`
       )
-    ).rejects.toThrow(/`unstorage` is not installed[\s\S]*nitro\/kv/);
+    ).rejects.toThrow(/`unstorage` is not installed[\s\S]*fastnode\/kv/);
   });
 });
 

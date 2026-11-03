@@ -1,4 +1,4 @@
-import { defineHandler, setCookie } from "nitro/h3";
+import { defineHandler, setCookie } from "fastnode/h3";
 
 export default defineHandler((event) => {
   event.res.headers.set("x-foo", "bar");

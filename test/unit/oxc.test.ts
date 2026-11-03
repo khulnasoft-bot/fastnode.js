@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import type { NormalizedOutputOptions, Plugin, PluginContext, RenderedChunk } from "rollup";
 
 const rootDir = process.cwd();
@@ -88,8 +88,8 @@ export { greeting, r };
     vi.resetModules();
     const { oxc } = await import("../../src/build/plugins/oxc.ts");
     const warn = vi.fn();
-    const nitro = { options: { rootDir }, logger: { warn } } as unknown as Nitro;
-    const plugin = await oxc(nitro, { sourcemap: false, minify: true });
+    const fastnode = { options: { rootDir }, logger: { warn } } as unknown as Fastnode;
+    const plugin = await oxc(fastnode, { sourcemap: false, minify: true });
     expect(warn).toHaveBeenCalledWith(expect.stringContaining("Skipping minification"));
     const input = "const a = 1;\nexport { a };\n";
     expect(await renderChunk(plugin, input)).toBe(input);

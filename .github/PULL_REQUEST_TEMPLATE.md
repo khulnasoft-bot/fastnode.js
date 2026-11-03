@@ -4,9 +4,9 @@
 
 - The title should follow conventional commits (https://conventionalcommits.org).
 
-- If it is a bug fix, please ensure there is a linked issue with minimal (nitro) reproduction and/or enough context to explain exactly what it is fixing and why this fix is the best option in Nitro.
+- If it is a bug fix, please ensure there is a linked issue with minimal (fastnode) reproduction and/or enough context to explain exactly what it is fixing and why this fix is the best option in Fastnode.
 
-- If it is a security fix, please always report it first as per https://github.com/nitrojs/nitro/blob/main/SECURITY.md
+- If it is a security fix, please always report it first as per https://github.com/khulnasoft/fastnode/blob/main/SECURITY.md
 
 - If it is a new feature, please ensure it has already been discussed. Keep the scope of changes minimal to what is essential, and try to break down your changes into smaller PRs when possible.
 

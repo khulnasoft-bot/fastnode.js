@@ -1,4 +1,4 @@
 import "./_runtime_warn.ts";
-import type { NitroAppPlugin } from "nitro/types";
+import type { FastnodeAppPlugin } from "fastnode/types";
 
-export const plugins: NitroAppPlugin[] = [];
+export const plugins: FastnodeAppPlugin[] = [];

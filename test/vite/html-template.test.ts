@@ -6,7 +6,7 @@ import { joinURL } from "ufo";
 import { beforeAll, afterAll, describe, expect, test } from "vitest";
 
 const { createServer, version } = (await import(
-  process.env.NITRO_VITE_PKG || "vite"
+  process.env.FASTNODE_VITE_PKG || "vite"
 )) as typeof import("vite");
 
 describe.each([
@@ -30,8 +30,8 @@ describe.each([
         environments: clientInput
           ? { client: { build: { rollupOptions: { input: `${rootDir}/${clientInput}` } } } }
           : undefined,
-        nitro: {
-          vite: { path: import.meta.resolve(process.env.NITRO_VITE_PKG || "vite") },
+        fastnode: {
+          vite: { path: import.meta.resolve(process.env.FASTNODE_VITE_PKG || "vite") },
         },
       });
       await server.listen("0" as unknown as number);

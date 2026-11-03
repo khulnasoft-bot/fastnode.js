@@ -1,10 +1,10 @@
-Nitro provides a built-in database layer that uses SQL template literals for safe, parameterized queries. This example creates a users table, inserts a record, and queries it back.
+Fastnode provides a built-in database layer that uses SQL template literals for safe, parameterized queries. This example creates a users table, inserts a record, and queries it back.
 
 ## Querying the Database
 
 ```ts [server.ts]
-import { defineHandler } from "nitro";
-import { useDatabase } from "nitro/database";
+import { defineHandler } from "fastnode";
+import { useDatabase } from "fastnode/database";
 
 export default defineHandler(async () => {
   const db = useDatabase();
@@ -30,11 +30,11 @@ Retrieve the database instance using `useDatabase()`. The database can be querie
 
 ## Running Migrations with Tasks
 
-Nitro tasks let you run operations outside of request handlers. For database migrations, create a task file in `tasks/` and run it via the CLI. This keeps schema changes separate from your application code.
+Fastnode tasks let you run operations outside of request handlers. For database migrations, create a task file in `tasks/` and run it via the CLI. This keeps schema changes separate from your application code.
 
 ```ts [tasks/db/migrate.ts]
-import { defineTask } from "nitro/task";
-import { useDatabase } from "nitro/database";
+import { defineTask } from "fastnode/task";
+import { useDatabase } from "fastnode/database";
 
 export default defineTask({
   meta: {

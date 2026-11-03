@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { readPackageJSON } from "pkg-types";
 import { minVersion, satisfies, subset } from "semver";
 import { describe, expect, expectTypeOf, it, vi } from "vitest";
-import type { NitroOptions } from "nitro/types";
+import type { FastnodeOptions } from "fastnode/types";
 import { resolveDepsOptions } from "../../src/config/resolvers/deps.ts";
 import { deps, shims } from "../../src/utils/_deps.ts";
 import type { DepId, DepMeta } from "../../src/utils/_deps.ts";
@@ -73,11 +73,11 @@ describe("shimmed dependencies", async () => {
 
 describe("`deps` option", () => {
   it("aliases `vite.path` and `deps.paths.vite`", () => {
-    const fromVitePath = { vite: { path: "/vite" } } as unknown as NitroOptions;
+    const fromVitePath = { vite: { path: "/vite" } } as unknown as FastnodeOptions;
     resolveDepsOptions(fromVitePath);
     expect(fromVitePath.deps?.paths?.vite).toBe("/vite");
 
-    const fromDeps = { deps: { paths: { vite: "/vite" } } } as unknown as NitroOptions;
+    const fromDeps = { deps: { paths: { vite: "/vite" } } } as unknown as FastnodeOptions;
     resolveDepsOptions(fromDeps);
     expect(fromDeps.vite?.path).toBe("/vite");
   });
@@ -87,7 +87,7 @@ describe("`deps` option", () => {
     const options = {
       vite: { path: "/vite-a" },
       deps: { paths: { vite: "/vite-b" } },
-    } as unknown as NitroOptions;
+    } as unknown as FastnodeOptions;
     resolveDepsOptions(options);
     expect(options.vite?.path).toBe("/vite-b");
     expect(options.deps?.paths?.vite).toBe("/vite-b");

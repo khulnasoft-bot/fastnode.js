@@ -3,14 +3,14 @@ import { getRequestURL } from "h3";
 import { createErrorHeaders, defineErrorHandler } from "./utils.ts";
 import type { InternalHandlerResponse } from "./utils.ts";
 import { FastResponse } from "srvx";
-import type { NitroErrorHandler } from "nitro/types";
+import type { FastnodeErrorHandler } from "fastnode/types";
 import { loadStackTrace } from "./_stack.ts";
 import { renderErrorANSI, renderErrorHTML } from "./_utils.ts";
 
 export { loadStackTrace } from "./_stack.ts";
 
-const errorHandler: NitroErrorHandler = defineErrorHandler(
-  async function defaultNitroErrorHandler(error, event) {
+const errorHandler: FastnodeErrorHandler = defineErrorHandler(
+  async function defaultFastnodeErrorHandler(error, event) {
     const res = await defaultHandler(error, event);
     return new FastResponse(
       typeof res.body === "string" ? res.body : JSON.stringify(res.body, null, 2),

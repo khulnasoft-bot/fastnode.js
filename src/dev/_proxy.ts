@@ -196,7 +196,7 @@ const tlsKeys = ["key", "passphrase", "pfx", "cert", "ca", "ciphers", "securePro
 
 function parseTarget(target: ProxyTarget | undefined): ParsedTarget {
   if (!target) {
-    throw new Error("[nitro] `devProxy` rule is missing a `target`.");
+    throw new Error("[fastnode] `devProxy` rule is missing a `target`.");
   }
   let url: URL;
   let socketPath: string | undefined;

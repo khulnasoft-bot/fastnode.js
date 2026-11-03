@@ -1,4 +1,4 @@
-import { H3Event, HTTPError } from "nitro/h3";
+import { H3Event, HTTPError } from "fastnode/h3";
 
 export default ({ url }: H3Event) => {
   const unhandled = url.searchParams.has("unhandled");

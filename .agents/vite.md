@@ -1,44 +1,44 @@
-# Nitro Vite Build System
+# Fastnode Vite Build System
 
 ## Overview
 
-`src/build/vite/` is Nitro's Vite-based build system using Vite 6+ multi-environment API. It integrates as a Vite plugin (`nitro()`) that manages server builds, service environments, dev server, and production output.
+`src/build/vite/` is Fastnode's Vite-based build system using Vite 6+ multi-environment API. It integrates as a Vite plugin (`fastnode()`) that manages server builds, service environments, dev server, and production output.
 
 ## File Map
 
 | File | Purpose |
 |------|---------|
 | `plugin.ts` | Main plugin — 6 sub-plugins orchestrating the build |
-| `env.ts` | Vite environment creation (nitro, services, env-runner) |
+| `env.ts` | Vite environment creation (fastnode, services, env-runner) |
 | `dev.ts` | Dev server integration, `FetchableDevEnvironment`, middleware |
 | `prod.ts` | Production multi-env build, asset management, virtual setup module |
 | `bundler.ts` | Rollup/Rolldown config generation |
-| `build.ts` | CLI build entry for `nitro build` (`viteBuild()`) |
+| `build.ts` | CLI build entry for `fastnode build` (`viteBuild()`) |
 | `preview.ts` | Preview server plugin |
-| `types.ts` | Type definitions (`NitroPluginConfig`, `NitroPluginContext`) |
+| `types.ts` | Type definitions (`FastnodePluginConfig`, `FastnodePluginContext`) |
 | `_assets.ts` | `?assets` import plugins, gated by `vite.assetsImport` |
 | `_import.ts` | On demand `vite` import from the user project (`importVite()`) |
 | `_dev-worker.ts` | Generated dev worker entry, injecting the app's Vite module runner |
-| `vitest.ts` | Vitest support: `nitro` test environment (`src/runtime/internal/vite/vitest-env.mjs`) |
+| `vitest.ts` | Vitest support: `fastnode` test environment (`src/runtime/internal/vite/vitest-env.mjs`) |
 
 ## Plugin Architecture (`plugin.ts`)
 
-`nitro(config?)` returns an array of 6 sub-plugins:
+`fastnode(config?)` returns an array of 6 sub-plugins:
 
-### 1. `nitroInit` — Context Setup
-- Calls `setupNitroContext()` on first `config` hook
-- Creates Nitro instance via `createNitro()`
+### 1. `fastnodeInit` — Context Setup
+- Calls `setupFastnodeContext()` on first `config` hook
+- Creates Fastnode instance via `createFastnode()`
 - Detects Rolldown vs Rollup (`_isRolldown`)
 - Resolves bundler config via `getBundlerConfig()`
 - Initializes env-runner in dev mode
 - Attaches rollup plugins for dev environments
 
-### 2. `nitroEnv` — Environment Registration
-- Registers Vite environments: `client`, `nitro`, and user services
+### 2. `fastnodeEnv` — Environment Registration
+- Registers Vite environments: `client`, `fastnode`, and user services
 - Auto-detects `entry-server` for SSR
 - Configures per-environment build options (consumer type, externals, etc.)
 
-### 3. `nitroMain` — Build Orchestration
+### 3. `fastnodeMain` — Build Orchestration
 - Sets app type to `"custom"`
 - Configures resolve aliases, server port
 - `buildApp` hook → calls `buildEnvironments()` (production)
@@ -46,38 +46,38 @@
 - `configureServer` → calls `configureViteDevServer()` (dev)
 - `hotUpdate` → server-only module reload
 
-### 4. `nitroPrepare` — Output Cleanup
+### 4. `fastnodePrepare` — Output Cleanup
 - Cleans build directory before build starts
 
-### 5. `nitroService` — Virtual Module Handler
-- Resolves `#nitro-vite-setup` virtual module
+### 5. `fastnodeService` — Virtual Module Handler
+- Resolves `#fastnode-vite-setup` virtual module
 - Provides production setup code for service environments
 
-### 6. `nitroPreviewPlugin` — Preview Server
-- Routes all preview requests through Nitro
+### 6. `fastnodePreviewPlugin` — Preview Server
+- Routes all preview requests through Fastnode
 - WebSocket upgrade support
 
-## `setupNitroContext()` Flow
+## `setupFastnodeContext()` Flow
 
 1. Merge plugin config with user config
 2. Load dotenv files
 3. Detect SSR entry (looks for `entry-server.{ts,js,tsx,jsx,mjs}`)
-4. Create Nitro instance (`createNitro()`)
+4. Create Fastnode instance (`createFastnode()`)
 5. Resolve bundler config (`getBundlerConfig()`)
-6. Attach `nitro.fetch` (the env-runner is started lazily by the dev environments, not while resolving config)
+6. Attach `fastnode.fetch` (the env-runner is started lazily by the dev environments, not while resolving config)
 
 ## Environments (`env.ts`)
 
-Nitro uses Vite 6+ environments API for multi-bundle builds:
+Fastnode uses Vite 6+ environments API for multi-bundle builds:
 
 | Environment | Consumer | Purpose |
 |-------------|----------|---------|
 | `client` | `"client"` | Browser HTML/CSS/JS |
-| `nitro` | `"server"` | Main server bundle |
+| `fastnode` | `"server"` | Main server bundle |
 | `ssr` | `"server"` | Optional SSR service |
 | Custom | `"server"` | User-defined services |
 
-### `createNitroEnvironment()`
+### `createFastnodeEnvironment()`
 - Consumer: `"server"`
 - Uses bundler config (Rollup/Rolldown)
 - Dev: creates `FetchableDevEnvironment` with hot reload
@@ -86,7 +86,7 @@ Nitro uses Vite 6+ environments API for multi-bundle builds:
 - Special conditions: `"workerd"` for miniflare, excludes `"node"`
 
 ### `initEnvRunner()`
-- Called from the dev environments' `createEnvironment()` (and `nitro.fetch`), so resolving the Vite config alone does not start a worker
+- Called from the dev environments' `createEnvironment()` (and `fastnode.fetch`), so resolving the Vite config alone does not start a worker
 - Uses `env-runner` package for worker management
 - Supports Node Worker or Miniflare runtime
 - Auto-restarts on failure (max 3 retries)
@@ -107,26 +107,26 @@ Nitro uses Vite 6+ environments API for multi-bundle builds:
 - Sends custom message on init with environment info
 
 ### `configureViteDevServer()`
-- Watches Nitro config file for changes (triggers full restart)
+- Watches Fastnode config file for changes (triggers full restart)
 - WebSocket upgrade handling
 - File watchers for route/API/middleware directories (debounced reload)
 - RPC for `transformHTML` messages
 
-### Dev Middleware (`nitroDevMiddleware`)
+### Dev Middleware (`fastnodeDevMiddleware`)
 Two-stage request routing:
 
-1. **Pre-processor** — checks if request should go to Nitro:
+1. **Pre-processor** — checks if request should go to Fastnode:
    - Skips Vite internal requests (`/@`, `/__`)
    - Skips file extension requests (`.js`, `.css`, etc.)
    - Uses `sec-fetch-dest` header for browser detection
-   - Routes to `NitroDevApp` first (static/proxy/dev handlers)
+   - Routes to `FastnodeDevApp` first (static/proxy/dev handlers)
 2. **Main handler** — falls back to env-runner worker for server routes
 
 ### Request Flow (Dev)
 ```
 Browser → Vite Dev Server
-  → nitroDevMiddleware (pre-processor)
-    → NitroDevApp (static assets, dev proxy, /_vfs)
+  → fastnodeDevMiddleware (pre-processor)
+    → FastnodeDevApp (static assets, dev proxy, /_vfs)
     → env-runner worker (main server logic)
   → Vite static/HMR (if not handled)
 ```
@@ -135,24 +135,24 @@ Browser → Vite Dev Server
 
 ### `buildEnvironments()` — 5 Stages
 
-**Stage 1: Build non-Nitro environments**
+**Stage 1: Build non-Fastnode environments**
 - Client environment (browser bundle)
 - Service environments (SSR, API, custom)
 - Detailed logging per environment
 
 **Stage 2: Renderer template processing**
 - If client input == renderer template, replaces SSR outlet
-- Inlines `globalThis.__nitro_vite_envs__?.["ssr"]?.fetch($REQUEST)`
+- Inlines `globalThis.__fastnode_vite_envs__?.["ssr"]?.fetch($REQUEST)`
 - Moves processed template to build dir
 
 **Stage 3: Asset management**
 - Calls `builder.writeAssetsManifest?.()`
 - Registers asset dirs with `max-age=31536000, immutable`
 
-**Stage 4: Build Nitro environment**
+**Stage 4: Build Fastnode environment**
 - `prepare()` → clean output
 - Build main server bundle
-- Close Nitro instance
+- Close Fastnode instance
 - Fire `compiled` hook
 - Write build info
 
@@ -160,10 +160,10 @@ Browser → Vite Dev Server
 - Start preview server, log success
 
 ### `prodSetup()` Virtual Module
-Generates `#nitro-vite-setup` content:
+Generates `#fastnode-vite-setup` content:
 ```js
 // For each service environment
-globalThis.__nitro_vite_envs__ = {
+globalThis.__fastnode_vite_envs__ = {
   "ssr": { fetch: (...args) => import("entry").then(m => m.default.fetch(...args)) }
 }
 ```
@@ -219,7 +219,7 @@ current evaluations.
 | `dev-worker.mjs` | Worker process: `ViteEnvRunner` class, RPC layer, env management |
 | `ssr-renderer.mjs` | SSR service: calls `fetchViteEnv("ssr", req)` |
 
-`dev-worker.mjs` is not loaded directly: `writeDevWorkerEntry()` generates `<buildDir>/vite/dev-worker.mjs`, which re-exports it and injects the `vite/module-runner` resolved from the app (`vite` is not resolvable from Nitro's `dist/`).
+`dev-worker.mjs` is not loaded directly: `writeDevWorkerEntry()` generates `<buildDir>/vite/dev-worker.mjs`, which re-exports it and injects the `vite/module-runner` resolved from the app (`vite` is not resolvable from Fastnode's `dist/`).
 
 ### `ViteEnvRunner` (in `dev-worker.mjs`)
 - Manages Vite `ModuleRunner` per environment (injected via `setModuleRunner()`)
@@ -229,7 +229,7 @@ current evaluations.
 
 ### Runtime API (`src/runtime/vite.ts`)
 - `fetchViteEnv(name, input, init)` — route fetch to named Vite environment
-- Accesses `globalThis.__nitro_vite_envs__` registry
+- Accesses `globalThis.__fastnode_vite_envs__` registry
 
 ## Dev vs Production
 
@@ -244,10 +244,10 @@ current evaluations.
 
 ## Vite Options
 
-`vite` Nitro config options (from inline plugin options, `nitro` in Vite config or `nitro.config.ts`;
-read from `nitro.options.vite`):
+`vite` Fastnode config options (from inline plugin options, `fastnode` in Vite config or `fastnode.config.ts`;
+read from `fastnode.options.vite`):
 - `assetsImport` (default: true) — `?assets` imports via `@hiogawa/vite-plugin-fullstack`. Its plugins
-  are always registered (Vite resolves plugins before Nitro loads its config) and their hooks are
+  are always registered (Vite resolves plugins before Fastnode loads its config) and their hooks are
   skipped when disabled (`_assets.ts`)
 - `serverReload` (default: true) — reload the dev worker on server-only module changes
 - `services` — register custom service environments
@@ -255,35 +255,35 @@ read from `nitro.options.vite`):
 ## Vitest
 
 Vitest adds its `__vitest__` environment before plugin `config` hooks run, which sets
-`ctx._isVitest`. Test files then run in the `nitro` environment (default `test.environment`,
+`ctx._isVitest`. Test files then run in the `fastnode` environment (default `test.environment`,
 set by path since Vitest resolves named environments as packages). In this mode no dev worker
 starts (`devServer.runner` is set to `node-worker` before `build:before`, so runner-specific
-preset hooks such as the Cloudflare tracing bridge are skipped; tests run in Node.js): `nitro`
+preset hooks such as the Cloudflare tracing bridge are skipped; tests run in Node.js): `fastnode`
 and service environments use Vite's default dev environment, and
-`configureServer`, `hotUpdate` and the service `nitro/*` proxy are skipped. Service entries (e.g.
+`configureServer`, `hotUpdate` and the service `fastnode/*` proxy are skipped. Service entries (e.g.
 the SSR entry, still auto-detected despite Vitest's own `ssr` environment) are imported from the
-`nitro` environment by `viteServicesTemplate()`, as in production. The `vitest-setup.mjs` setup file
+`fastnode` environment by `viteServicesTemplate()`, as in production. The `vitest-setup.mjs` setup file
 creates the app lazily in `beforeAll` (after the test file's `vi.mock` calls) so `serverFetch` from
-`nitro` works; it is an empty module in other environments. vm pools keep Vitest's default environment. Inline `test.projects` resolve from the raw `test`
+`fastnode` works; it is an empty module in other environments. vm pools keep Vitest's default environment. Inline `test.projects` resolve from the raw `test`
 config (captured before plugin `config` hooks), so `configureVitest` adds the setup file to each
-project; their environment must be set to `nitro` explicitly.
+project; their environment must be set to `fastnode` explicitly.
 
 Watch mode (`configureVitest` hook, `_vitest-watch.ts`): Vitest's own importer walk stops at
-virtual modules (their `file` is empty), so a `watchTriggerPatterns` entry walks the `nitro`
+virtual modules (their `file` is empty), so a `watchTriggerPatterns` entry walks the `fastnode`
 module graph through them (a setup file importer means every test file of the environment) and
 hands the tests to Vitest's own debounced rerun. It only answers when the walk crossed a virtual
 module, so other changes keep Vitest's default handling. Added/removed scan dir files run the
 same rescan as dev (`_scan-watch.ts`), then `rerunTestSpecifications` with the tests depending on
-`#nitro/virtual/*`. Nitro config changes call `vitest.vite.restart()`, which Vitest hijacks to
+`#fastnode/virtual/*`. Fastnode config changes call `vitest.vite.restart()`, which Vitest hijacks to
 restart itself (it ignores `configFileDependencies`).
 
 ## Key Connections
 
-- `src/vite.ts` — public export (`nitro` plugin)
+- `src/vite.ts` — public export (`fastnode` plugin)
 - `src/build/build.ts` — dispatcher calls `viteBuild()`
 - `src/build/config.ts` — base build config
 - `src/build/plugins.ts` — base build plugins (virtual modules, WASM, externals, etc.)
 - `src/build/virtual/` — 14 virtual module templates
-- `src/dev/app.ts` — `NitroDevApp` for dev-only handlers
+- `src/dev/app.ts` — `FastnodeDevApp` for dev-only handlers
 - `src/dev/server.ts` — `createDevServer()` (internal `DevServer` class) with `RunnerManager`
 - `src/runtime/internal/vite/` — runtime worker and entry points

@@ -2,7 +2,7 @@ import { createDefu } from "defu";
 import { mergeHooks } from "hookable";
 
 /**
- * Deep merge Nitro configs like `defu` (first source has the highest priority), but run hooks
+ * Deep merge Fastnode configs like `defu` (first source has the highest priority), but run hooks
  * with the same name from all sources (lowest priority first) instead of overriding each other.
  */
 export const mergeConfig = createDefu(mergeConfigHooks) as (...sources: any[]) => any;

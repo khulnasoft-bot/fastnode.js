@@ -18,7 +18,7 @@ describe("task runner devFetch", () => {
   // A worker socket that accepts connections but never responds, like a
   // stalled dev server whose pid is still alive.
   async function stalledDevServer() {
-    const cwd = await mkdtemp(join(tmpdir(), "nitro-task-test-"));
+    const cwd = await mkdtemp(join(tmpdir(), "fastnode-task-test-"));
     cleanups.push(() => rm(cwd, { recursive: true, force: true }));
 
     const socketPath = join(cwd, "worker.sock");
@@ -26,10 +26,10 @@ describe("task runner devFetch", () => {
     cleanups.push(() => new Promise((resolve) => server.close(() => resolve())));
     await new Promise<void>((resolve) => server.listen(socketPath, resolve));
 
-    const buildDir = join(cwd, "node_modules/.nitro");
+    const buildDir = join(cwd, "node_modules/.fastnode");
     await mkdir(buildDir, { recursive: true });
     await writeFile(
-      join(buildDir, "nitro.dev.json"),
+      join(buildDir, "fastnode.dev.json"),
       JSON.stringify({
         dev: { pid: process.pid, workerAddress: { socketPath } },
       })
@@ -38,7 +38,7 @@ describe("task runner devFetch", () => {
     return cwd;
   }
 
-  // https://github.com/unjs/nitro/issues/4292
+  // https://github.com/unjs/fastnode/issues/4292
   it("rejects instead of hanging when the dev server socket stalls", async () => {
     const cwd = await stalledDevServer();
     await expect(listTasks({ cwd, timeout: 200 })).rejects.toThrow(/timed out/i);

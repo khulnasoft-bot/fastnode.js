@@ -1,6 +1,6 @@
-import { defineNitroPreset } from "../_utils/preset.ts";
+import { defineFastnodePreset } from "../_utils/preset.ts";
 
-const stormkit = defineNitroPreset(
+const stormkit = defineFastnodePreset(
   {
     entry: "./stormkit/runtime/stormkit",
     output: {

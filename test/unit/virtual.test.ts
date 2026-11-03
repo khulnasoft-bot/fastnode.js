@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { serverFetch } from "nitro/app";
+import { serverFetch } from "fastnode/app";
 
 describe("virtual modules", () => {
   it("app fetch", async () => {

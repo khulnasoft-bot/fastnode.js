@@ -1,11 +1,11 @@
-import type { NitroOptions } from "nitro/types";
+import type { FastnodeOptions } from "fastnode/types";
 import type { TSConfig } from "pkg-types";
 import { join, resolve } from "pathe";
 import { parseTsconfig } from "get-tsconfig";
 
 const tsconfigCache = new Map<string, any>();
 
-export async function resolveTsconfig(options: NitroOptions) {
+export async function resolveTsconfig(options: FastnodeOptions) {
   const root = resolve(options.rootDir || ".") + "/";
   if (!options.typescript.tsConfig) {
     options.typescript.tsConfig = loadTsconfig(root);

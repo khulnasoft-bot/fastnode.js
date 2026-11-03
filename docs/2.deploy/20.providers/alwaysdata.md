@@ -1,6 +1,6 @@
 # Alwaysdata
 
-> Deploy Nitro apps to alwaysdata.
+> Deploy Fastnode apps to alwaysdata.
 
 **Preset:** `alwaysdata`
 
@@ -32,7 +32,7 @@ Your *account name* is used for your default URL in the form of `account_name.al
    - *Environment*:
 
      ```ini
-     NITRO_PRESET=alwaysdata
+     FASTNODE_PRESET=alwaysdata
      ```
 
    - *Node.js version*: `Default version` is fine; pick no less than `20.0.0` (you can also [set your Node.js version globally](https://help.alwaysdata.com/en/languages/nodejs/configuration/#supported-versions))

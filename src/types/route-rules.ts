@@ -1,4 +1,4 @@
-// Route rule types are owned by h3 (`h3/rules`). Nitro re-exports them and
+// Route rule types are owned by h3 (`h3/rules`). Fastnode re-exports them and
 // augments the open `RouteRuleConfig` / `RouteRules` interfaces with its own
 // rules (`isr`, `prerender`, `static`).
 export type {
@@ -15,18 +15,18 @@ export type {
 import type { NormalizedRouteRules, RouteRuleConfig } from "h3/rules";
 
 /**
- * @deprecated Use `RouteRuleConfig` from `h3/rules` (re-exported by `nitro/types`).
+ * @deprecated Use `RouteRuleConfig` from `h3/rules` (re-exported by `fastnode/types`).
  */
-export type NitroRouteConfig = RouteRuleConfig;
+export type FastnodeRouteConfig = RouteRuleConfig;
 
 /**
- * @deprecated Use `NormalizedRouteRules` from `h3/rules` (re-exported by `nitro/types`).
+ * @deprecated Use `NormalizedRouteRules` from `h3/rules` (re-exported by `fastnode/types`).
  */
-export type NitroRouteRules = NormalizedRouteRules;
+export type FastnodeRouteRules = NormalizedRouteRules;
 
-// --- Nitro-specific route rules (module augmentation) ---
+// --- Fastnode-specific route rules (module augmentation) ---
 
-// Augment h3's config/rules interfaces so Nitro's own rules stay fully typed
+// Augment h3's config/rules interfaces so Fastnode's own rules stay fully typed
 // for users. `isr` / `prerender` / `static` are data-only rules handled at
 // build time (presets, prerenderer) rather than by a runtime handler.
 declare module "h3/rules" {
@@ -38,7 +38,7 @@ declare module "h3/rules" {
      * not auto-added to the queue. Set to `false` to explicitly exclude a
      * route from prerendering.
      *
-     * @see https://nitro.build/docs/routing#prerender
+     * @see https://fastnode.khulnasoft.com/docs/routing#prerender
      */
     prerender?: boolean;
 
@@ -55,7 +55,7 @@ declare module "h3/rules" {
      * Do not combine with `prerender` on the same route — prerendered pages are
      * generated at build time and ISR will not apply.
      *
-     * @see https://nitro.build/docs/routing#isr-vercel
+     * @see https://fastnode.khulnasoft.com/docs/routing#isr-vercel
      */
     isr?: number /* expiration */ | boolean | VercelISRConfig;
 

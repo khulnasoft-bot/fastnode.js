@@ -1,4 +1,4 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
@@ -6,17 +6,17 @@ import { tmpdir } from "node:os";
 import { basename, join } from "pathe";
 import { NodeRequest, sendNodeResponse } from "srvx/node";
 import { afterAll, describe, expect, it } from "vitest";
-import { NitroDevApp } from "../../src/dev/app.ts";
+import { FastnodeDevApp } from "../../src/dev/app.ts";
 
 const ROUTE = "/.well-known/appspecific/com.chrome.devtools.json";
 
-describe("NitroDevApp devtools json", async () => {
-  const rootDir = await mkdtemp(join(tmpdir(), "nitro-devtools-json-"));
-  const buildDir = join(rootDir, "node_modules/.nitro/");
+describe("FastnodeDevApp devtools json", async () => {
+  const rootDir = await mkdtemp(join(tmpdir(), "fastnode-devtools-json-"));
+  const buildDir = join(rootDir, "node_modules/.fastnode/");
   afterAll(() => rm(rootDir, { recursive: true, force: true }));
 
   const createApp = (opts: { baseURL?: string; devtoolsJson?: boolean } = {}) =>
-    new NitroDevApp({
+    new FastnodeDevApp({
       logger: console,
       options: {
         rootDir: rootDir + "/",
@@ -27,9 +27,9 @@ describe("NitroDevApp devtools json", async () => {
         publicAssets: [],
         devProxy: {},
       },
-    } as unknown as Nitro);
+    } as unknown as Fastnode);
 
-  const fetchJSON = async (app: NitroDevApp, path = ROUTE) => {
+  const fetchJSON = async (app: FastnodeDevApp, path = ROUTE) => {
     const server = createServer(async (req, res) => {
       await sendNodeResponse(res, await app.fetch(new NodeRequest({ req, res })));
     });

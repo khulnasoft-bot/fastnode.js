@@ -1,4 +1,4 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 
 import { EnvServer } from "env-runner";
 import { scanHandlers } from "../../scan.ts";
@@ -10,17 +10,17 @@ import { unbundledPlugins } from "./plugins.ts";
  *
  * Runs in a Node.js worker, like the prerenderer built by a bundler.
  */
-export async function startUnbundledPrerenderer(nitro: Nitro): Promise<EnvServer> {
-  await nitro.hooks.callHook("build:before", nitro);
-  await scanHandlers(nitro);
-  nitro.routing.sync();
-  const { entry, virtual } = await prepareUnbundledApp(nitro);
-  await nitro.hooks.callHook("compiled", nitro);
+export async function startUnbundledPrerenderer(fastnode: Fastnode): Promise<EnvServer> {
+  await fastnode.hooks.callHook("build:before", fastnode);
+  await scanHandlers(fastnode);
+  fastnode.routing.sync();
+  const { entry, virtual } = await prepareUnbundledApp(fastnode);
+  await fastnode.hooks.callHook("compiled", fastnode);
   return new EnvServer({
     runner: "node-worker",
-    name: "nitro-prerender",
+    name: "fastnode-prerender",
     entry,
     data: { virtual },
-    plugins: await unbundledPlugins(nitro),
+    plugins: await unbundledPlugins(fastnode),
   }).start();
 }

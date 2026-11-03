@@ -1,5 +1,5 @@
-import { html } from "nitro/h3";
-import { serverFetch } from "nitro";
+import { html } from "fastnode/h3";
+import { serverFetch } from "fastnode";
 import { state } from "../shared.ts";
 import { ssrEvals } from "./ssr-state.ts";
 

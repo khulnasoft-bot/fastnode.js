@@ -1,22 +1,22 @@
 import type { EnvRunnerData, EnvRunnerPluginOption } from "env-runner";
-import type { NitroConfig } from "./config.ts";
-import type { Nitro } from "./nitro.ts";
+import type { FastnodeConfig } from "./config.ts";
+import type { Fastnode } from "./fastnode.ts";
 import type { PrerenderRoute } from "./prerender.ts";
-import type { NitroBuildConfig, RollupConfig } from "./build.ts";
+import type { FastnodeBuildConfig, RollupConfig } from "./build.ts";
 
 type HookResult = void | Promise<void>;
 
-export interface NitroHooks {
-  "build:before": (nitro: Nitro) => HookResult;
+export interface FastnodeHooks {
+  "build:before": (fastnode: Fastnode) => HookResult;
   /**
    * Called after the bundler config is resolved, right before bundling. Last chance to modify it.
    *
    * The config is passed as `{ builder, rollup }` or `{ builder, rolldown }`, depending on the
    * builder and bundler in use.
    */
-  "build:config": (nitro: Nitro, config: NitroBuildConfig) => HookResult;
-  "vite:compile:before": (nitro: Nitro) => HookResult;
-  compiled: (nitro: Nitro) => HookResult;
+  "build:config": (fastnode: Fastnode, config: FastnodeBuildConfig) => HookResult;
+  "vite:compile:before": (fastnode: Fastnode) => HookResult;
+  compiled: (fastnode: Fastnode) => HookResult;
   "dev:reload": (payload?: {
     entry?: string;
     workerData?: EnvRunnerData;
@@ -25,15 +25,15 @@ export interface NitroHooks {
   }) => HookResult;
   "dev:start": () => HookResult;
   "dev:error": (cause?: unknown) => HookResult;
-  /** Called when the Nitro config is hot-reloaded to rebuild the server. */
+  /** Called when the Fastnode config is hot-reloaded to rebuild the server. */
   "build:reload": () => HookResult;
   restart: () => HookResult;
   close: () => HookResult;
   // Prerender
   "prerender:routes": (routes: Set<string>) => HookResult;
-  "prerender:config": (config: NitroConfig) => HookResult;
-  "prerender:init": (prerenderer: Nitro) => HookResult;
-  "prerender:generate": (route: PrerenderRoute, nitro: Nitro) => HookResult;
+  "prerender:config": (config: FastnodeConfig) => HookResult;
+  "prerender:init": (prerenderer: Fastnode) => HookResult;
+  "prerender:generate": (route: PrerenderRoute, fastnode: Fastnode) => HookResult;
   "prerender:route": (route: PrerenderRoute) => HookResult;
   "prerender:done": (result: {
     prerenderedRoutes: PrerenderRoute[];
@@ -41,7 +41,7 @@ export interface NitroHooks {
   }) => HookResult;
 
   /** @deprecated Use `build:config` (the config is passed as `{ rollup }` or `{ rolldown }`). */
-  "rollup:before": (nitro: Nitro, config: RollupConfig) => HookResult;
+  "rollup:before": (fastnode: Fastnode, config: RollupConfig) => HookResult;
   /** @deprecated Use `build:reload`. */
   "rollup:reload": () => HookResult;
 }

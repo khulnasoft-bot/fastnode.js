@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "pathe";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("#nitro/meta", () => ({
+vi.mock("#fastnode/meta", () => ({
   version: "0.0.0-test",
   runtimeDir: "/tmp",
   presetsDir: "/tmp",
@@ -11,7 +11,7 @@ vi.mock("#nitro/meta", () => ({
   runtimeDependencies: [],
 }));
 
-// https://github.com/nitrojs/nitro/issues/4771
+// https://github.com/khulnasoft/fastnode/issues/4771
 const tempDirs: string[] = [];
 
 afterEach(async () => {
@@ -21,7 +21,7 @@ afterEach(async () => {
 });
 
 async function createTempDir() {
-  const dir = await realpath(await mkdtemp(join(tmpdir(), "nitro-config-layers-")));
+  const dir = await realpath(await mkdtemp(join(tmpdir(), "fastnode-config-layers-")));
   tempDirs.push(dir);
   return dir;
 }
@@ -33,8 +33,8 @@ describe("config loader layers", () => {
     await mkdir(baseDir, { recursive: true });
 
     await writeFile(
-      join(rootDir, "nitro.config.ts"),
-      `export default defineNitroConfig({
+      join(rootDir, "fastnode.config.ts"),
+      `export default defineFastnodeConfig({
   preset: 'node-server',
   extends: ['./layers/base', './shared.config'],
   $meta: { name: 'app' },
@@ -43,8 +43,8 @@ describe("config loader layers", () => {
 `
     );
     await writeFile(
-      join(baseDir, "nitro.config.ts"),
-      `export default defineNitroConfig({
+      join(baseDir, "fastnode.config.ts"),
+      `export default defineFastnodeConfig({
   $meta: { name: 'base' },
   serverDir: './server',
   $production: { routeRules: { '/base': { headers: { 'x-layer': 'base' } } } },
@@ -53,15 +53,15 @@ describe("config loader layers", () => {
     );
     await writeFile(
       join(rootDir, "shared.config.ts"),
-      `export default defineNitroConfig({ routeRules: { '/shared': { redirect: '/' } } })\n`
+      `export default defineFastnodeConfig({ routeRules: { '/shared': { redirect: '/' } } })\n`
     );
 
     const { loadOptions } = await import("../../src/config/loader.ts");
     const options = await loadOptions({ rootDir, dev: false }, { dotenv: false });
 
     expect(options.layers.map((layer) => [layer.cwd, layer.configFile, layer.meta?.name])).toEqual([
-      [rootDir, join(rootDir, "nitro.config.ts"), "app"],
-      [baseDir, join(baseDir, "nitro.config.ts"), "base"],
+      [rootDir, join(rootDir, "fastnode.config.ts"), "app"],
+      [baseDir, join(baseDir, "fastnode.config.ts"), "base"],
       [rootDir, join(rootDir, "shared.config.ts"), undefined],
     ]);
     expect(options.layers[0]!.config.routeRules).toHaveProperty("/root");

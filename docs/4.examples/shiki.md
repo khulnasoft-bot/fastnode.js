@@ -6,11 +6,19 @@ icon: i-lucide-highlighter
 
 # Shiki
 
-> Server-side syntax highlighting in Nitro with Shiki.
+> Server-side syntax highlighting in Fastnode with Shiki.
 
 <!-- automd:ui-code-tree src="../../examples/shiki" default="api/highlight.ts" ignore="README.md,GUIDE.md" expandAll -->
 
 ::code-tree{defaultValue="api/highlight.ts" expandAll}
+
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
+
+export default defineConfig({
+  serverDir: "./",
+});
+```
 
 ```html [index.html]
 <!doctype html>
@@ -37,14 +45,6 @@ icon: i-lucide-highlighter
 </html>
 ```
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
-
-export default defineConfig({
-  serverDir: "./",
-});
-```
-
 ```json [package.json]
 {
   "type": "module",
@@ -53,7 +53,7 @@ export default defineConfig({
     "build": "vite build"
   },
   "devDependencies": {
-    "nitro": "latest",
+    "fastnode": "latest",
     "shiki": "latest",
     "vite": "latest"
   }
@@ -102,16 +102,16 @@ pre {
 
 ```json [tsconfig.json]
 {
-  "extends": "nitro/tsconfig"
+  "extends": "fastnode/tsconfig"
 }
 ```
 
 ```ts [vite.config.ts]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
 export default defineConfig({
-  plugins: [nitro()],
+  plugins: [fastnode()],
 });
 ```
 
@@ -143,7 +143,7 @@ export default async ({ req }: { req: Request }) => {
 
 <!-- automd:file src="../../examples/shiki/README.md" -->
 
-Use Shiki for syntax highlighting with TextMate grammars. This example highlights code on the server using Nitro's server scripts feature, which runs JavaScript inside HTML files before sending the response.
+Use Shiki for syntax highlighting with TextMate grammars. This example highlights code on the server using Fastnode's server scripts feature, which runs JavaScript inside HTML files before sending the response.
 
 ## API Route
 

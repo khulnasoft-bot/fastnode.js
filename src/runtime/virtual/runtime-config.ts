@@ -1,7 +1,7 @@
 import "./_runtime_warn.ts";
-import type { NitroRuntimeConfig } from "nitro/types";
+import type { FastnodeRuntimeConfig } from "fastnode/types";
 
-export const runtimeConfig: NitroRuntimeConfig = {
+export const runtimeConfig: FastnodeRuntimeConfig = {
   app: {},
-  nitro: {},
+  fastnode: {},
 };

@@ -1,9 +1,9 @@
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 import { fileURLToPath } from "node:url";
 
 export default defineConfig({
-  plugins: [nitro()],
+  plugins: [fastnode()],
   resolve: {
     alias: {
       "@vite-aliased": fileURLToPath(new URL("app/vite-aliased.ts", import.meta.url)),

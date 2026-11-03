@@ -1,5 +1,5 @@
-import "#nitro/virtual/polyfills";
-import { useNitroApp } from "nitro/app";
+import "#fastnode/virtual/polyfills";
+import { useFastnodeApp } from "fastnode/app";
 import { getAzureParsedCookiesFromHeaders, getRequestURL } from "./_utils.ts";
 
 import type { Cookie } from "@azure/functions";
@@ -22,7 +22,7 @@ interface HttpResponseV3 {
   cookies?: Cookie[];
 }
 
-const nitroApp = useNitroApp();
+const fastnodeApp = useFastnodeApp();
 
 export async function handle(context: { res: HttpResponseV3 }, req: HttpRequestV3) {
   // Proxied requests (no matching static file) carry the original URL in `x-ms-original-url`.
@@ -41,7 +41,7 @@ export async function handle(context: { res: HttpResponseV3 }, req: HttpRequestV
     body: req.bufferBody ?? req.rawBody,
   });
 
-  const response = await nitroApp.fetch(request);
+  const response = await fastnodeApp.fetch(request);
 
   context.res = {
     status: response.status,

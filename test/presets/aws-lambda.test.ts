@@ -2,11 +2,11 @@ import type { APIGatewayProxyEvent, APIGatewayProxyEventV2 } from "aws-lambda";
 import { resolve } from "pathe";
 import { describe } from "vitest";
 import { parseURL, parseQuery } from "ufo";
-import { setupTest, testNitro } from "../tests.ts";
+import { setupTest, testFastnode } from "../tests.ts";
 
-describe("nitro:preset:aws-lambda-v2", async () => {
+describe("fastnode:preset:aws-lambda-v2", async () => {
   const ctx = await setupTest("aws-lambda");
-  testNitro(ctx, async () => {
+  testFastnode(ctx, async () => {
     const { handler } = await import(resolve(ctx.outDir, "server/index.mjs"));
     return async ({ url, headers, method, body }) => {
       const { pathname, search } = parseURL(url);
@@ -44,9 +44,9 @@ describe("nitro:preset:aws-lambda-v2", async () => {
   });
 });
 
-describe("nitro:preset:aws-lambda-v1", async () => {
+describe("fastnode:preset:aws-lambda-v1", async () => {
   const ctx = await setupTest("aws-lambda");
-  testNitro({ ...ctx, lambdaV1: true }, async () => {
+  testFastnode({ ...ctx, lambdaV1: true }, async () => {
     const { handler } = await import(resolve(ctx.outDir, "server/index.mjs"));
     return async ({ url, headers, method, body }) => {
       const { pathname, search } = parseURL(url);

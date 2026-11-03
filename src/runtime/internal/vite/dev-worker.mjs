@@ -1,7 +1,7 @@
 import { createViteTransport } from "env-runner/vite";
 import { createDevRPC } from "../dev-rpc.mjs";
 
-// `vite` is an optional dependency Nitro resolves from the app, so the module runner cannot be
+// `vite` is an optional dependency Fastnode resolves from the app, so the module runner cannot be
 // imported from here. The generated entry injects it instead (see `build/vite/_dev-worker.ts`).
 let ModuleRunner, ESModulesEvaluator;
 
@@ -34,12 +34,12 @@ const messageListeners = new Set();
 
 // ----- Environment runners -----
 
-const envs = (globalThis.__nitro_vite_envs__ ??= {
-  nitro: undefined,
+const envs = (globalThis.__fastnode_vite_envs__ ??= {
+  fastnode: undefined,
   ssr: undefined,
 });
 
-// Environments are registered over IPC (`nitro:vite-env`), which is not ordered with requests
+// Environments are registered over IPC (`fastnode:vite-env`), which is not ordered with requests
 // (workerd dispatches them over HTTP and IPC over a WebSocket): requests arriving first wait
 // for the registration of the environment they target.
 const envWaiters = new Map();
@@ -51,7 +51,7 @@ const ENV_REGISTER_TIMEOUT = 30_000;
 // error) instead of hanging forever. Not a latency budget: a cold import of a
 // large SSR graph can take well over 30s (#4687), and waiting on an import
 // already in flight costs nothing. Overridden by the generated entry with
-// `NITRO_DEV_RELOAD_TIMEOUT` (see `build/vite/_dev-worker.ts`).
+// `FASTNODE_DEV_RELOAD_TIMEOUT` (see `build/vite/_dev-worker.ts`).
 let reloadWaitTimeout = 120_000;
 
 export function setReloadWaitTimeout(ms) {
@@ -88,7 +88,7 @@ class ViteEnvRunner {
       ? new WorkerdModuleEvaluator()
       : new ESModulesEvaluator();
     const debug =
-      typeof process !== "undefined" && process.env?.NITRO_DEBUG ? console.debug : undefined;
+      typeof process !== "undefined" && process.env?.FASTNODE_DEBUG ? console.debug : undefined;
     this.runner = new ModuleRunner({ transport }, evaluator, debug);
 
     this.reload();
@@ -178,7 +178,7 @@ class ViteEnvRunner {
   }
 
   // Errors are intentionally not caught here: like production services,
-  // they propagate to the caller (the nitro app's error handler or the
+  // they propagate to the caller (the fastnode app's error handler or the
   // env-runner fetch boundary below).
   async fetch(req, init) {
     const entry = await this.waitForEntry();
@@ -198,7 +198,7 @@ class ViteEnvRunner {
       reloadPromise = this.reloadPromise;
       if (await withTimeout(reloadPromise, deadline - Date.now())) {
         console.warn(
-          `Vite environment "${this.name}" did not finish reloading within ${reloadWaitTimeout}ms. Set \`NITRO_DEV_RELOAD_TIMEOUT\` (in ms) to wait longer.`
+          `Vite environment "${this.name}" did not finish reloading within ${reloadWaitTimeout}ms. Set \`FASTNODE_DEV_RELOAD_TIMEOUT\` (in ms) to wait longer.`
         );
         break;
       }
@@ -270,12 +270,12 @@ globalThis.__transform_html__ = async function (html) {
 };
 
 // Fallback when the runner cannot read the template itself (e.g. workerd)
-globalThis.__nitro_renderer_template__ = () => rpc.call("rendererTemplate");
+globalThis.__fastnode_renderer_template__ = () => rpc.call("rendererTemplate");
 
 // ----- Exports (env-runner AppEntry) -----
 
 export async function fetch(req) {
-  const viteEnv = req?.headers.get("x-vite-env") || "nitro";
+  const viteEnv = req?.headers.get("x-vite-env") || "fastnode";
   const env = envs[viteEnv] || (await waitForEnv(viteEnv));
   if (!env) {
     return renderError(req, httpError(500, `Unknown vite environment "${viteEnv}"`));
@@ -291,20 +291,20 @@ export async function fetch(req) {
 // `build/vite/_dev-worker.ts`), so the runner installs its runtime's crossws adapter on demand.
 export const websocketOptions = {
   async resolve(request) {
-    const env = envs.nitro || (await waitForEnv("nitro"));
+    const env = envs.fastnode || (await waitForEnv("fastnode"));
     const entry = await env?.waitForEntry();
     const websocket = entry?.default?.websocket || entry?.websocket;
     return (await websocket?.resolve(request)) || {};
   },
 };
 
-// Worker classes for the miniflare runner: the server entry exports re-exported by the nitro
+// Worker classes for the miniflare runner: the server entry exports re-exported by the fastnode
 // environment's entry (`dev-entry.mjs`). Resolved on each use so they follow reloads, and
 // share the module state of the routes.
 export async function resolveExports() {
-  const env = envs.nitro || (await waitForEnv("nitro"));
+  const env = envs.fastnode || (await waitForEnv("fastnode"));
   if (!env) {
-    throw httpError(503, `Vite environment "nitro" is unavailable`);
+    throw httpError(503, `Vite environment "fastnode" is unavailable`);
   }
   const entry = await env.waitForEntry();
   return entry.serverEntryExports || {};
@@ -319,7 +319,7 @@ export const ipc = {
       return;
     }
     if (message?.type === "custom") {
-      if (message.event === "nitro:vite-env") {
+      if (message.event === "fastnode:vite-env") {
         const { name, entry } = message.data;
         if (!envs[name]) {
           envs[name] = new ViteEnvRunner({ name, entry });
@@ -353,7 +353,7 @@ export const ipc = {
 function httpError(status, message) {
   const error = new Error(message || `HTTP Error ${status}`);
   error.status = status;
-  error.name = "NitroViteError";
+  error.name = "FastnodeViteError";
   return error;
 }
 

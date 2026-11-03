@@ -50,7 +50,7 @@ export function resolveBaseUrl(headers: Headers) {
     try {
       return new URL(candidate).origin;
     } catch (error) {
-      console.warn("[nitro] Invalid Azure SWA forwarded origin", {
+      console.warn("[fastnode] Invalid Azure SWA forwarded origin", {
         candidate,
         error,
       });

@@ -1,4 +1,4 @@
-import { definePlugin } from "nitro";
+import { definePlugin } from "fastnode";
 
 export default definePlugin((app) => {
   app.hooks.hook("response", (res, event) => {

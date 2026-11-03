@@ -5,7 +5,7 @@ Middleware functions run before route handlers on every request. They can modify
 Create files in `server/middleware/`. They run in alphabetical order:
 
 ```ts [server/middleware/auth.ts]
-import { defineMiddleware } from "nitro";
+import { defineMiddleware } from "fastnode";
 
 export default defineMiddleware((event) => {
   event.context.auth = { name: "User " + Math.round(Math.random() * 100) };
@@ -22,7 +22,7 @@ Middleware can:
 Data added to `event.context` in middleware is available in all subsequent handlers:
 
 ```ts [server.ts]
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 
 export default defineHandler((event) => ({
   auth: event.context.auth,

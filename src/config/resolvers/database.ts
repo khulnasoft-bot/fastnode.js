@@ -1,8 +1,8 @@
-import type { NitroOptions } from "nitro/types";
+import type { FastnodeOptions } from "fastnode/types";
 import { resolveDatabaseConnections } from "../../utils/database.ts";
 import { ensureLibDeps } from "../../utils/dep.ts";
 
-export async function resolveDatabaseOptions(options: NitroOptions) {
+export async function resolveDatabaseOptions(options: FastnodeOptions) {
   if (!options.experimental.database) {
     return;
   }

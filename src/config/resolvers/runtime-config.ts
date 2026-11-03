@@ -1,29 +1,29 @@
 import { defu } from "defu";
 
-import type { NitroConfig, NitroOptions, NitroRuntimeConfig } from "nitro/types";
+import type { FastnodeConfig, FastnodeOptions, FastnodeRuntimeConfig } from "fastnode/types";
 
-export async function resolveRuntimeConfigOptions(options: NitroOptions) {
+export async function resolveRuntimeConfigOptions(options: FastnodeOptions) {
   options.runtimeConfig = normalizeRuntimeConfig(options);
 }
 
-export function normalizeRuntimeConfig(config: NitroConfig) {
+export function normalizeRuntimeConfig(config: FastnodeConfig) {
   provideFallbackValues(config.runtimeConfig || {});
-  const runtimeConfig: NitroRuntimeConfig = defu(
-    config.runtimeConfig as NitroRuntimeConfig,
+  const runtimeConfig: FastnodeRuntimeConfig = defu(
+    config.runtimeConfig as FastnodeRuntimeConfig,
     {
       app: {
         baseURL: config.baseURL,
       },
-      nitro: {
+      fastnode: {
         envExpansion: config.experimental?.envExpansion,
         openAPI: config.openAPI,
       },
-    } as NitroRuntimeConfig
+    } as FastnodeRuntimeConfig
   );
-  runtimeConfig.nitro ??= {};
-  runtimeConfig.nitro.routeRules = config.routeRules;
+  runtimeConfig.fastnode ??= {};
+  runtimeConfig.fastnode.routeRules = config.routeRules;
   checkSerializableRuntimeConfig(runtimeConfig);
-  return runtimeConfig as NitroRuntimeConfig;
+  return runtimeConfig as FastnodeRuntimeConfig;
 }
 
 function provideFallbackValues(obj: Record<string, any>) {

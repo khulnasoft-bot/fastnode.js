@@ -1,17 +1,17 @@
 import { existsSync, readFileSync } from "node:fs";
 import { consola } from "consola";
-import type { NitroOptions } from "nitro/types";
+import type { FastnodeOptions } from "fastnode/types";
 import { resolve } from "pathe";
 import { resolveRolldown } from "../../build/rolldown/_import.ts";
 import { ensureDep, isDepInstalled, missingDepError } from "../../utils/dep.ts";
 
 const VALID_BUILDERS = ["rolldown", "rollup", "vite"] as const;
 
-export async function resolveBuilder(options: NitroOptions) {
-  // NITRO_BUILDER environment variable
-  options.builder ??= process.env.NITRO_BUILDER as any;
+export async function resolveBuilder(options: FastnodeOptions) {
+  // FASTNODE_BUILDER environment variable
+  options.builder ??= process.env.FASTNODE_BUILDER as any;
 
-  // `NITRO_BUILDER=false` (also when forwarded from a config)
+  // `FASTNODE_BUILDER=false` (also when forwarded from a config)
   if ((options.builder as unknown) === "false") {
     options.builder = false;
   }
@@ -26,7 +26,7 @@ export async function resolveBuilder(options: NitroOptions) {
     // Validate builder name
     if (!VALID_BUILDERS.includes(options.builder)) {
       throw new Error(
-        `Invalid nitro builder "${options.builder}". Valid builders are: ${VALID_BUILDERS.join(", ")}.`
+        `Invalid fastnode builder "${options.builder}". Valid builders are: ${VALID_BUILDERS.join(", ")}.`
       );
     }
     // Check if the builder package is installed (`rolldown` and `vite` are resolved when used)
@@ -45,10 +45,10 @@ export async function resolveBuilder(options: NitroOptions) {
     return;
   }
 
-  // Auto-detect: check for vite.config with nitro() plugin
+  // Auto-detect: check for vite.config with fastnode() plugin
   if (
     isDepInstalled("vite", { dir: options.rootDir, deps: options.deps }) &&
-    hasNitroViteConfig(options)
+    hasFastnodeViteConfig(options)
   ) {
     if (!options.dev) {
       options.builder = "vite";
@@ -57,7 +57,7 @@ export async function resolveBuilder(options: NitroOptions) {
     if (!_viteHintShown) {
       _viteHintShown = true;
       consola.warn(
-        "Detected a `vite.config` with the `nitro()` plugin, but the Nitro dev server does not run Vite, so Vite plugins and features are not available. Use `vite dev` for the full Vite experience."
+        "Detected a `vite.config` with the `fastnode()` plugin, but the Fastnode dev server does not run Vite, so Vite plugins and features are not available. Use `vite dev` for the full Vite experience."
       );
     }
   }
@@ -91,14 +91,14 @@ function hasConfig(config: object | undefined): boolean {
   return !!config && Object.keys(config).length > 0;
 }
 
-function hasNitroViteConfig(options: NitroOptions): boolean {
+function hasFastnodeViteConfig(options: FastnodeOptions): boolean {
   const configExts = [".ts", ".mts", ".cts", ".js", ".mjs", ".cjs"];
   for (const ext of configExts) {
     const configPath = resolve(options.rootDir, `vite.config${ext}`);
     if (existsSync(configPath)) {
       try {
         const content = readFileSync(configPath, "utf8");
-        if (content.includes("nitro(")) {
+        if (content.includes("fastnode(")) {
           return true;
         }
       } catch {}

@@ -1,16 +1,16 @@
 # Flightcontrol
 
-> Deploy Nitro apps to AWS via Flightcontrol.
+> Deploy Fastnode apps to AWS via Flightcontrol.
 
 **Preset:** `flight_control`
 
-:read-more{title="flightcontrol.dev" to="https://flightcontrol.dev?ref=nitro"}
+:read-more{title="flightcontrol.dev" to="https://flightcontrol.dev?ref=fastnode"}
 
 ## Set up your Flightcontrol account
 
 At a high level, deploying a project for the first time involves these steps:
 
-1. Create an account at [Flightcontrol](https://app.flightcontrol.dev/signup?ref=nitro)
+1. Create an account at [Flightcontrol](https://app.flightcontrol.dev/signup?ref=fastnode)
 2. Create an account at [AWS](https://portal.aws.amazon.com/billing/signup) (if you don't already have one)
 3. Link your AWS account to Flightcontrol
 4. Authorize the Flightcontrol GitHub App to access your chosen repositories, public or private
@@ -20,7 +20,7 @@ At a high level, deploying a project for the first time involves these steps:
 
 1. Create a Flightcontrol project from the Dashboard. Select a repository for the source.
 2. Select the `GUI` config type.
-3. Select the Nuxt preset. This preset also works for any Nitro-based application.
+3. Select the Nuxt preset. This preset also works for any Fastnode-based application.
 4. Select your preferred AWS server size.
 5. Submit the new project form.
 
@@ -43,9 +43,9 @@ At a high level, deploying a project for the first time involves these steps:
         },
         "services": [
           {
-            "id": "nitro",
+            "id": "fastnode",
             "buildType": "nixpacks",
-            "name": "My Nitro site",
+            "name": "My Fastnode site",
             "type": "fargate",
             "domain": "www.yourdomain.com",
             "outputDirectory": ".output",
@@ -61,6 +61,6 @@ At a high level, deploying a project for the first time involves these steps:
 
 4. Submit the new project form.
 
-::read-more{to="https://www.flightcontrol.dev/docs?ref=nitro"}
-Learn more about Flightcontrol's [configuration](https://www.flightcontrol.dev/docs?ref=nitro).
+::read-more{to="https://www.flightcontrol.dev/docs?ref=fastnode"}
+Learn more about Flightcontrol's [configuration](https://www.flightcontrol.dev/docs?ref=fastnode).
 ::

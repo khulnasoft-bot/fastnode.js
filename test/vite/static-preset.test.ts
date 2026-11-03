@@ -3,8 +3,8 @@ import { join } from "node:path";
 import { existsSync } from "node:fs";
 import { readFile, rm, mkdir } from "node:fs/promises";
 import { beforeAll, describe, expect, it } from "vitest";
-import { createNitro, build, prepare } from "nitro/builder";
-import type { NitroBuildInfo } from "nitro/types";
+import { createFastnode, build, prepare } from "fastnode/builder";
+import type { FastnodeBuildInfo } from "fastnode/types";
 
 const fixtureDir = fileURLToPath(new URL("./static-preset-fixture", import.meta.url));
 const tmpDir = fileURLToPath(new URL("./static-preset-fixture/.tmp", import.meta.url));
@@ -24,26 +24,26 @@ describe.each(Object.entries(presets))("static preset (%s)", (preset, publicDir)
   beforeAll(async () => {
     await rm(outDir, { recursive: true, force: true });
     await mkdir(outDir, { recursive: true });
-    const nitro = await createNitro({
+    const fastnode = await createFastnode({
       rootDir: fixtureDir,
       preset,
       output: { dir: outDir },
       builder: "vite",
     });
-    serverDir = nitro.options.output.serverDir;
+    serverDir = fastnode.options.output.serverDir;
     try {
-      await prepare(nitro);
-      await build(nitro);
+      await prepare(fastnode);
+      await build(fastnode);
     } finally {
-      await nitro.close();
+      await fastnode.close();
     }
   }, 30_000);
 
   it("does not emit a server bundle", async () => {
     expect(existsSync(serverDir)).toBe(false);
     const buildInfo = JSON.parse(
-      await readFile(join(outDir, "nitro.json"), "utf8")
-    ) as NitroBuildInfo;
+      await readFile(join(outDir, "fastnode.json"), "utf8")
+    ) as FastnodeBuildInfo;
     expect(buildInfo.serverEntry).toBeUndefined();
   });
 

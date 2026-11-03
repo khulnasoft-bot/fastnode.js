@@ -1,6 +1,6 @@
 # Cloudflare
 
-> Deploy Nitro apps to Cloudflare.
+> Deploy Fastnode apps to Cloudflare.
 
 ## Cloudflare Workers
 
@@ -12,10 +12,10 @@
 Integration with this provider is possible with [zero configuration](/deploy#zero-config-providers) supporting [workers builds (beta)](https://developers.cloudflare.com/workers/ci-cd/builds/).
 ::
 
-The following shows an example `nitro.config.ts` file for deploying a Nitro app to Cloudflare Workers.
+The following shows an example `fastnode.config.ts` file for deploying a Fastnode app to Cloudflare Workers.
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
     preset: "cloudflare_module"
@@ -44,9 +44,9 @@ Then you can deploy the application with:
 
 ### Runtime Hooks
 
-You can use the [runtime hooks](/docs/plugins#nitro-runtime-hooks) below to extend [Worker handlers](https://developers.cloudflare.com/workers/runtime-apis/handlers/).
+You can use the [runtime hooks](/docs/plugins#fastnode-runtime-hooks) below to extend [Worker handlers](https://developers.cloudflare.com/workers/runtime-apis/handlers/).
 
-:read-more{to="/docs/plugins#nitro-runtime-hooks"}
+:read-more{to="/docs/plugins#fastnode-runtime-hooks"}
 
 - [`cloudflare:scheduled`](https://developers.cloudflare.com/workers/runtime-apis/handlers/scheduled/)
 - [`cloudflare:email`](https://developers.cloudflare.com/email-routing/email-workers/runtime-api/)
@@ -97,10 +97,10 @@ Declare the binding and Durable Object export in your Wrangler configuration:
 }
 ```
 
-Access the binding from a Nitro handler:
+Access the binding from a Fastnode handler:
 
 ```ts [routes/counter.ts]
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 
 export default defineHandler((event) => {
   const { COUNTER } = event.req.runtime!.cloudflare!.env;
@@ -152,10 +152,10 @@ Declare them in your Wrangler configuration, with a `workflows` binding or an `e
 
 ### Scheduled Tasks (Cron Triggers)
 
-When using [Nitro tasks](/docs/tasks) with `scheduledTasks`, Nitro automatically generates [Cron Triggers](https://developers.cloudflare.com/workers/configuration/cron-triggers/) in the wrangler config at build time.
+When using [Fastnode tasks](/docs/tasks) with `scheduledTasks`, Fastnode automatically generates [Cron Triggers](https://developers.cloudflare.com/workers/configuration/cron-triggers/) in the wrangler config at build time.
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   preset: "cloudflare_module",
@@ -169,7 +169,7 @@ export default defineConfig({
 })
 ```
 
-No manual Wrangler configuration is needed. Nitro handles it for you.
+No manual Wrangler configuration is needed. Fastnode handles it for you.
 
 ### WebSockets with Durable Objects
 
@@ -207,10 +207,10 @@ The `cloudflare_durable` preset is deprecated and builds the same output as `clo
 
 **🧪 Experimental!**
 
-When the experimental [`tracingChannel`](/config/advanced#tracingchannel) option is enabled, the Cloudflare presets report Nitro's tracing-channel events (h3 routes and middleware, srvx, unstorage operations, db0 queries, …) as [custom spans](https://developers.cloudflare.com/workers/observability/traces/custom-spans/), alongside Cloudflare's automatic instrumentation (fetch calls, KV reads, D1 queries, …), with no OpenTelemetry SDK required.
+When the experimental [`tracingChannel`](/config/advanced#tracingchannel) option is enabled, the Cloudflare presets report Fastnode's tracing-channel events (h3 routes and middleware, srvx, unstorage operations, db0 queries, …) as [custom spans](https://developers.cloudflare.com/workers/observability/traces/custom-spans/), alongside Cloudflare's automatic instrumentation (fetch calls, KV reads, D1 queries, …), with no OpenTelemetry SDK required.
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   preset: "cloudflare_module",
@@ -244,17 +244,17 @@ Integration with this provider is possible with [zero configuration](/deploy#zer
 Cloudflare [Workers](#cloudflare-workers) is the new recommended preset for deployments. Consider Cloudflare Pages only if you need Pages-specific features.
 ::
 
-The following shows an example `nitro.config.ts` file for deploying a Nitro app to Cloudflare Pages.
+The following shows an example `fastnode.config.ts` file for deploying a Fastnode app to Cloudflare Pages.
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
     preset: "cloudflare_pages"
 })
 ```
 
-Nitro automatically generates a `_routes.json` file that controls which routes get served from files and which are served from the Worker script. The auto-generated routes file can be overridden with the config option `cloudflare.pages.routes` ([read more](https://developers.cloudflare.com/pages/platform/functions/routing/#functions-invocation-routes)).
+Fastnode automatically generates a `_routes.json` file that controls which routes get served from files and which are served from the Worker script. The auto-generated routes file can be overridden with the config option `cloudflare.pages.routes` ([read more](https://developers.cloudflare.com/pages/platform/functions/routing/#functions-invocation-routes)).
 
 ### Local Preview
 
@@ -282,22 +282,22 @@ Then you can deploy the application with:
 Regardless of whether you're using Cloudflare Pages or Cloudflare Workers, you can use the [Wrangler GitHub actions](https://github.com/marketplace/actions/deploy-to-cloudflare-workers-with-wrangler) to deploy your application.
 
 ::note
-Remember to [instruct Nitro to use the correct preset](/deploy#changing-the-deployment-preset). This is necessary for all presets, including `cloudflare_pages`.
+Remember to [instruct Fastnode to use the correct preset](/deploy#changing-the-deployment-preset). This is necessary for all presets, including `cloudflare_pages`.
 ::
 
 ## Environment Variables
 
-Nitro allows you to universally access environment variables using `process.env`, `import.meta.env`, or the runtime config.
+Fastnode allows you to universally access environment variables using `process.env`, `import.meta.env`, or the runtime config.
 
 ::note
 Make sure to only access environment variables **within the event lifecycle** and not in global contexts, since Cloudflare only makes them available during the request lifecycle and not before.
 ::
 
-**Example:** If you have set the `SECRET` and `NITRO_HELLO_THERE` environment variables, you can access them in the following ways:
+**Example:** If you have set the `SECRET` and `FASTNODE_HELLO_THERE` environment variables, you can access them in the following ways:
 
 ```ts
-import { defineHandler } from "nitro";
-import { useRuntimeConfig } from "nitro/runtime-config";
+import { defineHandler } from "fastnode";
+import { useRuntimeConfig } from "fastnode/runtime-config";
 
 console.log(process.env.SECRET) // note that this is in the global scope! so it doesn't actually work and the variable is undefined!
 
@@ -305,7 +305,7 @@ export default defineHandler((event) => {
   // note that all the below are valid ways of accessing the above mentioned variables
   useRuntimeConfig().helloThere
   useRuntimeConfig().secret
-  process.env.NITRO_HELLO_THERE
+  process.env.FASTNODE_HELLO_THERE
   import.meta.env.SECRET
 });
 ```
@@ -315,7 +315,7 @@ export default defineHandler((event) => {
 For development, you can use a `.env` or `.env.local` file to specify environment variables:
 
 ```ini
-NITRO_HELLO_THERE="captain"
+FASTNODE_HELLO_THERE="captain"
 SECRET="top-secret"
 ```
 
@@ -352,25 +352,25 @@ This isn't recommended for sensitive data like secrets.
 ```ini [wrangler.toml]
 # Shared
 [vars]
-NITRO_HELLO_THERE="general"
+FASTNODE_HELLO_THERE="general"
 SECRET="secret"
 
 # Override values for `--env production` usage
 [env.production.vars]
-NITRO_HELLO_THERE="captain"
+FASTNODE_HELLO_THERE="captain"
 SECRET="top-secret"
 ```
 
 ```json [wrangler.json]
 {
   "vars": {
-    "NITRO_HELLO_THERE": "general",
+    "FASTNODE_HELLO_THERE": "general",
     "SECRET": "secret"
   },
   "env": {
     "production": {
       "vars": {
-        "NITRO_HELLO_THERE": "captain",
+        "FASTNODE_HELLO_THERE": "captain",
         "SECRET": "top-secret"
       }
     }
@@ -390,7 +390,7 @@ For more details on bindings and how to use them, refer to the Cloudflare [Pages
 ::
 
 ::tip
-Nitro provides high-level APIs for primitives such as [KV Storage](/docs/storage) and [Database](/docs/database). Prefer them over depending directly on low-level platform APIs, for usage stability.
+Fastnode provides high-level APIs for primitives such as [KV Storage](/docs/storage) and [Database](/docs/database). Prefer them over depending directly on low-level platform APIs, for usage stability.
 ::
 
 :read-more{title="Database Layer" to="/docs/database"}
@@ -400,7 +400,7 @@ Nitro provides high-level APIs for primitives such as [KV Storage](/docs/storage
 You can access bindings from the request event via `event.req.runtime.cloudflare.env`. For example, this is how you can access a D1 binding:
 
 ```ts
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 
 defineHandler(async (event) => {
   const { env } = event.req.runtime.cloudflare
@@ -422,7 +422,7 @@ Use [`wrangler types`](https://developers.cloudflare.com/workers/languages/types
 }
 ```
 
-Include the generated file in your `tsconfig.json`. It also provides the runtime types, so you don't need `@cloudflare/workers-types`. Nitro enables the [`nodejs_compat`](https://developers.cloudflare.com/workers/runtime-apis/nodejs/) flag for you, so also add `@types/node` (with `wrangler`) to your dev dependencies and include `node` for the Node.js APIs:
+Include the generated file in your `tsconfig.json`. It also provides the runtime types, so you don't need `@cloudflare/workers-types`. Fastnode enables the [`nodejs_compat`](https://developers.cloudflare.com/workers/runtime-apis/nodejs/) flag for you, so also add `@types/node` (with `wrangler`) to your dev dependencies and include `node` for the Node.js APIs:
 
 ```json [tsconfig.json]
 {
@@ -435,7 +435,7 @@ Include the generated file in your `tsconfig.json`. It also provides the runtime
 Bindings imported from `cloudflare:workers` are typed automatically:
 
 ```ts
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 import { env } from "cloudflare:workers";
 
 export default defineHandler(async () => {
@@ -457,7 +457,7 @@ export {};
 `srvx` must be resolvable from your project for the augmentation to apply. With pnpm, add it to your dev dependencies.
 ::
 
-To type bindings to your own [Durable Objects](#durable-objects), [Workflows and `WorkerEntrypoint`s](#additional-exports) with their classes, point `main` in your Wrangler configuration to the file that exports them. Nitro still sets `main` to the built entry in the generated config.
+To type bindings to your own [Durable Objects](#durable-objects), [Workflows and `WorkerEntrypoint`s](#additional-exports) with their classes, point `main` in your Wrangler configuration to the file that exports them. Fastnode still sets `main` to the built entry in the generated config.
 
 ```json [wrangler.json]
 {
@@ -481,9 +481,9 @@ Run `wrangler types` again after changing your Wrangler configuration, or use `w
 
 ### Access to the bindings in local dev
 
-In development mode, Nitro emulates the Cloudflare environment using [Miniflare](https://miniflare.dev/) (the same [`workerd`](https://github.com/cloudflare/workerd) runtime used by Wrangler and Cloudflare Workers in production). This means bindings are available natively from the request event, with no separate proxy required.
+In development mode, Fastnode emulates the Cloudflare environment using [Miniflare](https://miniflare.dev/) (the same [`workerd`](https://github.com/cloudflare/workerd) runtime used by Wrangler and Cloudflare Workers in production). This means bindings are available natively from the request event, with no separate proxy required.
 
-The [`miniflare`](https://www.npmjs.com/package/miniflare) package is owned by your project: Nitro resolves it from your `node_modules` and offers to install it on first use.
+The [`miniflare`](https://www.npmjs.com/package/miniflare) package is owned by your project: Fastnode resolves it from your `node_modules` and offers to install it on first use.
 
 To access bindings in dev mode, first define them. You can do this in a `wrangler.jsonc`/`wrangler.json`/`wrangler.toml` file (reading `wrangler.jsonc`, `wrangler.toml` and `.dev.vars` requires the `wrangler` package to be installed):
 
@@ -514,10 +514,10 @@ id = "xxx"
 
 ::
 
-Alternatively, you can define bindings inline in your `nitro.config.ts` using the `cloudflare.wrangler` option (it accepts the same shape as `wrangler.json`):
+Alternatively, you can define bindings inline in your `fastnode.config.ts` using the `cloudflare.wrangler` option (it accepts the same shape as `wrangler.json`):
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   preset: "cloudflare_module",
@@ -542,15 +542,15 @@ A few things differ from `wrangler dev`:
 
 - Local data of the bindings (KV, D1, R2, ...) is persisted in `.wrangler/state/v3`, shared with `wrangler dev`.
 - The newest compatibility date supported by the installed `miniflare` is used, regardless of `compatibility_date`.
-- Static assets are served by Nitro. Local Durable Objects, Workflows and `WorkerEntrypoint`s exported from [`server.ts`](#durable-objects) are available; bindings to other workers (`services`, `tail_consumers`, external Durable Objects and Workflows) and queue consumers are not available.
+- Static assets are served by Fastnode. Local Durable Objects, Workflows and `WorkerEntrypoint`s exported from [`server.ts`](#durable-objects) are available; bindings to other workers (`services`, `tail_consumers`, external Durable Objects and Workflows) and queue consumers are not available.
 - When `cloudflare.wrangler` is set, it is merged with the nearest Wrangler config file.
 
 #### Wrangler environments
 
 If you have multiple Wrangler environments, you can specify which one to use during local dev emulation with the `cloudflare.wranglerEnv` option:
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   preset: 'cloudflare_module',

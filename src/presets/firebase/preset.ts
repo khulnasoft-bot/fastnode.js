@@ -1,36 +1,36 @@
-import { defineNitroPreset } from "../_utils/preset.ts";
+import { defineFastnodePreset } from "../_utils/preset.ts";
 import { writeFile } from "../_utils/fs.ts";
-import { version as nitroVersion } from "#nitro/meta";
+import { version as fastnodeVersion } from "#fastnode/meta";
 import { join, relative } from "pathe";
 import { stringifyYAML } from "confbox";
 import type { AppHostingOutputBundleConfig } from "./types.ts";
 
 export type { FirebaseOptions as PresetOptions } from "./types.ts";
 
-const firebaseAppHosting = defineNitroPreset(
+const firebaseAppHosting = defineFastnodePreset(
   {
     extends: "node-server",
     serveStatic: true,
     hooks: {
-      async compiled(nitro) {
-        const serverEntry = join(nitro.options.output.serverDir, "index.mjs");
+      async compiled(fastnode) {
+        const serverEntry = join(fastnode.options.output.serverDir, "index.mjs");
         await writeFile(
-          join(nitro.options.rootDir, ".apphosting/bundle.yaml"),
+          join(fastnode.options.rootDir, ".apphosting/bundle.yaml"),
           stringifyYAML({
             version: "v1",
             runConfig: {
-              runCommand: `node ${relative(nitro.options.rootDir, serverEntry)}`,
-              ...nitro.options.firebase?.appHosting,
+              runCommand: `node ${relative(fastnode.options.rootDir, serverEntry)}`,
+              ...fastnode.options.firebase?.appHosting,
             },
             metadata: {
-              framework: nitro.options.framework.name || "nitro",
-              frameworkVersion: nitro.options.framework.version || "2.x",
-              adapterPackageName: "nitro",
-              adapterVersion: nitroVersion,
+              framework: fastnode.options.framework.name || "fastnode",
+              frameworkVersion: fastnode.options.framework.version || "2.x",
+              adapterPackageName: "fastnode",
+              adapterVersion: fastnodeVersion,
             },
             outputFiles: {
               serverApp: {
-                include: [relative(nitro.options.rootDir, nitro.options.output.dir)],
+                include: [relative(fastnode.options.rootDir, fastnode.options.output.dir)],
               },
             },
           } satisfies AppHostingOutputBundleConfig),

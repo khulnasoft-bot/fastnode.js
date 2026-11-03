@@ -23,7 +23,7 @@ describe("isrRouteRewrite", () => {
       expect(isrRouteRewrite("/index-isr?__isr_route=%2F", "__isr_route=%2F")).toEqual(["/", ""]);
     });
 
-    // Regression: https://github.com/nitrojs/nitro/issues/4408
+    // Regression: https://github.com/khulnasoft/fastnode/issues/4408
     // The query string (allowQuery/passQuery params) must reach the render.
     it("preserves allowQuery params from x-now-route-matches", () => {
       expect(
@@ -66,7 +66,7 @@ describe("isrRouteRewrite", () => {
       ]);
     });
 
-    // Regression: https://github.com/nitrojs/nitro/issues/4446
+    // Regression: https://github.com/khulnasoft/fastnode/issues/4446
     // `x-now-route-matches` is an undocumented contract that has changed
     // before. When it arrives without the ISR routing param, the identical
     // value is still on the rewritten request URL, so use it instead of

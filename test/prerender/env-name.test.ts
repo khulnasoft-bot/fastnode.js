@@ -14,7 +14,7 @@ describe("prerender env name", () => {
     await cleanupFixtures(["env-name-fixture"]);
     await rm(join(rootDir, ".output"), { recursive: true, force: true });
     await rm(join(rootDir, "node_modules"), { recursive: true, force: true });
-    delete (globalThis as any).__nitroDeployEnvName;
+    delete (globalThis as any).__fastnodeDeployEnvName;
   });
 
   it("renders routes with the env name and overrides of the main build", async () => {
@@ -26,7 +26,7 @@ describe("prerender env name", () => {
     );
   }, 120_000);
 
-  it("uses the `--envName` flag of `nitro build`", async () => {
+  it("uses the `--envName` flag of `fastnode build`", async () => {
     await runCommand(buildCommand, { rawArgs: ["--dir", rootDir, "--envName", "staging"] });
     expect(await readFile(join(rootDir, ".output/public/index.html"), "utf8")).toBe(
       `<!DOCTYPE html><html><body>staging staging</body></html>`
@@ -35,6 +35,6 @@ describe("prerender env name", () => {
 
   it("deploys a prebuilt output with the env name of its build", async () => {
     await runCommand(deployCommand, { rawArgs: ["--dir", rootDir, "--prebuilt"] });
-    expect((globalThis as any).__nitroDeployEnvName).toBe("staging");
+    expect((globalThis as any).__fastnodeDeployEnvName).toBe("staging");
   });
 });

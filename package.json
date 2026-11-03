@@ -1,23 +1,23 @@
 {
-  "name": "nitro",
-  "version": "3.0.261102-rc",
+  "name": "fastnode",
+  "version": "1.0.0",
   "description": "Build and Deploy Universal JavaScript Servers",
   "keywords": [
     "api-routes",
+    "fastnode",
     "full-stack",
     "h3",
-    "nitro",
     "server",
     "typescript",
     "vite",
     "vite-plugin",
     "web"
   ],
-  "homepage": "https://nitro.build",
+  "homepage": "https://fastnode.khulnasoft.com",
   "license": "MIT",
-  "repository": "nitrojs/nitro",
+  "repository": "khulnasoft/fastnode",
   "bin": {
-    "nitro": "./dist/cli/index.mjs"
+    "fastnode": "./dist/cli/index.mjs"
   },
   "files": [
     "dist",
@@ -25,14 +25,14 @@
     "skills"
   ],
   "type": "module",
-  "types": "./dist/runtime/nitro.d.mts",
+  "types": "./dist/runtime/fastnode.d.mts",
   "imports": {
-    "#nitro/meta": "./dist/runtime/_meta.mjs",
-    "#nitro/runtime/*": "./dist/runtime/internal/*.mjs",
-    "#nitro/virtual/*": "./dist/runtime/virtual/*.mjs"
+    "#fastnode/meta": "./dist/runtime/_meta.mjs",
+    "#fastnode/runtime/*": "./dist/runtime/internal/*.mjs",
+    "#fastnode/virtual/*": "./dist/runtime/virtual/*.mjs"
   },
   "exports": {
-    ".": "./dist/runtime/nitro.mjs",
+    ".": "./dist/runtime/fastnode.mjs",
     "./app": "./dist/runtime/app.mjs",
     "./builder": "./dist/builder.mjs",
     "./cache": "./dist/runtime/cache.mjs",
@@ -61,14 +61,14 @@
     "gen-presets": "obuild --stub && node ./scripts/gen-presets.ts",
     "lint": "oxlint . && oxfmt --check .",
     "fmt": "oxlint --fix . && oxfmt . && automd && oxfmt .",
-    "nitro": "node ./src/cli/index.ts",
+    "fastnode": "node ./src/cli/index.ts",
     "release": "node ./scripts/release.ts",
     "stub": "obuild --stub",
     "sync-deps": "node ./scripts/sync-deps.ts",
     "test": "pnpm lint && pnpm build && pnpm typecheck && pnpm test:rollup && pnpm test:rolldown",
     "test:bun": "bun --bun vitest",
-    "test:rolldown": "NITRO_BUILDER=rolldown pnpm vitest",
-    "test:rollup": "NITRO_BUILDER=rollup pnpm vitest",
+    "test:rolldown": "FASTNODE_BUILDER=rolldown pnpm vitest",
+    "test:rollup": "FASTNODE_BUILDER=rollup pnpm vitest",
     "test:vite": "pnpm vitest run test/vite",
     "typecheck": "tsc --noEmit --skipLibCheck"
   },

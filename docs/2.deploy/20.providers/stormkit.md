@@ -1,6 +1,6 @@
 # Stormkit
 
-> Deploy Nitro apps to Stormkit.
+> Deploy Fastnode apps to Stormkit.
 
 **Preset:** `stormkit`
 

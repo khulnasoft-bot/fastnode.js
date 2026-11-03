@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
 const virtualId = "virtual:extensionless-probe";
 
@@ -15,7 +15,7 @@ export default defineConfig({
         return id === "\0" + virtualId ? `export const probe = "probe";` : undefined;
       },
     },
-    nitro({
+    fastnode({
       baseURL: "/subdir/",
       serverDir: "./",
       serveStatic: false,

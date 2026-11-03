@@ -1,4 +1,4 @@
-import type { CompressOptions, Nitro } from "nitro/types";
+import type { CompressOptions, Fastnode } from "fastnode/types";
 import type { H3Event, HTTPHandler } from "h3";
 import type { Hooks } from "crossws";
 import type { IncomingMessage } from "node:http";
@@ -24,8 +24,8 @@ import devErrorHandler, {
   loadStackTrace,
 } from "../runtime/internal/error/dev.ts";
 
-export class NitroDevApp {
-  nitro: Nitro;
+export class FastnodeDevApp {
+  fastnode: Fastnode;
   fetch: (req: Request) => Response | Promise<Response>;
   /** Server reloads that open dev error pages wait for (see `withDevErrorRecovery`). */
   reloadSignal: DevReloadSignal = new DevReloadSignal();
@@ -33,8 +33,8 @@ export class NitroDevApp {
   #wsProxies?: ReturnType<typeof createRouter<DevProxy>>;
   #routes = createRouter();
 
-  constructor(nitro: Nitro, catchAllHandler?: HTTPHandler) {
-    this.nitro = nitro;
+  constructor(fastnode: Fastnode, catchAllHandler?: HTTPHandler) {
+    this.fastnode = fastnode;
     const app = this.#createApp(catchAllHandler);
     this.fetch = app.fetch.bind(app);
   }
@@ -44,7 +44,7 @@ export class NitroDevApp {
     const app = new H3({
       debug: true,
       onError: async (error, event) => {
-        const errorHandler = this.nitro.options.devErrorHandler || devErrorHandler;
+        const errorHandler = this.fastnode.options.devErrorHandler || devErrorHandler;
         await loadStackTrace(error).catch(() => {});
         return errorHandler(error, event, {
           defaultHandler: devErrorHandlerInternal,
@@ -53,15 +53,15 @@ export class NitroDevApp {
     });
 
     // Open dev error pages wait on it to reload (registered first so no catch-all shadows it)
-    const reloadRoute = joinURL(this.nitro.options.baseURL, DEV_RELOAD_ROUTE);
+    const reloadRoute = joinURL(this.fastnode.options.baseURL, DEV_RELOAD_ROUTE);
     app.get(reloadRoute, (event) => this.reloadSignal.handle(event));
     this.#addRoute("GET", reloadRoute);
 
     // Dev-only handlers
-    for (const h of this.nitro.options.devHandlers) {
+    for (const h of this.fastnode.options.devHandlers) {
       const handler = toEventHandler(h.handler);
       if (!handler) {
-        this.nitro.logger.warn("Invalid dev handler:", h);
+        this.fastnode.logger.warn("Invalid dev handler:", h);
         continue;
       }
       if (h.middleware || !h.route) {
@@ -79,11 +79,11 @@ export class NitroDevApp {
     }
 
     // Chrome DevTools automatic workspace folders
-    if (this.nitro.options.devServer?.devtoolsJson !== false) {
-      const handler = createDevToolsJSONHandler(this.nitro);
+    if (this.fastnode.options.devServer?.devtoolsJson !== false) {
+      const handler = createDevToolsJSONHandler(this.fastnode);
       const routes = new Set([
         DEVTOOLS_JSON_ROUTE,
-        joinURL(this.nitro.options.baseURL, DEVTOOLS_JSON_ROUTE),
+        joinURL(this.fastnode.options.baseURL, DEVTOOLS_JSON_ROUTE),
       ]);
       for (const route of routes) {
         app.get(route, handler);
@@ -92,10 +92,10 @@ export class NitroDevApp {
     }
 
     // Debugging endpoint to view vfs
-    app.get("/_vfs/**", createVFSHandler(this.nitro));
+    app.get("/_vfs/**", createVFSHandler(this.fastnode));
 
     // Restrict the dev task runner to local requests, mirroring the VFS viewer.
-    // The `/_nitro/tasks` routes are handled by the worker (via the catch-all)
+    // The `/_fastnode/tasks` routes are handled by the worker (via the catch-all)
     // and execute server tasks with caller-supplied payload; without this gate
     // they are reachable by any host that can reach the dev server, which binds
     // all interfaces by default (`devServer.hostname` is unset).
@@ -104,18 +104,18 @@ export class NitroDevApp {
         throw new HTTPError({ statusText: "Forbidden IP", status: 403 });
       }
     };
-    app.use("/_nitro/tasks", assertLocalTaskRequest);
-    app.use("/_nitro/tasks/**", assertLocalTaskRequest);
+    app.use("/_fastnode/tasks", assertLocalTaskRequest);
+    app.use("/_fastnode/tasks/**", assertLocalTaskRequest);
 
     // Serve asset dirs
-    for (const asset of this.nitro.options.publicAssets) {
-      const assetBase = joinURL(this.nitro.options.baseURL, asset.baseURL || "/");
+    for (const asset of this.fastnode.options.publicAssets) {
+      const assetBase = joinURL(this.fastnode.options.baseURL, asset.baseURL || "/");
       app.use(joinURL(assetBase, "**"), (event) =>
         serveStaticDir(event, {
           dir: asset.dir,
           base: assetBase,
           fallthrough: asset.fallthrough,
-          compress: this.nitro.options.compressPublicAssets,
+          compress: this.fastnode.options.compressPublicAssets,
         })
       );
       if (!asset.fallthrough && asset.baseURL && asset.baseURL !== "/") {
@@ -124,9 +124,9 @@ export class NitroDevApp {
     }
 
     // User defined dev proxy
-    const routes = Object.keys(this.nitro.options.devProxy).sort().reverse();
+    const routes = Object.keys(this.fastnode.options.devProxy).sort().reverse();
     for (const route of routes) {
-      let opts = this.nitro.options.devProxy[route];
+      let opts = this.fastnode.options.devProxy[route];
       if (typeof opts === "string") {
         opts = { target: opts };
       }
@@ -148,7 +148,7 @@ export class NitroDevApp {
   }
 
   /**
-   * Whether `path` (including the Nitro `baseURL`) matches an explicit dev app route: a dev handler
+   * Whether `path` (including the Fastnode `baseURL`) matches an explicit dev app route: a dev handler
    * route, a dev proxy, or a public asset dir without fallthrough. Root catch-alls are excluded.
    */
   hasRoute(method: string, path: string): boolean {
@@ -160,7 +160,7 @@ export class NitroDevApp {
   }
 
   #addRoute(method: string, route: string) {
-    const path = withoutBase(route, this.nitro.options.baseURL);
+    const path = withoutBase(route, this.fastnode.options.baseURL);
     if (path !== "/**" && !path.startsWith("/**:")) {
       addRoute(this.#routes, method.toUpperCase(), route);
     }
@@ -178,7 +178,7 @@ export class NitroDevApp {
       return false;
     }
     proxy.proxyUpgrade(req, socket, head).catch((error) => {
-      this.nitro.logger.error(`Failed to proxy WebSocket upgrade for \`${path}\`:`, error);
+      this.fastnode.logger.error(`Failed to proxy WebSocket upgrade for \`${path}\`:`, error);
       socket.destroy();
     });
     return true;

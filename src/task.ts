@@ -6,7 +6,7 @@ import { withBase, withQuery } from "ufo";
 
 import type { QueryObject } from "ufo";
 import type { RequestOptions } from "node:http";
-import type { NitroBuildInfo, TaskEvent, TaskMeta, TaskRunnerOptions } from "nitro/types";
+import type { FastnodeBuildInfo, TaskEvent, TaskMeta, TaskRunnerOptions } from "fastnode/types";
 
 /** @experimental */
 export async function runTask(
@@ -14,7 +14,7 @@ export async function runTask(
   opts?: TaskRunnerOptions
 ): Promise<{ result: unknown }> {
   const ctx = await _getTasksContext(opts);
-  const result = await ctx.devFetch(`/_nitro/tasks/${taskEvent.name}`, {
+  const result = await ctx.devFetch(`/_fastnode/tasks/${taskEvent.name}`, {
     method: "POST",
     body: taskEvent,
   });
@@ -24,7 +24,7 @@ export async function runTask(
 /** @experimental */
 export async function listTasks(opts?: TaskRunnerOptions) {
   const ctx = await _getTasksContext(opts, { defaultTimeout: 30_000 });
-  const res = (await ctx.devFetch("/_nitro/tasks")) as {
+  const res = (await ctx.devFetch("/_fastnode/tasks")) as {
     tasks: Record<string, { meta: TaskMeta }>;
   };
   return res.tasks;
@@ -39,15 +39,15 @@ async function _getTasksContext(
   internalOpts?: { defaultTimeout?: number }
 ) {
   const cwd = resolve(process.cwd(), opts?.cwd || ".");
-  const buildDir = resolve(cwd, opts?.buildDir || "node_modules/.nitro");
+  const buildDir = resolve(cwd, opts?.buildDir || "node_modules/.fastnode");
   const timeout = opts?.timeout ?? internalOpts?.defaultTimeout;
 
-  const buildInfoPath = resolve(buildDir, "nitro.dev.json");
+  const buildInfoPath = resolve(buildDir, "fastnode.dev.json");
   if (!existsSync(buildInfoPath)) {
     throw new Error(`Missing info file: \`${buildInfoPath}\` ${_devHint}`);
   }
 
-  const buildInfo = JSON.parse(await readFile(buildInfoPath, "utf8")) as NitroBuildInfo;
+  const buildInfo = JSON.parse(await readFile(buildInfoPath, "utf8")) as FastnodeBuildInfo;
 
   if (!buildInfo.dev?.pid || !buildInfo.dev?.workerAddress) {
     throw new Error(`Missing dev server info in: \`${buildInfoPath}\` ${_devHint}`);

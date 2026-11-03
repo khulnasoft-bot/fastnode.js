@@ -4,12 +4,12 @@ import { resolve } from "pathe";
 import { describe, expect, it } from "vitest";
 
 import { isWindows } from "std-env";
-import { setupTest, testNitro } from "../tests.ts";
+import { setupTest, testFastnode } from "../tests.ts";
 
-describe.skipIf(isWindows)("nitro:preset:cloudflare-pages", async () => {
+describe.skipIf(isWindows)("fastnode:preset:cloudflare-pages", async () => {
   const ctx = await setupTest("cloudflare-pages");
 
-  testNitro(ctx, () => {
+  testFastnode(ctx, () => {
     const mf = new Miniflare({
       modules: true,
       compatibilityDate: "2025-04-01",
@@ -51,9 +51,9 @@ describe.skipIf(isWindows)("nitro:preset:cloudflare-pages", async () => {
           "/foo.css",
           "/foo.js",
           "/json-string",
-          "/nitro.json.br",
-          "/nitro.json.gz",
-          "/nitro.json.zst",
+          "/fastnode.json.br",
+          "/fastnode.json.gz",
+          "/fastnode.json.zst",
           "/prerender",
           "/prerender-custom",
           "/_scalar/index.html.br",

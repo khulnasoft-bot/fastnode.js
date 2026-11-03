@@ -1,3 +1,3 @@
 # Blog
 
-Nitro blog posts.
+Fastnode blog posts.

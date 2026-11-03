@@ -1,8 +1,10 @@
-import type { NitroConfig } from "nitro/types";
+import type { FastnodeConfig } from "fastnode/types";
 
-export function defineConfig(config: Omit<NitroConfig, "rootDir">): Omit<NitroConfig, "rootDir"> {
+export function defineConfig(
+  config: Omit<FastnodeConfig, "rootDir">
+): Omit<FastnodeConfig, "rootDir"> {
   return config;
 }
 
-/** @deprecated Use `defineConfig` from `nitro` instead. */
-export const defineNitroConfig: typeof defineConfig = defineConfig;
+/** @deprecated Use `defineConfig` from `fastnode` instead. */
+export const defineFastnodeConfig: typeof defineConfig = defineConfig;

@@ -5,7 +5,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import type { Plugin } from "vite";
 
 const { createBuilder } = (await import(
-  process.env.NITRO_VITE_PKG || "vite"
+  process.env.FASTNODE_VITE_PKG || "vite"
 )) as typeof import("vite");
 
 describe("vite: service environment marked as built", () => {
@@ -32,7 +32,7 @@ describe("vite: service environment marked as built", () => {
     await builder.buildApp();
   }
 
-  // https://github.com/nitrojs/nitro/issues/5005
+  // https://github.com/khulnasoft/fastnode/issues/5005
   it("reuses the existing output when the entry is not `index.mjs`", async () => {
     await cleanup();
     await build(false);

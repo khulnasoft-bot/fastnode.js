@@ -1,4 +1,4 @@
-import { fetch } from "nitro";
+import { fetch } from "fastnode";
 
 export default {
   async fetch() {

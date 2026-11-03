@@ -1,4 +1,4 @@
-import { defineErrorHandler } from "nitro";
+import { defineErrorHandler } from "fastnode";
 
 export default defineErrorHandler(async (error, event, { defaultHandler }) => {
   if (event.req.url.includes("?json")) {

@@ -4,8 +4,8 @@ import { fileURLToPath } from "node:url";
 import type { ViteDevServer } from "vite";
 import { afterAll, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { consola } from "consola";
-import { nitro } from "../../src/vite.ts";
-import type { NitroConfig } from "nitro/types";
+import { fastnode } from "../../src/vite.ts";
+import type { FastnodeConfig } from "fastnode/types";
 
 const oxcPaths = vi.hoisted(() => [] as (Record<string, string> | undefined)[]);
 vi.mock("../../src/utils/oxc.ts", async (importOriginal) => {
@@ -19,7 +19,7 @@ vi.mock("../../src/utils/oxc.ts", async (importOriginal) => {
   };
 });
 
-const runningPkg = process.env.NITRO_VITE_PKG || "vite";
+const runningPkg = process.env.FASTNODE_VITE_PKG || "vite";
 const otherPkg = runningPkg === "vite7" ? "vite" : "vite7";
 const { createBuilder, createServer, version } = (await import(
   runningPkg
@@ -62,7 +62,7 @@ describe("vite:path", { concurrent: false }, () => {
       server = await createServer({
         root: rootDir,
         logLevel: "warn",
-        plugins: [nitro({ serverDir: "./", serveStatic: false, vite })],
+        plugins: [fastnode({ serverDir: "./", serveStatic: false, vite })],
       });
       await server.listen("0" as unknown as number);
       const addr = server.httpServer?.address() as {
@@ -76,7 +76,7 @@ describe("vite:path", { concurrent: false }, () => {
       expect(response.status).toBe(200);
       expect(await response.text()).toBe("vite-path:ok");
 
-      const entry = await readFile(`${rootDir}/node_modules/.nitro/vite/dev-worker.mjs`, "utf8");
+      const entry = await readFile(`${rootDir}/node_modules/.fastnode/vite/dev-worker.mjs`, "utf8");
       const moduleRunner = entry.match(/import \* as moduleRunner from "([^"]+)"/)?.[1];
       const pkg = JSON.parse(
         await readFile(fileURLToPath(new URL("../../package.json", moduleRunner)), "utf8")
@@ -105,7 +105,7 @@ describe("vite:path", { concurrent: false }, () => {
         root: rootDir,
         logLevel: "warn",
         plugins: [
-          nitro({
+          fastnode({
             serverDir: "./",
             serveStatic: false,
             vite: { path: import.meta.resolve(otherPkg) },
@@ -128,7 +128,7 @@ describe("vite:path", { concurrent: false }, () => {
     server = await createServer({
       root: rootDir,
       logLevel: "warn",
-      plugins: [nitro({ serverDir: "./", serveStatic: false })],
+      plugins: [fastnode({ serverDir: "./", serveStatic: false })],
     });
     await server.listen("0" as unknown as number);
     const addr = server.httpServer?.address() as { port: number };
@@ -141,12 +141,12 @@ describe("vite:path", { concurrent: false }, () => {
   test("prerenderer resolves rolldown through the running vite", async () => {
     await server?.close();
     server = undefined;
-    let prerenderConfig: NitroConfig | undefined;
+    let prerenderConfig: FastnodeConfig | undefined;
     const builder = await createBuilder({
       root: rootDir,
       logLevel: "warn",
       plugins: [
-        nitro({
+        fastnode({
           serverDir: "./",
           output: { dir: `${rootDir}/node_modules/.output` },
           prerender: { routes: ["/"] },

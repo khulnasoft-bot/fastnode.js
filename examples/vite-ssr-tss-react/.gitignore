@@ -7,7 +7,7 @@ yarn.lock
 .env
 .vercel
 .output
-.nitro
+.fastnode
 /build/
 /api/
 /server/build

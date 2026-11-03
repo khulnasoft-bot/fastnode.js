@@ -1,9 +1,9 @@
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
 export default defineConfig({
   plugins: [
-    nitro(),
+    fastnode(),
     {
       // A slow `options` hook keeps the ssr environment's `init()` pending (the test controls how long).
       name: "slow-ssr-init",

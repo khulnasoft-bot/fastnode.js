@@ -1,6 +1,6 @@
 import { promises as fsp } from "node:fs";
-import { defineNitroPreset } from "../_utils/preset.ts";
-import type { Nitro } from "nitro/types";
+import { defineFastnodePreset } from "../_utils/preset.ts";
+import type { Fastnode } from "fastnode/types";
 import { join } from "pathe";
 import { unenvDeno } from "../deno/unenv/preset.ts";
 import { extendEnv } from "../../build/env.ts";
@@ -15,7 +15,7 @@ import {
 export type { NetlifyOptions as PresetOptions } from "./types.ts";
 
 // Netlify functions
-const netlify = defineNitroPreset(
+const netlify = defineFastnodePreset(
   {
     entry: "./netlify/runtime/netlify",
     manifest: {
@@ -28,7 +28,7 @@ const netlify = defineNitroPreset(
     prerender: {
       // Prevents an unnecessary redirect from /page/ to /page when accessing prerendered content.
       // Reference: https://answers.netlify.com/t/support-guide-how-can-i-alter-trailing-slash-behaviour-in-my-urls-will-enabling-pretty-urls-help/31191
-      // Reference: https://nitro.build/config/routing#prerender
+      // Reference: https://fastnode.khulnasoft.com/config/routing#prerender
       autoSubfolderIndex: false,
     },
     rollupConfig: {
@@ -37,14 +37,14 @@ const netlify = defineNitroPreset(
       },
     },
     hooks: {
-      async compiled(nitro: Nitro) {
-        await writeHeaders(nitro);
-        await writeRedirects(nitro);
-        await writeConfig(nitro, join(nitro.options.output.dir, "../config.json"));
+      async compiled(fastnode: Fastnode) {
+        await writeHeaders(fastnode);
+        await writeRedirects(fastnode);
+        await writeConfig(fastnode, join(fastnode.options.output.dir, "../config.json"));
 
         await fsp.writeFile(
-          join(nitro.options.output.dir, "server", "server.mjs"),
-          generateNetlifyFunction(nitro)
+          join(fastnode.options.output.dir, "server", "server.mjs"),
+          generateNetlifyFunction(fastnode)
         );
       },
     },
@@ -56,7 +56,7 @@ const netlify = defineNitroPreset(
 );
 
 // Netlify edge
-const netlifyEdge = defineNitroPreset(
+const netlifyEdge = defineFastnodePreset(
   {
     extends: "base-worker",
     entry: "./netlify/runtime/netlify-edge",
@@ -71,7 +71,7 @@ const netlifyEdge = defineNitroPreset(
     prerender: {
       // Prevents an unnecessary redirect from /page/ to /page when accessing prerendered content.
       // Reference: https://answers.netlify.com/t/support-guide-how-can-i-alter-trailing-slash-behaviour-in-my-urls-will-enabling-pretty-urls-help/31191
-      // Reference: https://nitro.build/config/routing#prerender
+      // Reference: https://fastnode.khulnasoft.com/config/routing#prerender
       autoSubfolderIndex: false,
     },
     rollupConfig: {
@@ -82,17 +82,17 @@ const netlifyEdge = defineNitroPreset(
       },
     },
     hooks: {
-      "build:before": (nitro: Nitro) => {
-        extendEnv(nitro, unenvDeno);
+      "build:before": (fastnode: Fastnode) => {
+        extendEnv(fastnode, unenvDeno);
       },
-      async compiled(nitro: Nitro) {
-        await writeHeaders(nitro);
-        await writeRedirects(nitro);
-        await writeConfig(nitro, join(nitro.options.output.serverDir, "../../config.json"));
+      async compiled(fastnode: Fastnode) {
+        await writeHeaders(fastnode);
+        await writeRedirects(fastnode);
+        await writeConfig(fastnode, join(fastnode.options.output.serverDir, "../../config.json"));
 
         await fsp.writeFile(
-          join(nitro.options.output.serverDir, "server.mjs"),
-          generateNetlifyEdgeFunction(nitro)
+          join(fastnode.options.output.serverDir, "server.mjs"),
+          generateNetlifyEdgeFunction(fastnode)
         );
       },
     },
@@ -102,7 +102,7 @@ const netlifyEdge = defineNitroPreset(
   }
 );
 
-const netlifyStatic = defineNitroPreset(
+const netlifyStatic = defineFastnodePreset(
   {
     extends: "static",
     manifest: {
@@ -115,16 +115,16 @@ const netlifyStatic = defineNitroPreset(
     prerender: {
       // Prevents an unnecessary redirect from /page/ to /page when accessing prerendered content.
       // Reference: https://answers.netlify.com/t/support-guide-how-can-i-alter-trailing-slash-behaviour-in-my-urls-will-enabling-pretty-urls-help/31191
-      // Reference: https://nitro.build/config/routing#prerender
+      // Reference: https://fastnode.khulnasoft.com/config/routing#prerender
       autoSubfolderIndex: false,
     },
     commands: {
       preview: "npx serve ./",
     },
     hooks: {
-      async compiled(nitro: Nitro) {
-        await writeHeaders(nitro);
-        await writeRedirects(nitro);
+      async compiled(fastnode: Fastnode) {
+        await writeHeaders(fastnode);
+        await writeRedirects(fastnode);
       },
     },
   },

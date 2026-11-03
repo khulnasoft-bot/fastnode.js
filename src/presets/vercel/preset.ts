@@ -1,6 +1,6 @@
-import { defineNitroPreset } from "../_utils/preset.ts";
-import type { Nitro } from "nitro/types";
-import { presetsDir } from "#nitro/meta";
+import { defineFastnodePreset } from "../_utils/preset.ts";
+import type { Fastnode } from "fastnode/types";
+import { presetsDir } from "#fastnode/meta";
 import { join } from "pathe";
 import { importDep } from "../../utils/dep.ts";
 import { generateFunctionFiles, generateStaticFiles, resolveVercelRuntime } from "./utils.ts";
@@ -14,7 +14,7 @@ export type { VercelOptions as PresetOptions } from "./types.ts";
 
 // https://vercel.com/docs/build-output-api/v3
 
-const vercel = defineNitroPreset(
+const vercel = defineFastnodePreset(
   {
     entry: "./vercel/runtime/vercel.{format}",
     manifest: {
@@ -22,7 +22,7 @@ const vercel = defineNitroPreset(
     },
     vercel: {
       skewProtection: !!process.env.VERCEL_SKEW_PROTECTION_ENABLED,
-      immutableStaticFiles: !!process.env.NITRO_VERCEL_IMMUTABLE_STATIC_FILES_ENABLED,
+      immutableStaticFiles: !!process.env.FASTNODE_VERCEL_IMMUTABLE_STATIC_FILES_ENABLED,
       cronHandlerRoute: "/_vercel/cron",
     },
     output: {
@@ -35,64 +35,64 @@ const vercel = defineNitroPreset(
       deploy: "npx vercel deploy --prebuilt",
     },
     hooks: {
-      "build:before": async (nitro: Nitro) => {
-        const logger = nitro.logger.withTag("vercel");
+      "build:before": async (fastnode: Fastnode) => {
+        const logger = fastnode.logger.withTag("vercel");
 
         // Immutable static files
-        setupImmutableStaticFiles(nitro);
+        setupImmutableStaticFiles(fastnode);
 
         // Runtime
-        const runtime = await resolveVercelRuntime(nitro);
-        if (runtime.startsWith("bun") && !nitro.options.exportConditions!.includes("bun")) {
-          nitro.options.exportConditions!.push("bun");
+        const runtime = await resolveVercelRuntime(fastnode);
+        if (runtime.startsWith("bun") && !fastnode.options.exportConditions!.includes("bun")) {
+          fastnode.options.exportConditions!.push("bun");
         }
         logger.info(`Using \`${runtime}\` runtime.`);
 
         // Entry handler format
-        let serverFormat = nitro.options.vercel?.entryFormat;
+        let serverFormat = fastnode.options.vercel?.entryFormat;
         if (!serverFormat) {
-          const hasNodeHandler = nitro.routing.routes.routes
+          const hasNodeHandler = fastnode.routing.routes.routes
             .flatMap((r) => r.data)
             .some((h) => h.format === "node");
           serverFormat = hasNodeHandler ? "node" : "web";
         }
         logger.info(`Using \`${serverFormat}\` entry format.`);
-        nitro.options.entry = nitro.options.entry.replace("{format}", serverFormat);
+        fastnode.options.entry = fastnode.options.entry.replace("{format}", serverFormat);
 
         // Export tracing-channel spans to the Vercel runtime. Registered first
         // (unshift) so it subscribes to the traced channels at startup, before
         // any request is handled.
-        if (nitro.options.tracingChannel) {
-          nitro.options.plugins ??= [];
-          nitro.options.plugins.unshift(join(presetsDir, "vercel/runtime/telemetry/plugin"));
+        if (fastnode.options.tracingChannel) {
+          fastnode.options.plugins ??= [];
+          fastnode.options.plugins.unshift(join(presetsDir, "vercel/runtime/telemetry/plugin"));
         }
 
         // Scheduled tasks
-        if (getVercelSchedulesMode(nitro.options)) {
-          setupVercelSchedules(nitro);
+        if (getVercelSchedulesMode(fastnode.options)) {
+          setupVercelSchedules(fastnode);
         } else if (
-          nitro.options.experimental.tasks &&
-          Object.keys(nitro.options.scheduledTasks || {}).length > 0
+          fastnode.options.experimental.tasks &&
+          Object.keys(fastnode.options.scheduledTasks || {}).length > 0
         ) {
-          nitro.options.handlers.push({
-            route: nitro.options.vercel!.cronHandlerRoute || "/_vercel/cron",
+          fastnode.options.handlers.push({
+            route: fastnode.options.vercel!.cronHandlerRoute || "/_vercel/cron",
             lazy: true,
             handler: join(presetsDir, "vercel/runtime/cron-handler"),
           });
         }
 
         // Queue consumer handler
-        const queues = nitro.options.vercel?.queues;
+        const queues = fastnode.options.vercel?.queues;
         if (queues?.triggers?.length) {
           await importDep({
             id: "@vercel/queue",
-            dir: nitro.options.rootDir,
-            deps: nitro.options.deps,
+            dir: fastnode.options.rootDir,
+            deps: fastnode.options.deps,
           });
 
           const handlerRoute = queues.handlerRoute || "/_vercel/queues/consumer";
 
-          nitro.options.handlers.push({
+          fastnode.options.handlers.push({
             route: handlerRoute,
             lazy: true,
             handler: join(presetsDir, "vercel/runtime/queue-handler"),
@@ -101,18 +101,18 @@ const vercel = defineNitroPreset(
           const queueTriggers: VercelFunctionTrigger[] = queues.triggers.map(
             ({ topic, ...opts }) => ({ type: "queue/v2beta", topic, ...opts })
           );
-          nitro.options.vercel ??= {};
-          nitro.options.vercel.functionRules ??= {};
-          const existingRule = nitro.options.vercel.functionRules[handlerRoute];
-          nitro.options.vercel.functionRules[handlerRoute] = {
+          fastnode.options.vercel ??= {};
+          fastnode.options.vercel.functionRules ??= {};
+          const existingRule = fastnode.options.vercel.functionRules[handlerRoute];
+          fastnode.options.vercel.functionRules[handlerRoute] = {
             ...existingRule,
             experimentalTriggers: [...(existingRule?.experimentalTriggers || []), ...queueTriggers],
           };
         }
       },
-      async compiled(nitro: Nitro) {
-        await generateFunctionFiles(nitro);
-        await generateImmutableManifest(nitro);
+      async compiled(fastnode: Fastnode) {
+        await generateFunctionFiles(fastnode);
+        await generateImmutableManifest(fastnode);
       },
     },
   },
@@ -122,7 +122,7 @@ const vercel = defineNitroPreset(
   }
 );
 
-const vercelStatic = defineNitroPreset(
+const vercelStatic = defineFastnodePreset(
   {
     extends: "static",
     manifest: {
@@ -130,7 +130,7 @@ const vercelStatic = defineNitroPreset(
     },
     vercel: {
       skewProtection: !!process.env.VERCEL_SKEW_PROTECTION_ENABLED,
-      immutableStaticFiles: !!process.env.NITRO_VERCEL_IMMUTABLE_STATIC_FILES_ENABLED,
+      immutableStaticFiles: !!process.env.FASTNODE_VERCEL_IMMUTABLE_STATIC_FILES_ENABLED,
     },
     output: {
       dir: "{{ rootDir }}/.vercel/output",
@@ -140,13 +140,13 @@ const vercelStatic = defineNitroPreset(
       preview: "npx serve ./static",
     },
     hooks: {
-      "build:before": (nitro: Nitro) => {
+      "build:before": (fastnode: Fastnode) => {
         // Immutable static files (opt-in, guarded by Vercel platform support)
-        setupImmutableStaticFiles(nitro);
+        setupImmutableStaticFiles(fastnode);
       },
-      async compiled(nitro: Nitro) {
-        await generateStaticFiles(nitro);
-        await generateImmutableManifest(nitro);
+      async compiled(fastnode: Fastnode) {
+        await generateStaticFiles(fastnode);
+        await generateImmutableManifest(fastnode);
       },
     },
   },
@@ -157,9 +157,9 @@ const vercelStatic = defineNitroPreset(
   }
 );
 
-export const vercelDev = defineNitroPreset(
+export const vercelDev = defineFastnodePreset(
   {
-    extends: "nitro-dev",
+    extends: "fastnode-dev",
     devServer: { runner: "vercel" },
     modules: [vercelDevModule],
   },

@@ -2,7 +2,7 @@ import { promises as fsp } from "node:fs";
 import createEtag from "etag";
 import { glob } from "tinyglobby";
 import mime from "mime";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import { resolve } from "pathe";
 
 interface ResolvedAsset {
@@ -14,15 +14,15 @@ interface ResolvedAsset {
   };
 }
 
-export default function serverAssets(nitro: Nitro) {
+export default function serverAssets(fastnode: Fastnode) {
   return {
-    id: "#nitro/virtual/server-assets",
+    id: "#fastnode/virtual/server-assets",
     template: async () => {
-      if (nitro.options.dev || nitro.options.preset === "nitro-prerender") {
+      if (fastnode.options.dev || fastnode.options.preset === "fastnode-prerender") {
         return /* js */ `
           import { createStorage } from 'unstorage'
           import fsDriver from 'unstorage/drivers/fs'
-          const serverAssets = ${JSON.stringify(nitro.options.serverAssets)}
+          const serverAssets = ${JSON.stringify(fastnode.options.serverAssets)}
           export const assets = createStorage()
           for (const asset of serverAssets) {
             assets.mount(asset.baseName, fsDriver({ base: asset.dir, ignore: (asset?.ignore || []) }))
@@ -31,7 +31,7 @@ export default function serverAssets(nitro: Nitro) {
 
       // Scan all assets
       const assets: Record<string, ResolvedAsset> = {};
-      for (const asset of nitro.options.serverAssets) {
+      for (const asset of fastnode.options.serverAssets) {
         const files = await glob(asset.pattern || "**/*", {
           cwd: asset.dir,
           absolute: false,

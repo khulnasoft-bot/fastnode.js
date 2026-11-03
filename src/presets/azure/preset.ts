@@ -1,11 +1,11 @@
-import { defineNitroPreset } from "../_utils/preset.ts";
-import type { Nitro } from "nitro/types";
+import { defineFastnodePreset } from "../_utils/preset.ts";
+import type { Fastnode } from "fastnode/types";
 import { setupAzureFunctions, writeFunctionFiles } from "./_functions.ts";
 import { writeSWARoutes } from "./utils.ts";
 
 export type { AzureOptions as PresetOptions } from "./types.ts";
 
-const azureSWA = defineNitroPreset(
+const azureSWA = defineFastnodePreset(
   {
     entry: "./azure/runtime/azure-swa.{version}",
     output: {
@@ -16,10 +16,10 @@ const azureSWA = defineNitroPreset(
       preview: "npx @azure/static-web-apps-cli start ./public --api-location ./server",
     },
     hooks: {
-      async "build:before"(nitro: Nitro) {
-        await setupAzureFunctions(nitro);
+      async "build:before"(fastnode: Fastnode) {
+        await setupAzureFunctions(fastnode);
       },
-      async compiled(ctx: Nitro) {
+      async compiled(ctx: Fastnode) {
         await writeSWARoutes(ctx);
         await writeFunctionFiles(ctx);
       },

@@ -1,17 +1,17 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 
-export default function routingMeta(nitro: Nitro) {
+export default function routingMeta(fastnode: Fastnode) {
   return {
-    id: "#nitro/virtual/routing-meta",
+    id: "#fastnode/virtual/routing-meta",
     template: () => {
-      const handlers = Object.values(nitro.routing.routes.routes).flatMap((h) => h.data);
+      const handlers = Object.values(fastnode.routing.routes.routes).flatMap((h) => h.data);
       const routeHandlers = uniqueBy(handlers, "_importHash");
 
       return /* js */ `
   ${routeHandlers
     .map((h) =>
       // Virtual handlers have no source to read the meta from
-      h.handler in nitro.options.virtual
+      h.handler in fastnode.options.virtual
         ? /* js */ `const ${h._importHash}Meta = undefined;`
         : /* js */ `import ${h._importHash}Meta from ${JSON.stringify(h.handler + "?meta")};`
     )

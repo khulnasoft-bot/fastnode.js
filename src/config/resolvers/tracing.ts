@@ -1,8 +1,8 @@
 import { join } from "pathe";
-import { runtimeDir } from "#nitro/meta";
-import type { NitroOptions } from "nitro/types";
+import { runtimeDir } from "#fastnode/meta";
+import type { FastnodeOptions } from "fastnode/types";
 
-export async function resolveTracingChannelOptions(options: NitroOptions) {
+export async function resolveTracingChannelOptions(options: FastnodeOptions) {
   if (!options.tracingChannel) return;
   options.tracingChannel = {
     srvx: true,
@@ -12,7 +12,7 @@ export async function resolveTracingChannelOptions(options: NitroOptions) {
     ...(typeof options.tracingChannel === "object" ? options.tracingChannel : {}),
   };
   options.plugins = options.plugins || [];
-  options.plugins.push("#nitro/virtual/tracing");
+  options.plugins.push("#fastnode/virtual/tracing");
 
   // Built-in console span logger (opt-in). Unshift so it subscribes to the
   // traced channels at startup, before any request is handled.

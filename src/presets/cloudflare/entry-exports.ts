@@ -1,17 +1,17 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import type { WranglerConfig } from "./types.ts";
 import { join } from "pathe";
-import { presetsDir } from "#nitro/meta";
+import { presetsDir } from "#fastnode/meta";
 import { readWranglerConfig } from "./utils.ts";
 
 // Named exports of the server entry (e.g. Durable Objects) are Worker exports
-export function setupEntryExports(nitro: Nitro, opts: { durableObject?: boolean } = {}) {
-  const serverEntry = nitro.options.serverEntry && nitro.options.serverEntry.handler;
+export function setupEntryExports(fastnode: Fastnode, opts: { durableObject?: boolean } = {}) {
+  const serverEntry = fastnode.options.serverEntry && fastnode.options.serverEntry.handler;
   if (!serverEntry && !opts.durableObject) return;
 
-  const originalEntry = nitro.options.entry;
-  const virtualEntryId = (nitro.options.entry = "#nitro/virtual/cloudflare-server-entry");
-  nitro.options.virtual[virtualEntryId] = /* js */ `
+  const originalEntry = fastnode.options.entry;
+  const virtualEntryId = (fastnode.options.entry = "#fastnode/virtual/cloudflare-server-entry");
+  fastnode.options.virtual[virtualEntryId] = /* js */ `
     ${serverEntry ? `export * from ${JSON.stringify(serverEntry)};` : ""}
     ${opts.durableObject ? `export { $DurableObject } from ${_durableRuntime};` : ""}
     export * from ${JSON.stringify(originalEntry)};
@@ -24,15 +24,15 @@ export function setupEntryExports(nitro: Nitro, opts: { durableObject?: boolean 
  * `cloudflare-module` entry) is only added when the Wrangler config declares it, as the runner
  * warns about undeclared Durable Objects.
  */
-export async function setupDevEntryExports(nitro: Nitro) {
-  const durableObject = await _declaresDurableObject(nitro);
-  if (nitro.options.builder !== "vite") {
-    setupEntryExports(nitro, { durableObject });
+export async function setupDevEntryExports(fastnode: Fastnode) {
+  const durableObject = await _declaresDurableObject(fastnode);
+  if (fastnode.options.builder !== "vite") {
+    setupEntryExports(fastnode, { durableObject });
     return;
   }
-  // In Vite dev, the nitro environment's entry re-exports them instead (`vite/dev-entry.mjs`)
+  // In Vite dev, the fastnode environment's entry re-exports them instead (`vite/dev-entry.mjs`)
   if (durableObject) {
-    nitro.options.virtual["#nitro/virtual/dev-worker-exports"] =
+    fastnode.options.virtual["#fastnode/virtual/dev-worker-exports"] =
       `export { $DurableObject } from ${_durableRuntime};`;
   }
 }
@@ -40,10 +40,10 @@ export async function setupDevEntryExports(nitro: Nitro) {
 const _durableRuntime = JSON.stringify(join(presetsDir, "cloudflare/runtime/_durable"));
 
 // Bound or exported in the selected environment of the Wrangler config file or inline config
-async function _declaresDurableObject(nitro: Nitro): Promise<boolean> {
-  const { config = {} } = await readWranglerConfig(nitro).catch(() => ({ config: undefined }));
-  const inlineConfig = nitro.options.cloudflare?.wrangler || {};
-  const envName = nitro.options.cloudflare?.wranglerEnv ?? process.env.CLOUDFLARE_ENV;
+async function _declaresDurableObject(fastnode: Fastnode): Promise<boolean> {
+  const { config = {} } = await readWranglerConfig(fastnode).catch(() => ({ config: undefined }));
+  const inlineConfig = fastnode.options.cloudflare?.wrangler || {};
+  const envName = fastnode.options.cloudflare?.wranglerEnv ?? process.env.CLOUDFLARE_ENV;
   // A `script_name` of the Worker itself is a local binding, as in `wrangler dev`
   const workerName = _workerName(inlineConfig, envName) ?? _workerName(config, envName);
   return [config, inlineConfig].some((source: WranglerConfig) => {

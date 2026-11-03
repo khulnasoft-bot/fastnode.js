@@ -23,7 +23,7 @@ const groups = computed(() => groupExamples(navigation?.value))
 
 usePageSEO({
   title: `Examples - ${appConfig.site.name}`,
-  description: 'Explore Nitro examples to learn how to build full-stack applications',
+  description: 'Explore Fastnode examples to learn how to build full-stack applications',
 })
 </script>
 
@@ -31,7 +31,7 @@ usePageSEO({
   <Page>
     <PageHeader
       title="Examples"
-      description="Explore Nitro examples to learn how to build full-stack applications with different frameworks and features."
+      description="Explore Fastnode examples to learn how to build full-stack applications with different frameworks and features."
     >
       <template #headline>
         <Breadcrumb :items="[{ label: 'Examples', icon: 'i-lucide-code' }]" />

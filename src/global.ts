@@ -1,24 +1,24 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 
-const nitroInstances: Nitro[] = ((globalThis as any).__nitro_instances__ ||= []);
+const fastnodeInstances: Fastnode[] = ((globalThis as any).__fastnode_instances__ ||= []);
 
-const globalKey = "__nitro_builder__";
+const globalKey = "__fastnode_builder__";
 
 declare global {
-  var __nitro_builder__: {
+  var __fastnode_builder__: {
     fetch: (req: Request) => Promise<Response>;
   };
 }
 
-export function registerNitroInstance(nitro: Nitro) {
-  if (nitroInstances.includes(nitro)) {
+export function registerFastnodeInstance(fastnode: Fastnode) {
+  if (fastnodeInstances.includes(fastnode)) {
     return;
   }
   globalInit();
-  nitroInstances.unshift(nitro);
-  nitro.hooks.hookOnce("close", () => {
-    nitroInstances.splice(nitroInstances.indexOf(nitro), 1);
-    if (nitroInstances.length === 0) {
+  fastnodeInstances.unshift(fastnode);
+  fastnode.hooks.hookOnce("close", () => {
+    fastnodeInstances.splice(fastnodeInstances.indexOf(fastnode), 1);
+    if (fastnodeInstances.length === 0) {
       delete (globalThis as any)[globalKey];
     }
   });
@@ -30,14 +30,14 @@ function globalInit() {
   }
   globalThis[globalKey] = {
     async fetch(req) {
-      for (let r = 0; r < 10 && nitroInstances.length === 0; r++) {
+      for (let r = 0; r < 10 && fastnodeInstances.length === 0; r++) {
         await new Promise((resolve) => setTimeout(resolve, 300));
       }
-      const nitro = nitroInstances[0];
-      if (!nitro) {
-        throw new Error("No Nitro instance is running.");
+      const fastnode = fastnodeInstances[0];
+      if (!fastnode) {
+        throw new Error("No Fastnode instance is running.");
       }
-      return nitro.fetch(req);
+      return fastnode.fetch(req);
     },
   };
 }

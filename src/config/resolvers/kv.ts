@@ -1,9 +1,9 @@
 import consola from "consola";
-import type { NitroOptions } from "nitro/types";
+import type { FastnodeOptions } from "fastnode/types";
 import { ensureLibDeps } from "../../utils/dep.ts";
 import { resolveKVDrivers } from "../../utils/storage.ts";
 
-export async function resolveKVOptions(options: NitroOptions) {
+export async function resolveKVOptions(options: FastnodeOptions) {
   options.kv ??= {};
   if (
     options.storage &&

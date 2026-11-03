@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
 export default defineConfig({
   build: { outDir: "dist/public" },
-  plugins: [nitro({ output: { dir: "dist" } })],
+  plugins: [fastnode({ output: { dir: "dist" } })],
 });

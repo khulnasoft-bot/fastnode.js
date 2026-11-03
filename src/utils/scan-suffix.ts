@@ -1,4 +1,4 @@
-import type { Nitro, NitroEventHandler } from "nitro/types";
+import type { Fastnode, FastnodeEventHandler } from "fastnode/types";
 import mime from "mime";
 
 // prettier-ignore
@@ -16,22 +16,22 @@ export type ScanSuffixOptions = {
 };
 
 export type ParsedScanPath = {
-  /** File path without its extension and Nitro suffixes. */
+  /** File path without its extension and Fastnode suffixes. */
   name: string;
-  method?: NitroEventHandler["method"];
+  method?: FastnodeEventHandler["method"];
   env?: "dev" | "prod" | "prerender";
 };
 
 /**
- * Splits Nitro suffixes (`.<method>.<env>`) from a scanned file path.
+ * Splits Fastnode suffixes (`.<method>.<env>`) from a scanned file path.
  *
- * Any other trailing lowercase suffix is reserved for Nitro, unless it is a known file extension
+ * Any other trailing lowercase suffix is reserved for Fastnode, unless it is a known file extension
  * (`.json`, `.md`, ...), listed in `scanSuffixes` or the name after a numeric order prefix
  * (`middleware/1.cors.ts`). Files with a reserved suffix are rejected
  * (logged and skipped in dev, thrown in builds).
  */
 export function parseScanPath(
-  nitro: Nitro,
+  fastnode: Fastnode,
   file: { dir: string; path: string },
   opts: ScanSuffixOptions = {}
 ): ParsedScanPath | undefined {
@@ -56,7 +56,7 @@ export function parseScanPath(
     (opts.method && methodSuffixes.has(suffix)) ||
     (opts.env && envSuffixes.has(suffix)) ||
     mime.getType(suffix) ||
-    nitro.options.scanSuffixes?.includes(suffix) ||
+    fastnode.options.scanSuffixes?.includes(suffix) ||
     (!methodSuffixes.has(suffix) &&
       !envSuffixes.has(suffix) &&
       orderPrefixRe.test(result.name.slice(0, -suffix.length - 1)))
@@ -68,10 +68,10 @@ export function parseScanPath(
   const message =
     methodSuffixes.has(suffix) || envSuffixes.has(suffix)
       ? `The \`.${suffix}\` suffix is not supported in \`${file.dir}/\` (\`${filePath}\`).`
-      : `Unknown suffix \`.${suffix}\` in \`${filePath}\`. Nitro reserves dotted suffixes in scanned file names; known file extensions (e.g. \`.json\`, \`.md\`) are kept as-is. Add \`"${suffix}"\` to the \`scanSuffixes\` config to keep it as part of the name.`;
+      : `Unknown suffix \`.${suffix}\` in \`${filePath}\`. Fastnode reserves dotted suffixes in scanned file names; known file extensions (e.g. \`.json\`, \`.md\`) are kept as-is. Add \`"${suffix}"\` to the \`scanSuffixes\` config to keep it as part of the name.`;
 
-  if (nitro.options.dev) {
-    nitro.logger.error(`${message} The file is ignored.`);
+  if (fastnode.options.dev) {
+    fastnode.logger.error(`${message} The file is ignored.`);
     return;
   }
   throw new Error(message);

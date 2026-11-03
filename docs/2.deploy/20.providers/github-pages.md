@@ -1,6 +1,6 @@
 # GitHub Pages
 
-> Deploy Nitro apps to GitHub Pages.
+> Deploy Fastnode apps to GitHub Pages.
 
 **Preset:** `github_pages`
 
@@ -37,7 +37,7 @@ jobs:
       - run: npx nypm install
       - run: npm run build
         env:
-          NITRO_PRESET: github_pages
+          FASTNODE_PRESET: github_pages
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5

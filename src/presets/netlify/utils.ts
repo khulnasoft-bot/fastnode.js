@@ -1,22 +1,22 @@
 import { existsSync, promises as fsp } from "node:fs";
-import type { Nitro, PublicAssetDir } from "nitro/types";
+import type { Fastnode, PublicAssetDir } from "fastnode/types";
 import { dirname, join } from "pathe";
 import { joinURL, withoutTrailingSlash } from "ufo";
 import { escapeRegExp } from "../../utils/regex.ts";
 import { getPublicAssetCorsHeaders } from "../_utils/cors.ts";
 import { hasHeaders, routeToSplat, skipUnsupportedRoute, sortRoutes } from "../_utils/routes.ts";
 
-export async function writeRedirects(nitro: Nitro) {
+export async function writeRedirects(fastnode: Fastnode) {
   let contents = "";
 
   // Most specific first, as the first matching rule wins
-  const routes = sortRoutes(Object.keys(nitro.options.routeRules));
-  const redirects = routes.filter((key) => nitro.options.routeRules[key].redirect);
+  const routes = sortRoutes(Object.keys(fastnode.options.routeRules));
+  const redirects = routes.filter((key) => fastnode.options.routeRules[key].redirect);
   for (const key of routes) {
-    const redirect = nitro.options.routeRules[key].redirect;
+    const redirect = fastnode.options.routeRules[key].redirect;
     if (
       !redirect ||
-      skipUnsupportedRoute(nitro, { route: key, file: "_redirects", routes: redirects })
+      skipUnsupportedRoute(fastnode, { route: key, file: "_redirects", routes: redirects })
     ) {
       continue;
     }
@@ -30,27 +30,30 @@ export async function writeRedirects(nitro: Nitro) {
     if (code === 308) {
       code = 301;
     }
-    const from = joinURL(nitro.options.baseURL, routeToSplat(key));
+    const from = joinURL(fastnode.options.baseURL, routeToSplat(key));
     contents += `${from}\t${redirect.to.replaceAll("**", ":splat")}\t${code}\n`;
   }
 
-  if (nitro.options.static && existsSync(join(nitro.options.output.publicDir, "404.html"))) {
-    contents += `${joinURL(nitro.options.baseURL, "/*")} ${joinURL(nitro.options.baseURL, "/404.html")} 404`;
+  if (fastnode.options.static && existsSync(join(fastnode.options.output.publicDir, "404.html"))) {
+    contents += `${joinURL(fastnode.options.baseURL, "/*")} ${joinURL(fastnode.options.baseURL, "/404.html")} 404`;
   }
 
-  await writePublishFile(nitro, "_redirects", contents);
+  await writePublishFile(fastnode, "_redirects", contents);
 }
 
-export async function writeHeaders(nitro: Nitro) {
+export async function writeHeaders(fastnode: Fastnode) {
   let contents = "";
 
-  for (const path of sortRoutes(Object.keys(nitro.options.routeRules))) {
-    const routeRules = nitro.options.routeRules[path];
-    if (!hasHeaders(routeRules) || skipUnsupportedRoute(nitro, { route: path, file: "_headers" })) {
+  for (const path of sortRoutes(Object.keys(fastnode.options.routeRules))) {
+    const routeRules = fastnode.options.routeRules[path];
+    if (
+      !hasHeaders(routeRules) ||
+      skipUnsupportedRoute(fastnode, { route: path, file: "_headers" })
+    ) {
       continue;
     }
     const headers = [
-      joinURL(nitro.options.baseURL, routeToSplat(path)),
+      joinURL(fastnode.options.baseURL, routeToSplat(path)),
       ...Object.entries({ ...routeRules.headers }).map(
         ([header, value]) => `  ${header}: ${value}`
       ),
@@ -59,23 +62,23 @@ export async function writeHeaders(nitro: Nitro) {
     contents += headers + "\n";
   }
 
-  const userHeadersPath = join(nitro.options.output.publicDir, "_headers");
+  const userHeadersPath = join(fastnode.options.output.publicDir, "_headers");
   const headersFile = existsSync(userHeadersPath)
     ? await fsp.readFile(userHeadersPath, "utf8")
     : undefined;
-  for (const { base, headers } of getPublicAssetCorsHeaders(nitro, { headersFile })) {
+  for (const { base, headers } of getPublicAssetCorsHeaders(fastnode, { headersFile })) {
     contents +=
       [
-        joinURL(nitro.options.baseURL, base, "*"),
+        joinURL(fastnode.options.baseURL, base, "*"),
         ...Object.entries(headers).map(([header, value]) => `  ${header}: ${value}`),
       ].join("\n") + "\n";
   }
 
-  await writePublishFile(nitro, "_headers", contents);
+  await writePublishFile(fastnode, "_headers", contents);
 }
 
-export async function writeConfig(nitro: Nitro, configPath: string) {
-  const netlify = nitro.options.netlify;
+export async function writeConfig(fastnode: Fastnode, configPath: string) {
+  const netlify = fastnode.options.netlify;
   if (Object.keys(netlify?.config || {}).length === 0) {
     await fsp.rm(configPath, { force: true });
     return;
@@ -97,35 +100,35 @@ export function getStaticPaths(publicAssets: PublicAssetDir[], baseURL: string):
 // along with its config. We do this instead of compiling the entrypoint directly because
 // the Netlify platform actually statically analyzes the function file to read the config;
 // if we compiled the entrypoint directly, it would be chunked and wouldn't be analyzable.
-export function generateNetlifyFunction(nitro: Nitro) {
+export function generateNetlifyFunction(fastnode: Fastnode) {
   return /* js */ `
 export { default } from "./main.mjs";
 export const config = {
   name: "server handler",
-  generator: "${getGeneratorString(nitro)}",
+  generator: "${getGeneratorString(fastnode)}",
   path: "/*",
   nodeBundler: "none",
   includedFiles: ["**"],
-  excludedPath: ${JSON.stringify(getStaticPaths(nitro.options.publicAssets, nitro.options.baseURL))},
+  excludedPath: ${JSON.stringify(getStaticPaths(fastnode.options.publicAssets, fastnode.options.baseURL))},
   preferStatic: true,
 };
     `.trim();
 }
 
-export function generateNetlifyEdgeFunction(nitro: Nitro) {
+export function generateNetlifyEdgeFunction(fastnode: Fastnode) {
   return /* js */ `
 export { default } from "./main.mjs";
 export const config = {
   name: "edge server handler",
-  generator: "${getGeneratorString(nitro)}",
+  generator: "${getGeneratorString(fastnode)}",
   path: "/*",
-  excludedPath: ${JSON.stringify(getStaticPaths(nitro.options.publicAssets, nitro.options.baseURL))},
+  excludedPath: ${JSON.stringify(getStaticPaths(fastnode.options.publicAssets, fastnode.options.baseURL))},
 };
     `.trim();
 }
 
-export function getGeneratorString(nitro: Nitro) {
-  return `${nitro.options.framework.name}@${nitro.options.framework.version}`;
+export function getGeneratorString(fastnode: Fastnode) {
+  return `${fastnode.options.framework.name}@${fastnode.options.framework.version}`;
 }
 
 /**
@@ -136,9 +139,13 @@ export function getGeneratorString(nitro: Nitro) {
  * user's file is read from there and moved to the root. The root copy itself
  * is never read: it is the output of a previous build.
  */
-async function writePublishFile(nitro: Nitro, name: "_redirects" | "_headers", contents: string) {
-  const sourcePath = join(nitro.options.output.publicDir, name);
-  const targetPath = join(getPublishDir(nitro), name);
+async function writePublishFile(
+  fastnode: Fastnode,
+  name: "_redirects" | "_headers",
+  contents: string
+) {
+  const sourcePath = join(fastnode.options.output.publicDir, name);
+  const targetPath = join(getPublishDir(fastnode), name);
 
   if (existsSync(sourcePath)) {
     const current = await fsp.readFile(sourcePath, "utf8");
@@ -146,16 +153,18 @@ async function writePublishFile(nitro: Nitro, name: "_redirects" | "_headers", c
       await fsp.rm(sourcePath);
     }
     const fallbackRE = new RegExp(
-      `^(?:/|${escapeRegExp(joinURL(nitro.options.baseURL, "/"))})\\* `,
+      `^(?:/|${escapeRegExp(joinURL(fastnode.options.baseURL, "/"))})\\* `,
       "m"
     );
     if (fallbackRE.test(current)) {
-      nitro.logger.info(
-        `Not adding Nitro fallback to \`${name}\` (as an existing fallback was found).`
+      fastnode.logger.info(
+        `Not adding Fastnode fallback to \`${name}\` (as an existing fallback was found).`
       );
       contents = current;
     } else {
-      nitro.logger.info(`Adding Nitro fallback to \`${name}\` to handle all unmatched routes.`);
+      fastnode.logger.info(
+        `Adding Fastnode fallback to \`${name}\` to handle all unmatched routes.`
+      );
       contents = current + "\n" + contents;
     }
   }
@@ -164,8 +173,8 @@ async function writePublishFile(nitro: Nitro, name: "_redirects" | "_headers", c
 }
 
 // Public assets are output to `dist/{{ baseURL }}`, unless `publicDir` is customized
-function getPublishDir(nitro: Nitro) {
-  const publicDir = withoutTrailingSlash(nitro.options.output.publicDir);
-  const base = withoutTrailingSlash(nitro.options.baseURL);
+function getPublishDir(fastnode: Fastnode) {
+  const publicDir = withoutTrailingSlash(fastnode.options.output.publicDir);
+  const base = withoutTrailingSlash(fastnode.options.baseURL);
   return base && publicDir.endsWith(base) ? publicDir.slice(0, -base.length) : publicDir;
 }

@@ -927,7 +927,7 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
-  nitro@3.0.261029-rc:
+  fastnode@3.0.261029-rc:
     resolution: {integrity: sha512-BQvzAV0HgcsJCkDqZAbGYlGNi9ALJznhsihugYAIi+8IcItz320FNaxbAJvn/pMNxGOYo2MGs10mTU9tcnB9jQ==}
     engines: {node: '>=22.22.0'}
     hasBin: true
@@ -1887,7 +1887,7 @@ snapshots:
 
   nanoid@3.3.20: {}
 
-  nitro@3.0.261029-rc:
+  fastnode@3.0.261029-rc:
     dependencies:
       crossws: 0.4.17(srvx@1.0.8)
       env-runner: 0.3.11
@@ -2040,7 +2040,7 @@ snapshots:
       mermaid-compact: 0.0.1
       minisearch: 7.2.0
       motion-v: 2.10.0(@vueuse/core@15.0.0(vue@3.5.44))(vue@3.5.44)
-      nitro: 3.0.261029-rc
+      fastnode: 3.0.261029-rc
       nypm: 0.6.12
       ofetch: 1.5.1
       rangi: 2.2.0

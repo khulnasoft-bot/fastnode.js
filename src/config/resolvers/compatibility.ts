@@ -1,6 +1,6 @@
-import type { NitroOptions } from "nitro/types";
+import type { FastnodeOptions } from "fastnode/types";
 import { resolveCompatibilityDatesFromEnv } from "compatx";
 
-export async function resolveCompatibilityOptions(options: NitroOptions) {
+export async function resolveCompatibilityOptions(options: FastnodeOptions) {
   options.compatibilityDate = resolveCompatibilityDatesFromEnv(options.compatibilityDate);
 }

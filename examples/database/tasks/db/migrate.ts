@@ -1,5 +1,5 @@
-import { defineTask } from "nitro/task";
-import { useDatabase } from "nitro/database";
+import { defineTask } from "fastnode/task";
+import { useDatabase } from "fastnode/database";
 
 export default defineTask({
   meta: {

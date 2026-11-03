@@ -46,13 +46,13 @@ export default defineBuildConfig({
       minifyLibs: true,
       dts: { entry: "src/runtime/**/*.ts", generator: "oxc" },
       rolldown: {
-        // Keep side-effect imports of virtual modules (e.g. `import "#nitro/virtual/polyfills"`)
+        // Keep side-effect imports of virtual modules (e.g. `import "#fastnode/virtual/polyfills"`)
         treeshake: {
           moduleSideEffects: (id, external) => (external ? id.startsWith("#") : undefined),
         },
         plugins: [
           {
-            name: "nitro:runtime-chunks",
+            name: "fastnode:runtime-chunks",
             outputOptions: (o) => ({
               ...o,
               chunkFileNames: (chunk) =>
@@ -61,7 +61,7 @@ export default defineBuildConfig({
             // Polyfills are always imported first in source, but rolldown hoists chunk and other
             // external imports above them. Move them back so they still evaluate first.
             renderChunk(code) {
-              const polyfillsImport = `import "#nitro/virtual/polyfills";\n`;
+              const polyfillsImport = `import "#fastnode/virtual/polyfills";\n`;
               if (code.includes(polyfillsImport)) {
                 return polyfillsImport + code.replace(polyfillsImport, "");
               }
@@ -107,8 +107,8 @@ export default defineBuildConfig({
 
       config.external ??= [];
       (config.external as (string | RegExp)[]).push(
-        "nitro",
-        ...Object.keys(pkg.exports || {}).map((key) => key.replace(/^./, "nitro")),
+        "fastnode",
+        ...Object.keys(pkg.exports || {}).map((key) => key.replace(/^./, "fastnode")),
         ...Object.keys(pkg.dependencies),
         ...optionalDeps,
         "typescript",
@@ -171,7 +171,7 @@ export default defineBuildConfig({
         if (chunk.moduleIds.every((id) => /src[/\\](runner|dev|runtime)/.test(id))) {
           return `_chunks/dev.mjs`;
         }
-        return "_chunks/nitro.mjs";
+        return "_chunks/fastnode.mjs";
       };
     },
     async end() {
@@ -203,7 +203,7 @@ export default defineBuildConfig({
       // Vite types
       await writeFile(
         "dist/vite.d.mts",
-        `import "vite/client";\nimport "nitro/vite/types";\n${await readFile("dist/vite.d.mts", "utf8")}`
+        `import "vite/client";\nimport "fastnode/vite/types";\n${await readFile("dist/vite.d.mts", "utf8")}`
       );
     },
   },

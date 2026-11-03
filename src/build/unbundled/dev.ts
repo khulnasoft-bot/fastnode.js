@@ -1,4 +1,4 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import { formatCompatibilityDate } from "compatx";
 import { normalize } from "pathe";
 import { withTrailingSlash } from "ufo";
@@ -14,35 +14,35 @@ const ignoredRe = /(?:^|\/)(?:node_modules|\.[^/]+)(?:\/|$)/;
 // Files that can be part of the server: scripts, and files imported as text, bytes or WASM
 const sourceRe = /\.(?:[cm]?[jt]sx?|json|wasm|txt|html|md|ya?ml|toml|sql)$/;
 
-export async function watchDev(nitro: Nitro) {
-  nitro.logger.info(
-    `Starting dev server without a builder (preset: \`${nitro.options.preset}\`, compatibility date: \`${formatCompatibilityDate(nitro.options.compatibilityDate)}\`)`
+export async function watchDev(fastnode: Fastnode) {
+  fastnode.logger.info(
+    `Starting dev server without a builder (preset: \`${fastnode.options.preset}\`, compatibility date: \`${formatCompatibilityDate(fastnode.options.compatibilityDate)}\`)`
   );
 
-  const plugins = await unbundledPlugins(nitro);
+  const plugins = await unbundledPlugins(fastnode);
 
   async function load() {
-    await nitro.hooks.callHook("dev:start");
+    await fastnode.hooks.callHook("dev:start");
     try {
-      await scanHandlers(nitro);
-      nitro.routing.sync();
-      const { entry, virtual } = await prepareUnbundledApp(nitro);
-      await nitro.hooks.callHook("compiled", nitro);
-      await nitro.hooks.callHook("dev:reload", { entry, workerData: { virtual }, plugins });
+      await scanHandlers(fastnode);
+      fastnode.routing.sync();
+      const { entry, virtual } = await prepareUnbundledApp(fastnode);
+      await fastnode.hooks.callHook("compiled", fastnode);
+      await fastnode.hooks.callHook("dev:reload", { entry, workerData: { virtual }, plugins });
     } catch (error) {
-      nitro.logger.error(error);
-      await nitro.hooks.callHook("dev:error", error);
+      fastnode.logger.error(error);
+      await fastnode.hooks.callHook("dev:error", error);
     }
   }
   const reload = debounce(load);
 
   // Without a module graph, any source change starts a fresh worker
-  const { rootDir, scanDirs, buildDir, output, publicAssets, watchOptions } = nitro.options;
+  const { rootDir, scanDirs, buildDir, output, publicAssets, watchOptions } = fastnode.options;
   const watchDirs = [...new Set([rootDir, ...scanDirs].map((dir) => withTrailingSlash(dir)))];
   const ignoredDirs = [buildDir, output.dir, ...publicAssets.map((asset) => asset.dir)].map((dir) =>
     withTrailingSlash(dir)
   );
-  const watcher = createWatcher(nitro, watchDirs, {
+  const watcher = createWatcher(fastnode, watchDirs, {
     ignoreInitial: true,
     ...watchOptions,
     ignored: [
@@ -62,8 +62,8 @@ export async function watchDev(nitro: Nitro) {
     }
   });
 
-  nitro.hooks.hook("close", () => watcher.close());
-  nitro.hooks.hook("build:reload", () => reload());
+  fastnode.hooks.hook("close", () => watcher.close());
+  fastnode.hooks.hook("build:reload", () => reload());
 
   await load();
 }

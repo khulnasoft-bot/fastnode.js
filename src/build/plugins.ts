@@ -1,4 +1,4 @@
-import type { Nitro, NitroBuildPlugin, NitroBuildPluginOption } from "nitro/types";
+import type { Fastnode, FastnodeBuildPlugin, FastnodeBuildPluginOption } from "fastnode/types";
 import type { Plugin } from "rollup";
 import type { BaseBuildConfig } from "./config.ts";
 import type { ExternalsTraceOptions } from "nf3";
@@ -17,71 +17,72 @@ import { unenv } from "./plugins/unenv.ts";
 import { runtimeDeps } from "./plugins/runtime-deps.ts";
 import { tsconfigPaths } from "./plugins/tsconfig-paths.ts";
 
-export async function baseBuildPlugins(nitro: Nitro, base: BaseBuildConfig) {
+export async function baseBuildPlugins(fastnode: Fastnode, base: BaseBuildConfig) {
   const plugins: Plugin[] = [];
 
   // Virtual
-  const virtualPlugin = virtual(virtualTemplates(nitro, [...base.env.polyfills]));
-  nitro.vfs = virtualPlugin.api.modules;
+  const virtualPlugin = virtual(virtualTemplates(fastnode, [...base.env.polyfills]));
+  fastnode.vfs = virtualPlugin.api.modules;
   plugins.push(virtualPlugin, virtualDeps());
 
   // TypeScript `paths`
-  const tsconfigPathsPlugin = tsconfigPaths(nitro, base.aliases);
+  const tsconfigPathsPlugin = tsconfigPaths(fastnode, base.aliases);
   if (tsconfigPathsPlugin) {
     plugins.push(tsconfigPathsPlugin);
   }
 
   // Node.js compatibility polyfills (resolved on demand)
-  plugins.push(unenv(nitro, base.env));
+  plugins.push(unenv(fastnode, base.env));
 
-  // Optional runtime dependencies (`unstorage`, `db0`) imported by Nitro (resolved on demand)
-  plugins.push(runtimeDeps(nitro));
+  // Optional runtime dependencies (`unstorage`, `db0`) imported by Fastnode (resolved on demand)
+  plugins.push(runtimeDeps(fastnode));
 
   // WASM loader
-  if (nitro.options.wasm !== false) {
-    plugins.push(unwasm(nitro.options.wasm || {}));
+  if (fastnode.options.wasm !== false) {
+    plugins.push(unwasm(fastnode.options.wasm || {}));
   }
 
   // Inject globalThis.__server_main__
-  plugins.push(serverMain(nitro));
+  plugins.push(serverMain(fastnode));
 
   // Raw Imports
-  plugins.push(await importAttributes(nitro), raw());
+  plugins.push(await importAttributes(fastnode), raw());
 
   // Route meta
-  if (nitro.options.experimental.openAPI) {
-    plugins.push(await routeMeta(nitro));
+  if (fastnode.options.experimental.openAPI) {
+    plugins.push(await routeMeta(fastnode));
   }
 
   // Replace
   plugins.push(replace(base.replacements));
 
   // Externals (require Node.js compatible resolution)
-  if (nitro.options.node && nitro.options.noExternals !== true) {
-    const isDevOrPrerender = nitro.options.dev || nitro.options.preset === "nitro-prerender";
+  if (fastnode.options.node && fastnode.options.noExternals !== true) {
+    const isDevOrPrerender =
+      fastnode.options.dev || fastnode.options.preset === "fastnode-prerender";
     plugins.push(
       externals({
-        rootDir: nitro.options.rootDir,
-        conditions: nitro.options.exportConditions!,
-        include: nitro.options.traceDeps || [],
+        rootDir: fastnode.options.rootDir,
+        conditions: fastnode.options.exportConditions!,
+        include: fastnode.options.traceDeps || [],
         exclude: [...base.noExternal],
         trace: isDevOrPrerender
           ? false
           : {
-              // `nitro/types` has its own bundled copy of the `nf3` types
-              ...(nitro.options.traceOpts as Partial<ExternalsTraceOptions>),
-              outDir: nitro.options.output.serverDir,
+              // `fastnode/types` has its own bundled copy of the `nf3` types
+              ...(fastnode.options.traceOpts as Partial<ExternalsTraceOptions>),
+              outDir: fastnode.options.output.serverDir,
             },
       })
     );
   }
 
   // Sourcemap
-  if (nitro.options.sourcemap && !nitro.options.dev) {
+  if (fastnode.options.sourcemap && !fastnode.options.dev) {
     plugins.push(
       sourcemap({
         virtualIds: virtualPlugin.api.modules.keys(),
-        minify: nitro.options.experimental.sourcemapMinify !== false,
+        minify: fastnode.options.experimental.sourcemapMinify !== false,
       })
     );
   }
@@ -89,21 +90,21 @@ export async function baseBuildPlugins(nitro: Nitro, base: BaseBuildConfig) {
   return plugins;
 }
 
-/** Nitro's `plugins` wrapped with the `buildPlugins` (ordered by `enforce`). */
-export async function withBuildPlugins<T>(nitro: Nitro, plugins: T[]): Promise<T[]> {
-  const buildPlugins = await resolveBuildPlugins(nitro);
+/** Fastnode's `plugins` wrapped with the `buildPlugins` (ordered by `enforce`). */
+export async function withBuildPlugins<T>(fastnode: Fastnode, plugins: T[]): Promise<T[]> {
+  const buildPlugins = await resolveBuildPlugins(fastnode);
   const byEnforce = (enforce?: "pre" | "post") =>
     buildPlugins.filter((p) => p.enforce === enforce) as T[];
   return [...byEnforce("pre"), ...plugins, ...byEnforce(), ...byEnforce("post")];
 }
 
 /** Flattened `buildPlugins` (nested arrays and promises resolved, falsy entries skipped). */
-export async function resolveBuildPlugins(nitro: Nitro): Promise<NitroBuildPlugin[]> {
-  return flatPlugins(nitro.options.buildPlugins || []);
+export async function resolveBuildPlugins(fastnode: Fastnode): Promise<FastnodeBuildPlugin[]> {
+  return flatPlugins(fastnode.options.buildPlugins || []);
 }
 
-async function flatPlugins(options: NitroBuildPluginOption[]): Promise<NitroBuildPlugin[]> {
-  const plugins: NitroBuildPlugin[] = [];
+async function flatPlugins(options: FastnodeBuildPluginOption[]): Promise<FastnodeBuildPlugin[]> {
+  const plugins: FastnodeBuildPlugin[] = [];
   for (const entry of options) {
     const option = await entry;
     if (Array.isArray(option)) {

@@ -1,11 +1,11 @@
-import type { NitroOptions } from "./config.ts";
+import type { FastnodeOptions } from "./config.ts";
 
-export interface NitroImportMeta {
+export interface FastnodeImportMeta {
   dev?: boolean;
   envName?: string;
-  preset?: NitroOptions["preset"];
+  preset?: FastnodeOptions["preset"];
   prerender?: boolean;
-  nitro?: boolean;
+  fastnode?: boolean;
   server?: boolean;
   client?: boolean;
   baseURL?: string;
@@ -16,7 +16,7 @@ export interface NitroImportMeta {
 }
 
 declare global {
-  interface ImportMeta extends NitroImportMeta {}
+  interface ImportMeta extends FastnodeImportMeta {}
 }
 
 // eslint-disable-next-line unicorn/require-module-specifiers

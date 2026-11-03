@@ -1,8 +1,8 @@
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
 export default defineConfig({
-  plugins: [nitro({ prerender: { routes: ["/"] } })],
+  plugins: [fastnode({ prerender: { routes: ["/"] } })],
   environments: {
     client: {
       build: { rollupOptions: { input: "src/entry-client.ts" } },

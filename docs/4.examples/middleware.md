@@ -12,8 +12,8 @@ icon: i-lucide-layers
 
 ::code-tree{defaultValue="server/middleware/auth.ts" expandAll}
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   serverDir: true,
@@ -24,18 +24,18 @@ export default defineConfig({
 {
   "type": "module",
   "scripts": {
-    "dev": "nitro dev",
-    "build": "nitro build"
+    "dev": "fastnode dev",
+    "build": "fastnode build"
   },
   "devDependencies": {
-    "nitro": "latest",
+    "fastnode": "latest",
     "rolldown": "latest"
   }
 }
 ```
 
 ```ts [server.ts]
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 
 export default defineHandler((event) => ({
   auth: event.context.auth,
@@ -44,19 +44,19 @@ export default defineHandler((event) => ({
 
 ```json [tsconfig.json]
 {
-  "extends": "nitro/tsconfig"
+  "extends": "fastnode/tsconfig"
 }
 ```
 
 ```ts [vite.config.ts]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
-export default defineConfig({ plugins: [nitro()] });
+export default defineConfig({ plugins: [fastnode()] });
 ```
 
 ```ts [server/middleware/auth.ts]
-import { defineMiddleware } from "nitro";
+import { defineMiddleware } from "fastnode";
 
 export default defineMiddleware((event) => {
   event.context.auth = { name: "User " + Math.round(Math.random() * 100) };
@@ -76,7 +76,7 @@ Middleware functions run before route handlers on every request. They can modify
 Create files in `server/middleware/`. They run in alphabetical order:
 
 ```ts [server/middleware/auth.ts]
-import { defineMiddleware } from "nitro";
+import { defineMiddleware } from "fastnode";
 
 export default defineMiddleware((event) => {
   event.context.auth = { name: "User " + Math.round(Math.random() * 100) };
@@ -93,7 +93,7 @@ Middleware can:
 Data added to `event.context` in middleware is available in all subsequent handlers:
 
 ```ts [server.ts]
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 
 export default defineHandler((event) => ({
   auth: event.context.auth,

@@ -1,4 +1,4 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import type { RolldownWatcher, RolldownOptions } from "rolldown";
 import { basename, join } from "pathe";
 import { debounce } from "perfect-debounce";
@@ -7,7 +7,7 @@ import { createWatcher } from "../../utils/watch.ts";
 import { formatCompatibilityDate } from "compatx";
 
 export async function watchDev(
-  nitro: Nitro,
+  fastnode: Fastnode,
   config: RolldownOptions,
   rolldown: typeof import("rolldown")
 ) {
@@ -17,22 +17,22 @@ export async function watchDev(
     if (watcher) {
       await watcher.close();
     }
-    await scanHandlers(nitro);
-    nitro.routing.sync();
-    watcher = startWatcher(nitro, config);
+    await scanHandlers(fastnode);
+    fastnode.routing.sync();
+    watcher = startWatcher(fastnode, config);
   }
   const reload = debounce(load);
 
-  const scanDirs = nitro.options.scanDirs.flatMap((dir) => [
-    join(dir, nitro.options.apiDir || "api"),
-    join(dir, nitro.options.routesDir || "routes"),
+  const scanDirs = fastnode.options.scanDirs.flatMap((dir) => [
+    join(dir, fastnode.options.apiDir || "api"),
+    join(dir, fastnode.options.routesDir || "routes"),
     join(dir, "middleware"),
     join(dir, "plugins"),
     join(dir, "modules"),
   ]);
 
   const watchReloadEvents = new Set(["add", "addDir", "unlink", "unlinkDir"]);
-  const scanDirsWatcher = createWatcher(nitro, scanDirs, {
+  const scanDirsWatcher = createWatcher(fastnode, scanDirs, {
     ignoreInitial: true,
   }).on("all", (event) => {
     if (watchReloadEvents.has(event)) {
@@ -41,7 +41,7 @@ export async function watchDev(
   });
 
   const serverEntryRe = /^server\.[mc]?[jt]sx?$/;
-  const rootDirWatcher = createWatcher(nitro, nitro.options.rootDir, {
+  const rootDirWatcher = createWatcher(fastnode, fastnode.options.rootDir, {
     ignoreInitial: true,
     depth: 0,
   }).on("all", (event, path) => {
@@ -50,21 +50,21 @@ export async function watchDev(
     }
   });
 
-  nitro.hooks.hook("close", () => {
+  fastnode.hooks.hook("close", () => {
     watcher.close();
     scanDirsWatcher.close();
     rootDirWatcher.close();
   });
 
-  nitro.hooks.hook("build:reload", () => reload());
+  fastnode.hooks.hook("build:reload", () => reload());
 
-  nitro.logger.info(
-    `Starting dev watcher (builder: \`rolldown\`, preset: \`${nitro.options.preset}\`, compatibility date: \`${formatCompatibilityDate(nitro.options.compatibilityDate)}\`)`
+  fastnode.logger.info(
+    `Starting dev watcher (builder: \`rolldown\`, preset: \`${fastnode.options.preset}\`, compatibility date: \`${formatCompatibilityDate(fastnode.options.compatibilityDate)}\`)`
   );
 
   await load();
 
-  function startWatcher(nitro: Nitro, config: RolldownOptions) {
+  function startWatcher(fastnode: Fastnode, config: RolldownOptions) {
     const watcher = rolldown.watch(config);
 
     let start: number;
@@ -75,20 +75,20 @@ export async function watchDev(
       switch (event.code) {
         case "START": {
           start = Date.now();
-          nitro.hooks.callHook("dev:start");
+          fastnode.hooks.callHook("dev:start");
           break;
         }
         case "BUNDLE_END": {
-          nitro.hooks.callHook("compiled", nitro);
-          if (nitro.options.logging.buildSuccess) {
-            nitro.logger.success(`Server built`, start ? `in ${Date.now() - start}ms` : "");
+          fastnode.hooks.callHook("compiled", fastnode);
+          if (fastnode.options.logging.buildSuccess) {
+            fastnode.logger.success(`Server built`, start ? `in ${Date.now() - start}ms` : "");
           }
-          nitro.hooks.callHook("dev:reload");
+          fastnode.hooks.callHook("dev:reload");
           break;
         }
         case "ERROR": {
-          nitro.logger.error(event.error);
-          nitro.hooks.callHook("dev:error", event.error);
+          fastnode.logger.error(event.error);
+          fastnode.hooks.callHook("dev:error", event.error);
         }
       }
     });

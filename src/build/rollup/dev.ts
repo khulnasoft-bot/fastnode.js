@@ -1,4 +1,4 @@
-import type { Nitro, RollupConfig } from "nitro/types";
+import type { Fastnode, RollupConfig } from "fastnode/types";
 import type { RollupOptions, RollupWatcher } from "rollup";
 import { defu } from "defu";
 import { basename, join } from "pathe";
@@ -9,8 +9,8 @@ import { formatRollupError } from "./error.ts";
 import { formatCompatibilityDate } from "compatx";
 import { importRollup } from "./_import.ts";
 
-export async function watchDev(nitro: Nitro, rollupConfig: RollupConfig) {
-  const rollup = await importRollup(nitro);
+export async function watchDev(fastnode: Fastnode, rollupConfig: RollupConfig) {
+  const rollup = await importRollup(fastnode);
 
   let rollupWatcher: RollupWatcher;
 
@@ -18,22 +18,22 @@ export async function watchDev(nitro: Nitro, rollupConfig: RollupConfig) {
     if (rollupWatcher) {
       await rollupWatcher.close();
     }
-    await scanHandlers(nitro);
-    nitro.routing.sync();
-    rollupWatcher = startRollupWatcher(nitro, rollupConfig);
+    await scanHandlers(fastnode);
+    fastnode.routing.sync();
+    rollupWatcher = startRollupWatcher(fastnode, rollupConfig);
   }
   const reload = debounce(load);
 
-  const scanDirs = nitro.options.scanDirs.flatMap((dir) => [
-    join(dir, nitro.options.apiDir || "api"),
-    join(dir, nitro.options.routesDir || "routes"),
+  const scanDirs = fastnode.options.scanDirs.flatMap((dir) => [
+    join(dir, fastnode.options.apiDir || "api"),
+    join(dir, fastnode.options.routesDir || "routes"),
     join(dir, "middleware"),
     join(dir, "plugins"),
     join(dir, "modules"),
   ]);
 
   const watchReloadEvents = new Set(["add", "addDir", "unlink", "unlinkDir"]);
-  const scanDirsWatcher = createWatcher(nitro, scanDirs, {
+  const scanDirsWatcher = createWatcher(fastnode, scanDirs, {
     ignoreInitial: true,
   }).on("all", (event, path, stat) => {
     if (watchReloadEvents.has(event)) {
@@ -42,7 +42,7 @@ export async function watchDev(nitro: Nitro, rollupConfig: RollupConfig) {
   });
 
   const serverEntryRe = /^server\.[mc]?[jt]sx?$/;
-  const rootDirWatcher = createWatcher(nitro, nitro.options.rootDir, {
+  const rootDirWatcher = createWatcher(fastnode, fastnode.options.rootDir, {
     ignoreInitial: true,
     depth: 0,
   }).on("all", (event, path) => {
@@ -51,25 +51,25 @@ export async function watchDev(nitro: Nitro, rollupConfig: RollupConfig) {
     }
   });
 
-  nitro.hooks.hook("close", () => {
+  fastnode.hooks.hook("close", () => {
     rollupWatcher.close();
     scanDirsWatcher.close();
     rootDirWatcher.close();
   });
 
-  nitro.hooks.hook("build:reload", () => reload());
+  fastnode.hooks.hook("build:reload", () => reload());
 
-  nitro.logger.info(
-    `Starting dev watcher (builder: \`rollup\`, preset: \`${nitro.options.preset}\`, compatibility date: \`${formatCompatibilityDate(nitro.options.compatibilityDate)}\`)`
+  fastnode.logger.info(
+    `Starting dev watcher (builder: \`rollup\`, preset: \`${fastnode.options.preset}\`, compatibility date: \`${formatCompatibilityDate(fastnode.options.compatibilityDate)}\`)`
   );
 
   await load();
 
-  function startRollupWatcher(nitro: Nitro, rollupConfig: RollupConfig) {
+  function startRollupWatcher(fastnode: Fastnode, rollupConfig: RollupConfig) {
     const watcher = rollup.watch(
       defu(rollupConfig as RollupOptions, {
         watch: {
-          chokidar: nitro.options.watchOptions,
+          chokidar: fastnode.options.watchOptions,
         },
       })
     );
@@ -81,20 +81,20 @@ export async function watchDev(nitro: Nitro, rollupConfig: RollupConfig) {
       switch (event.code) {
         case "START": {
           start = Date.now();
-          nitro.hooks.callHook("dev:start");
+          fastnode.hooks.callHook("dev:start");
           break;
         }
         case "BUNDLE_END": {
-          nitro.hooks.callHook("compiled", nitro);
-          if (nitro.options.logging.buildSuccess) {
-            nitro.logger.success(`Server built`, start ? `in ${Date.now() - start}ms` : "");
+          fastnode.hooks.callHook("compiled", fastnode);
+          if (fastnode.options.logging.buildSuccess) {
+            fastnode.logger.success(`Server built`, start ? `in ${Date.now() - start}ms` : "");
           }
-          nitro.hooks.callHook("dev:reload");
+          fastnode.hooks.callHook("dev:reload");
           break;
         }
         case "ERROR": {
-          nitro.logger.error(formatRollupError(event.error));
-          nitro.hooks.callHook("dev:error", event.error);
+          fastnode.logger.error(formatRollupError(event.error));
+          fastnode.hooks.callHook("dev:error", event.error);
         }
       }
     });

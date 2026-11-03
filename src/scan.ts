@@ -1,5 +1,5 @@
 import { glob } from "tinyglobby";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import { join, relative } from "pathe";
 import { withBase, withLeadingSlash, withoutTrailingSlash } from "ufo";
 import { parseScanPath } from "./utils/scan-suffix.ts";
@@ -21,25 +21,25 @@ const GLOB_MODULES_SCAN_PATTERN = [
 ];
 type FileInfo = { path: string; fullPath: string };
 
-export async function scanAndSyncOptions(nitro: Nitro) {
+export async function scanAndSyncOptions(fastnode: Fastnode) {
   // Scan plugins
-  const scannedPlugins = await scanPlugins(nitro);
+  const scannedPlugins = await scanPlugins(fastnode);
   for (const plugin of scannedPlugins) {
-    if (!nitro.options.plugins.includes(plugin)) {
-      nitro.options.plugins.push(plugin);
+    if (!fastnode.options.plugins.includes(plugin)) {
+      fastnode.options.plugins.push(plugin);
     }
   }
 
   // Scan tasks
-  if (nitro.options.experimental.tasks) {
-    const scannedTasks = await scanTasks(nitro);
+  if (fastnode.options.experimental.tasks) {
+    const scannedTasks = await scanTasks(fastnode);
     for (const scannedTask of scannedTasks) {
-      if (scannedTask.name in nitro.options.tasks) {
-        if (!nitro.options.tasks[scannedTask.name].handler) {
-          nitro.options.tasks[scannedTask.name].handler = scannedTask.handler;
+      if (scannedTask.name in fastnode.options.tasks) {
+        if (!fastnode.options.tasks[scannedTask.name].handler) {
+          fastnode.options.tasks[scannedTask.name].handler = scannedTask.handler;
         }
       } else {
-        nitro.options.tasks[scannedTask.name] = {
+        fastnode.options.tasks[scannedTask.name] = {
           handler: scannedTask.handler,
           description: "",
         };
@@ -48,25 +48,29 @@ export async function scanAndSyncOptions(nitro: Nitro) {
   }
 
   // Scan modules
-  const scannedModules = await scanModules(nitro);
-  nitro.options.modules = nitro.options.modules || [];
+  const scannedModules = await scanModules(fastnode);
+  fastnode.options.modules = fastnode.options.modules || [];
   for (const modPath of scannedModules) {
-    if (!nitro.options.modules.includes(modPath)) {
-      nitro.options.modules.push(modPath);
+    if (!fastnode.options.modules.includes(modPath)) {
+      fastnode.options.modules.push(modPath);
     }
   }
 }
 
-export async function scanHandlers(nitro: Nitro) {
-  const middleware = await scanMiddleware(nitro);
+export async function scanHandlers(fastnode: Fastnode) {
+  const middleware = await scanMiddleware(fastnode);
 
   const handlers = await Promise.all([
-    scanServerRoutes(nitro, nitro.options.apiDir || "api", nitro.options.apiBaseURL || "/api"),
-    scanServerRoutes(nitro, nitro.options.routesDir || "routes"),
+    scanServerRoutes(
+      fastnode,
+      fastnode.options.apiDir || "api",
+      fastnode.options.apiBaseURL || "/api"
+    ),
+    scanServerRoutes(fastnode, fastnode.options.routesDir || "routes"),
   ]).then((r) => r.flat());
 
   const seenHandlers = new Set<string>();
-  nitro.scannedHandlers = [
+  fastnode.scannedHandlers = [
     ...middleware,
     ...handlers.filter((h) => {
       const key = `${h.route}\0${h.method}\0${h.env}`;
@@ -74,13 +78,13 @@ export async function scanHandlers(nitro: Nitro) {
     }),
   ];
 
-  nitro.routing.sync();
+  fastnode.routing.sync();
 
   return handlers;
 }
 
-export async function scanMiddleware(nitro: Nitro) {
-  const files = await scanFiles(nitro, "middleware");
+export async function scanMiddleware(fastnode: Fastnode) {
+  const files = await scanFiles(fastnode, "middleware");
   return files.map((file) => {
     return {
       route: "/**",
@@ -90,13 +94,13 @@ export async function scanMiddleware(nitro: Nitro) {
   });
 }
 
-export async function scanServerRoutes(nitro: Nitro, dir: string, prefix = "/") {
-  const files = await scanFiles(nitro, dir, { suffixes: { method: true, env: true } });
+export async function scanServerRoutes(fastnode: Fastnode, dir: string, prefix = "/") {
+  const files = await scanFiles(fastnode, dir, { suffixes: { method: true, env: true } });
   return files.map((file) => {
     const paramName = (name: string) => {
       const sanitized = name.replace(/\W/g, "_");
       if (name.includes("-")) {
-        nitro.logger.warn(
+        fastnode.logger.warn(
           `Route param \`[${name}]\` in \`${file.path}\` is available as \`params.${sanitized}\`, since param names cannot contain \`-\`. Rename it to silence this warning.`
         );
       }
@@ -121,13 +125,13 @@ export async function scanServerRoutes(nitro: Nitro, dir: string, prefix = "/") 
   });
 }
 
-export async function scanPlugins(nitro: Nitro) {
-  const files = await scanFiles(nitro, "plugins");
+export async function scanPlugins(fastnode: Fastnode) {
+  const files = await scanFiles(fastnode, "plugins");
   return files.map((f) => f.fullPath);
 }
 
-export async function scanTasks(nitro: Nitro) {
-  const files = await scanFiles(nitro, "tasks");
+export async function scanTasks(fastnode: Fastnode) {
+  const files = await scanFiles(fastnode, "tasks");
   return files.map((f) => {
     const name = f.path
       .replace(/\/index$/, "")
@@ -137,29 +141,29 @@ export async function scanTasks(nitro: Nitro) {
   });
 }
 
-export async function scanModules(nitro: Nitro) {
-  const files = await scanFiles(nitro, "modules", { pattern: GLOB_MODULES_SCAN_PATTERN });
+export async function scanModules(fastnode: Fastnode) {
+  const files = await scanFiles(fastnode, "modules", { pattern: GLOB_MODULES_SCAN_PATTERN });
   return files.map((f) => f.fullPath);
 }
 
 async function scanFiles(
-  nitro: Nitro,
+  fastnode: Fastnode,
   name: string,
   opts: { pattern?: string | string[]; suffixes?: ScanSuffixOptions } = {}
 ): Promise<(FileInfo & ParsedScanPath)[]> {
   const files = await Promise.all(
-    nitro.options.scanDirs.map((dir) =>
-      scanDir(nitro, dir, name, opts.pattern || GLOB_SCAN_PATTERN)
+    fastnode.options.scanDirs.map((dir) =>
+      scanDir(fastnode, dir, name, opts.pattern || GLOB_SCAN_PATTERN)
     )
   ).then((r) => r.flat());
   return files.flatMap((file) => {
-    const parsed = parseScanPath(nitro, { dir: name, path: file.path }, opts.suffixes);
+    const parsed = parseScanPath(fastnode, { dir: name, path: file.path }, opts.suffixes);
     return parsed ? [{ ...file, ...parsed }] : [];
   });
 }
 
 async function scanDir(
-  nitro: Nitro,
+  fastnode: Fastnode,
   dir: string,
   name: string,
   pattern: string | string[]
@@ -168,11 +172,11 @@ async function scanDir(
   const fileNames = await glob(patterns, {
     cwd: dir,
     dot: true,
-    ignore: [...GLOB_SCAN_IGNORE, ...(nitro.options.ignore || [])],
+    ignore: [...GLOB_SCAN_IGNORE, ...(fastnode.options.ignore || [])],
     absolute: true,
   }).catch((error) => {
     if (error?.code === "ENOTDIR") {
-      nitro.logger.warn(`Ignoring \`${join(dir, name)}\`. It must be a directory.`);
+      fastnode.logger.warn(`Ignoring \`${join(dir, name)}\`. It must be a directory.`);
       return [];
     }
     throw error;

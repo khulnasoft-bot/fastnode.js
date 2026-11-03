@@ -1,4 +1,4 @@
-import { defineWebSocketHandler } from "nitro";
+import { defineWebSocketHandler } from "fastnode";
 
 // Accepts the offered subprotocol, like a route proxying the HMR socket of an upstream Vite.
 export default defineWebSocketHandler({
@@ -7,6 +7,6 @@ export default defineWebSocketHandler({
     return protocol ? { protocol } : undefined;
   },
   open(peer) {
-    peer.send("nitro");
+    peer.send("fastnode");
   },
 });

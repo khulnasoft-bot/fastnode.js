@@ -3,7 +3,7 @@ import type { ViteDevServer } from "vite";
 import { describe, test, expect, beforeAll, afterAll } from "vitest";
 
 const { createServer } = (await import(
-  process.env.NITRO_VITE_PKG || "vite"
+  process.env.FASTNODE_VITE_PKG || "vite"
 )) as typeof import("vite");
 
 describe("vite:app", () => {
@@ -31,19 +31,19 @@ describe("vite:app", () => {
     process.chdir(originalCwd);
   });
 
-  test("SSR entry can use nitro/kv (shared with nitro env)", async () => {
+  test("SSR entry can use fastnode/kv (shared with fastnode env)", async () => {
     const res = await fetch(serverURL);
     const data = (await res.json()) as { storage: string; config: string };
     expect(data.storage).toBe("value-from-ssr");
   });
 
-  test("SSR entry can use nitro/runtime-config", async () => {
+  test("SSR entry can use fastnode/runtime-config", async () => {
     const res = await fetch(serverURL);
     const data = (await res.json()) as { storage: string; config: string };
-    expect(data.config).toBe("NITRO_");
+    expect(data.config).toBe("FASTNODE_");
   });
 
-  test("storage is shared between SSR and nitro environments", async () => {
+  test("storage is shared between SSR and fastnode environments", async () => {
     // SSR entry writes to storage, API route reads it
     await fetch(serverURL);
     const res = await fetch(`${serverURL}/api/storage`);
@@ -51,7 +51,7 @@ describe("vite:app", () => {
     expect(value).toBe("value-from-ssr");
   });
 
-  test("applies `buildPlugins` to the nitro environment", async () => {
+  test("applies `buildPlugins` to the fastnode environment", async () => {
     const res = await fetch(`${serverURL}/api/build-plugin`);
     expect(await res.text()).toBe("Hello from build plugin!");
   });
@@ -151,7 +151,7 @@ describe("vite:app", () => {
     }
   });
 
-  // HTTPError thrown from the SSR entry must propagate to the nitro app so the h3
+  // HTTPError thrown from the SSR entry must propagate to the fastnode app so the h3
   // error handler preserves its status and headers (consistent with production).
   test("propagates HTTPError status and headers from the SSR entry", async () => {
     const res = await fetch(`${serverURL}/?error`, {
@@ -170,6 +170,6 @@ describe("vite:app", () => {
     });
     expect(res.status).toBe(200);
     const data = (await res.json()) as { config: string };
-    expect(data.config).toBe("NITRO_");
+    expect(data.config).toBe("FASTNODE_");
   });
 });

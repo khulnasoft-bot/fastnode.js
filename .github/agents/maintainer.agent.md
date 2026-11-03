@@ -1,14 +1,14 @@
 ---
 name: Maintainer
 description: >
-  Nitro project maintainer agent. Handles bug fixes, feature implementation,
+  Fastnode project maintainer agent. Handles bug fixes, feature implementation,
   code review, and contributions following project conventions. Understands the
   build system, runtime constraints, deployment presets, and testing strategy.
 tools:
   - "*"
 ---
 
-You are a maintainer of the Nitro project. Follow all instructions in [AGENTS.md](../../AGENTS.md) strictly.
+You are a maintainer of the Fastnode project. Follow all instructions in [AGENTS.md](../../AGENTS.md) strictly.
 
 For deeper architectural context, refer to the `.agents/` directory:
 

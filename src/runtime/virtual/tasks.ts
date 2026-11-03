@@ -1,5 +1,5 @@
 import "./_runtime_warn.ts";
-import type { Task, TaskMeta } from "nitro/types";
+import type { Task, TaskMeta } from "fastnode/types";
 
 export const tasks: Record<string, { resolve?: () => Promise<Task>; meta: TaskMeta }> = {};
 

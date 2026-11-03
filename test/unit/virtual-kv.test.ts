@@ -2,7 +2,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "pathe";
 import { describe, expect, it, vi } from "vitest";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 
 const mockedDeps = new Set<string>();
 
@@ -20,25 +20,25 @@ vi.mock("../../src/utils/dep.ts", async (importOriginal) => {
 
 const { default: kv } = await import("../../src/build/virtual/kv.ts");
 
-function createNitroStub(
-  tracingChannel: Nitro["options"]["tracingChannel"],
-  kv: Nitro["options"]["kv"] = {}
-): Nitro {
+function createFastnodeStub(
+  tracingChannel: Fastnode["options"]["tracingChannel"],
+  kv: Fastnode["options"]["kv"] = {}
+): Fastnode {
   return {
     options: {
       dev: true,
-      preset: "nitro-dev",
+      preset: "fastnode-dev",
       rootDir: process.cwd(),
       kv,
       devStorage: {},
       tracingChannel,
     },
-  } as unknown as Nitro;
+  } as unknown as Fastnode;
 }
 
 describe("virtual/kv template", () => {
   it("does not wrap storage when tracingChannel is disabled", async () => {
-    const template = await kv(createNitroStub(undefined)).template();
+    const template = await kv(createFastnodeStub(undefined)).template();
     expect(template).not.toContain("withTracing");
     expect(template).not.toContain("unstorage/tracing");
     expect(template).toContain("return storage");
@@ -46,14 +46,14 @@ describe("virtual/kv template", () => {
 
   it("does not wrap storage when tracingChannel.unstorage is false", async () => {
     const template = await kv(
-      createNitroStub({ srvx: true, h3: true, unstorage: false })
+      createFastnodeStub({ srvx: true, h3: true, unstorage: false })
     ).template();
     expect(template).not.toContain("withTracing");
   });
 
   it("wraps storage with withTracing when tracingChannel.unstorage is true", async () => {
     const template = await kv(
-      createNitroStub({ srvx: true, h3: true, unstorage: true })
+      createFastnodeStub({ srvx: true, h3: true, unstorage: true })
     ).template();
     expect(template).toContain(`import { withTracing } from 'unstorage/tracing'`);
     expect(template).toContain("return withTracing(storage)");
@@ -61,7 +61,7 @@ describe("virtual/kv template", () => {
 
   it("provides installed driver dependencies via the `lib` option", async () => {
     const template = await kv(
-      createNitroStub(undefined, { "/data": { driver: "fs", base: "./data" } })
+      createFastnodeStub(undefined, { "/data": { driver: "fs", base: "./data" } })
     ).template();
     expect(template).toContain(
       `storage.mount('/data', unstorage_47drivers_47fs({ ...{"base":"./data"}, lib: () => import("chokidar") }))`
@@ -72,7 +72,7 @@ describe("virtual/kv template", () => {
     mockedDeps.add("uploadthing");
     try {
       const template = await kv(
-        createNitroStub(undefined, { "/files": { driver: "uploadthing", token: "x" } })
+        createFastnodeStub(undefined, { "/files": { driver: "uploadthing", token: "x" } })
       ).template();
       expect(template).toContain(`lib: () => import("uploadthing/server")`);
     } finally {
@@ -82,7 +82,7 @@ describe("virtual/kv template", () => {
 
   it("does not provide `lib` for dependencies that are not installed", async () => {
     const template = await kv(
-      createNitroStub(undefined, { "/cache": { driver: "redis", base: "cache" } })
+      createFastnodeStub(undefined, { "/cache": { driver: "redis", base: "cache" } })
     ).template();
     expect(template).toContain(
       `storage.mount('/cache', unstorage_47drivers_47redis({"base":"cache"}))`
@@ -90,14 +90,14 @@ describe("virtual/kv template", () => {
     expect(template).not.toContain("ioredis");
   });
 
-  it("does not provide `lib` for dependencies only resolvable from nitro itself", async () => {
-    const rootDir = mkdtempSync(join(tmpdir(), "nitro-storage-lib-"));
+  it("does not provide `lib` for dependencies only resolvable from fastnode itself", async () => {
+    const rootDir = mkdtempSync(join(tmpdir(), "fastnode-storage-lib-"));
     expect(isDepInstalled("chokidar", { dir: rootDir })).toBe(true);
     expect(isDepInstalled("chokidar", { dir: rootDir, projectOnly: true })).toBe(false);
 
-    const nitro = createNitroStub(undefined, { "/data": { driver: "fs", base: "./data" } });
-    nitro.options.rootDir = rootDir;
-    const template = await kv(nitro).template();
+    const fastnode = createFastnodeStub(undefined, { "/data": { driver: "fs", base: "./data" } });
+    fastnode.options.rootDir = rootDir;
+    const template = await kv(fastnode).template();
     expect(template).toContain(
       `storage.mount('/data', unstorage_47drivers_47fs({"base":"./data"}))`
     );
@@ -106,7 +106,7 @@ describe("virtual/kv template", () => {
 
   it("does not override a user provided `lib` option", async () => {
     const template = await kv(
-      createNitroStub(undefined, { "/data": { driver: "fs", lib: null } })
+      createFastnodeStub(undefined, { "/data": { driver: "fs", lib: null } })
     ).template();
     expect(template).not.toContain("chokidar");
   });

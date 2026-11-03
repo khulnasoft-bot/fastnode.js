@@ -1,6 +1,6 @@
 # Netlify
 
-> Deploy Nitro apps to Netlify functions or edge.
+> Deploy Fastnode apps to Netlify functions or edge.
 
 **Preset:** `netlify`
 
@@ -11,15 +11,15 @@ Integration with this provider is possible with [zero configuration](/deploy#zer
 ::
 
 Normally, deploying to Netlify does not require any configuration.
-Nitro auto-detects that you are in a [Netlify](https://www.netlify.com) build environment and builds the correct version of your server.
+Fastnode auto-detects that you are in a [Netlify](https://www.netlify.com) build environment and builds the correct version of your server.
 
-For new sites, Netlify detects that you are using Nitro and sets the publish directory to `dist` and the build command to `npm run build`. If you are upgrading an existing site, check these settings and update them if needed.
+For new sites, Netlify detects that you are using Fastnode and sets the publish directory to `dist` and the build command to `npm run build`. If you are upgrading an existing site, check these settings and update them if needed.
 
 To add custom redirects, use [`routeRules`](/config/routing#routerules) or add a [`_redirects`](https://docs.netlify.com/routing/redirects/#syntax-for-the-redirects-file) file to your `public` directory.
 
 To deploy, just push to your git repository [as you would normally do for Netlify](https://docs.netlify.com/configure-builds/get-started/).
 
-Nitro writes its output using the [Netlify Frameworks API](https://docs.netlify.com/build/frameworks/frameworks-api/): the server function to `.netlify/v1/functions`, edge functions to `.netlify/v1/edge-functions`, and deploy configuration to `.netlify/v1/config.json`. Static assets are written to `dist`.
+Fastnode writes its output using the [Netlify Frameworks API](https://docs.netlify.com/build/frameworks/frameworks-api/): the server function to `.netlify/v1/functions`, edge functions to `.netlify/v1/edge-functions`, and deploy configuration to `.netlify/v1/config.json`. Static assets are written to `dist`.
 
 ::note
 Make sure the publish directory is set to `dist` when creating a new project.
@@ -33,7 +33,7 @@ Netlify Edge Functions use Deno and the powerful V8 JavaScript runtime to let yo
 
 :read-more{title="Netlify Edge functions" to="https://docs.netlify.com/edge-functions/overview/"}
 
-With this preset, Nitro runs the server directly at the edge, closer to your users.
+With this preset, Fastnode runs the server directly at the edge, closer to your users.
 
 ::note
 Make sure the publish directory is set to `dist` when creating a new project.
@@ -47,10 +47,10 @@ Use the `netlify_static` preset to pre-render your app and deploy it to Netlify 
 
 ## Custom deploy configuration
 
-You can provide additional deploy configuration using the `netlify.config` key inside `nitro.config`. It follows the [Netlify Frameworks API](https://docs.netlify.com/build/frameworks/frameworks-api/) `config.json` format and is written to `.netlify/v1/config.json`, which Netlify merges with your site configuration during the build.
+You can provide additional deploy configuration using the `netlify.config` key inside `fastnode.config`. It follows the [Netlify Frameworks API](https://docs.netlify.com/build/frameworks/frameworks-api/) `config.json` format and is written to `.netlify/v1/config.json`, which Netlify merges with your site configuration during the build.
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   netlify: {

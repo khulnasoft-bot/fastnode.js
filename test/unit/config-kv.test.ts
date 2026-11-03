@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
-import type { NitroOptions } from "nitro/types";
+import type { FastnodeOptions } from "fastnode/types";
 import { resolveKVOptions } from "../../src/config/resolvers/kv.ts";
 import { resolveKVMounts } from "../../src/utils/storage.ts";
 
 const warn = vi.hoisted(() => vi.fn());
 vi.mock("consola", () => ({ default: { warn } }));
 
-function createOptions(options: Partial<NitroOptions>): NitroOptions {
-  return { rootDir: process.cwd(), kv: {}, devStorage: {}, ...options } as NitroOptions;
+function createOptions(options: Partial<FastnodeOptions>): FastnodeOptions {
+  return { rootDir: process.cwd(), kv: {}, devStorage: {}, ...options } as FastnodeOptions;
 }
 
 describe("resolveKVOptions", () => {
@@ -23,7 +23,7 @@ describe("resolveKVOptions", () => {
     expect(warn).toHaveBeenCalledOnce();
   });
 
-  it.each<Partial<NitroOptions>>([{ dev: true }, { preset: "nitro-prerender" }])(
+  it.each<Partial<FastnodeOptions>>([{ dev: true }, { preset: "fastnode-prerender" }])(
     "still applies deprecated `devStorage` (%o)",
     async (env) => {
       warn.mockClear();

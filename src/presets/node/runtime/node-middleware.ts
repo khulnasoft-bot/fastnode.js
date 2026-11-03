@@ -1,14 +1,14 @@
-import "#nitro/virtual/polyfills";
+import "#fastnode/virtual/polyfills";
 import { toNodeHandler } from "srvx/node";
 import wsAdapter from "crossws/adapters/node";
 
-import { useNitroApp } from "nitro/app";
-import { startScheduleRunner } from "#nitro/runtime/task";
-import { resolveWebsocketHooks } from "#nitro/runtime/app";
+import { useFastnodeApp } from "fastnode/app";
+import { startScheduleRunner } from "#fastnode/runtime/task";
+import { resolveWebsocketHooks } from "#fastnode/runtime/app";
 
-const nitroApp = useNitroApp();
+const fastnodeApp = useFastnodeApp();
 
-export const middleware = toNodeHandler(nitroApp.fetch);
+export const middleware = toNodeHandler(fastnodeApp.fetch);
 
 const ws = import.meta._websocket ? wsAdapter({ resolve: resolveWebsocketHooks }) : undefined;
 

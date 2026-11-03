@@ -12,8 +12,8 @@ icon: i-lucide-at-sign
 
 ::code-tree{defaultValue="server/routes/index.ts" expandAll}
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   serverDir: true,
@@ -27,12 +27,12 @@ export default defineConfig({
     "#server/*": "./server/*"
   },
   "scripts": {
-    "build": "nitro build",
-    "dev": "nitro dev",
+    "build": "fastnode build",
+    "dev": "fastnode dev",
     "preview": "node .output/server/index.mjs"
   },
   "devDependencies": {
-    "nitro": "latest",
+    "fastnode": "latest",
     "rolldown": "latest"
   }
 }
@@ -40,7 +40,7 @@ export default defineConfig({
 
 ```json [tsconfig.json]
 {
-  "extends": "nitro/tsconfig",
+  "extends": "fastnode/tsconfig",
   "compilerOptions": {
     "paths": {
       "~server/*": ["./server/*"]
@@ -51,9 +51,9 @@ export default defineConfig({
 
 ```ts [vite.config.ts]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
-export default defineConfig({ plugins: [nitro()] });
+export default defineConfig({ plugins: [fastnode()] });
 ```
 
 ```ts [server/routes/index.ts]
@@ -104,7 +104,7 @@ The route imports the `sum` function using `~server/` and `rand` using `#server/
 
 ## Configuration
 
-Aliases can be configured in `package.json` imports field, `compilerOptions.paths` of `tsconfig.json` or the `alias` option of `nitro.config.ts`.
+Aliases can be configured in `package.json` imports field, `compilerOptions.paths` of `tsconfig.json` or the `alias` option of `fastnode.config.ts`.
 
 <!-- /automd -->
 

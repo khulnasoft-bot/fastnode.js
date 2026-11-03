@@ -1,4 +1,4 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import type { Plugin } from "rollup";
 import type { Plugin as VitePlugin } from "vite";
 import type * as ESTree from "oxbox";
@@ -29,17 +29,17 @@ type TypedImport = {
 type Comment = { start: number; end: number };
 
 export async function importAttributes(
-  nitro: Nitro
+  fastnode: Fastnode
 ): Promise<Plugin & Pick<VitePlugin, "perEnvironmentStartEndDuringDev">> {
-  let oxc = await importOXC({ dir: nitro.options.rootDir, paths: viteDepPaths(nitro) });
+  let oxc = await importOXC({ dir: fastnode.options.rootDir, paths: viteDepPaths(fastnode) });
 
   return {
-    name: "nitro:import-attributes",
-    // With `nitro/vite`, the running `vite` is only known once its config is resolved
+    name: "fastnode:import-attributes",
+    // With `fastnode/vite`, the running `vite` is only known once its config is resolved
     // (Vite only runs `buildStart` of the `client` environment in dev by default)
     perEnvironmentStartEndDuringDev: true,
     async buildStart() {
-      oxc = await importOXC({ dir: nitro.options.rootDir, paths: viteDepPaths(nitro) });
+      oxc = await importOXC({ dir: fastnode.options.rootDir, paths: viteDepPaths(fastnode) });
     },
     transform: {
       order: "pre",

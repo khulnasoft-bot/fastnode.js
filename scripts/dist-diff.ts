@@ -28,24 +28,24 @@ if (!existsSync(localDist)) {
 }
 
 const tag = args[0] || "latest";
-const pkgSpec = `nitro@${tag}`;
+const pkgSpec = `fastnode@${tag}`;
 
 console.log(`${colors.cyan("Resolving")} ${colors.bold(pkgSpec)}...`);
 const version = execSync(`npm view ${pkgSpec} version`, { encoding: "utf8" }).trim();
 console.log(`${colors.dim("Released version:")} ${colors.green(colors.bold(version))}`);
 
-const workDir = mkdtempSync(join(tmpdir(), "nitro-diff-dist-"));
+const workDir = mkdtempSync(join(tmpdir(), "fastnode-diff-dist-"));
 console.log(
-  `${colors.cyan("Downloading")} ${colors.bold(`nitro@${version}`)} ${colors.dim(`-> ${workDir}`)}`
+  `${colors.cyan("Downloading")} ${colors.bold(`fastnode@${version}`)} ${colors.dim(`-> ${workDir}`)}`
 );
-execSync(`npm pack nitro@${version} --silent`, { cwd: workDir, stdio: "inherit" });
+execSync(`npm pack fastnode@${version} --silent`, { cwd: workDir, stdio: "inherit" });
 
 const tarball = execSync(`ls ${workDir}/*.tgz`, { encoding: "utf8" }).trim();
 execSync(`tar -xzf ${tarball} -C ${workDir}`, { stdio: "inherit" });
 
 const releasedDist = join(workDir, "package", "dist");
 if (!existsSync(releasedDist)) {
-  console.error(colors.red(`No dist/ found in published nitro@${version}`));
+  console.error(colors.red(`No dist/ found in published fastnode@${version}`));
   rmSync(workDir, { recursive: true, force: true });
   process.exit(1);
 }
@@ -57,7 +57,7 @@ decompressGzInPlace(releasedDist);
 decompressGzInPlace(localDistCopy);
 
 console.log(
-  `\n${colors.cyan("Diffing")} released ${colors.bold(`nitro@${version}`)} vs local ${colors.bold("dist/")}\n`
+  `\n${colors.cyan("Diffing")} released ${colors.bold(`fastnode@${version}`)} vs local ${colors.bold("dist/")}\n`
 );
 
 const stdout = flags.has("--stdout");

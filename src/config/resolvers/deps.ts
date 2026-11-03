@@ -1,7 +1,7 @@
 import { consola } from "consola";
-import type { NitroOptions } from "nitro/types";
+import type { FastnodeOptions } from "fastnode/types";
 
-export function resolveDepsOptions(options: NitroOptions) {
+export function resolveDepsOptions(options: FastnodeOptions) {
   const paths = ((options.deps ??= {}).paths ??= {});
   // `vite.path` is an alias of `deps.paths.vite`
   const vitePath = options.vite?.path;

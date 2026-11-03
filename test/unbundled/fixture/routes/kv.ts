@@ -1,5 +1,5 @@
-import { defineHandler } from "nitro/h3";
-import { useKV } from "nitro/kv";
+import { defineHandler } from "fastnode/h3";
+import { useKV } from "fastnode/kv";
 
 export default defineHandler(async () => {
   await useKV("test").setItem("foo", "bar");

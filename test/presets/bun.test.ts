@@ -2,16 +2,16 @@ import { execa, execaSync } from "execa";
 import { getRandomPort } from "get-port-please";
 import { resolve } from "pathe";
 import { describe } from "vitest";
-import { setupTest, testNitro } from "../tests.ts";
+import { setupTest, testFastnode } from "../tests.ts";
 import { testCloseHook } from "./_close-hook.ts";
 import { waitForServer } from "./_wait-for-server.ts";
 import { testUnixSocket } from "./_unix-socket.ts";
 
 const hasBun = execaSync("bun", ["--version"], { stdio: "ignore", reject: false }).exitCode === 0;
 
-describe.runIf(hasBun)("nitro:preset:bun", async () => {
+describe.runIf(hasBun)("fastnode:preset:bun", async () => {
   const ctx = await setupTest("bun");
-  testNitro(ctx, async () => {
+  testFastnode(ctx, async () => {
     const port = await getRandomPort();
     process.env.PORT = String(port);
     const p = execa("bun", [resolve(ctx.outDir, "server/index.mjs")], {

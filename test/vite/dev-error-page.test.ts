@@ -6,7 +6,7 @@ import type { ViteDevServer } from "vite";
 import { describe, test, expect, beforeAll, afterAll } from "vitest";
 
 const { createServer } = (await import(
-  process.env.NITRO_VITE_PKG || "vite"
+  process.env.FASTNODE_VITE_PKG || "vite"
 )) as typeof import("vite");
 
 describe("vite: dev error page recovery", { concurrent: false }, () => {
@@ -25,7 +25,7 @@ describe("vite: dev error page recovery", { concurrent: false }, () => {
     });
 
   const reloadState = async (query = "id=none") =>
-    (await fetch(`${serverURL}/_nitro/dev/reload?${query}`)).json() as Promise<{
+    (await fetch(`${serverURL}/_fastnode/dev/reload?${query}`)).json() as Promise<{
       id: string;
       v: number;
     }>;
@@ -48,17 +48,17 @@ describe("vite: dev error page recovery", { concurrent: false }, () => {
   test("leaves non-HTML and non-GET error responses untouched", async () => {
     const json = await fetchPage({ accept: "application/json" });
     expect(json.status).toBe(500);
-    expect(await json.text()).not.toContain("/_nitro/dev/reload");
+    expect(await json.text()).not.toContain("/_fastnode/dev/reload");
 
     const post = await fetchPage({ method: "POST" });
     expect(post.status).toBe(500);
-    expect(await post.text()).not.toContain("/_nitro/dev/reload");
+    expect(await post.text()).not.toContain("/_fastnode/dev/reload");
   });
 
   test("does not inject into fetch() requests", async () => {
     const res = await fetchPage({ dest: "empty" });
     expect(res.status).toBe(500);
-    expect(await res.text()).not.toContain("/_nitro/dev/reload");
+    expect(await res.text()).not.toContain("/_fastnode/dev/reload");
   });
 
   test("makes the HTML error page wait for the next server reload", async () => {
@@ -67,7 +67,7 @@ describe("vite: dev error page recovery", { concurrent: false }, () => {
     const html = await res.text();
     const { id, v } = await reloadState();
     expect(html).toContain("broken page");
-    expect(html).toContain(JSON.stringify({ url: "/_nitro/dev/reload", id, v }));
+    expect(html).toContain(JSON.stringify({ url: "/_fastnode/dev/reload", id, v }));
     expect(html).not.toContain("@vite/client");
     expect(html.trimEnd().endsWith("</script>")).toBe(true);
   });
@@ -91,7 +91,7 @@ describe("vite: dev error page recovery", { concurrent: false }, () => {
       res = await fetchPage();
     }
     expect(res.status).toBe(200);
-    expect(await res.text()).not.toContain("/_nitro/dev/reload");
+    expect(await res.text()).not.toContain("/_fastnode/dev/reload");
   });
 });
 
@@ -118,14 +118,14 @@ describe("vite: dev error page recovery (base, middleware mode)", { concurrent: 
     }
   });
 
-  test("waits on the reload route under the Nitro `baseURL`", async () => {
+  test("waits on the reload route under the Fastnode `baseURL`", async () => {
     process.chdir(rootDir);
-    const { nitro } = await import("nitro/vite");
+    const { fastnode } = await import("fastnode/vite");
     const server = await createServer({
       root: rootDir,
       logLevel: "warn",
       configFile: false,
-      plugins: [nitro({ serverDir: "./", baseURL: "/app/" })],
+      plugins: [fastnode({ serverDir: "./", baseURL: "/app/" })],
     });
     try {
       await server.listen("0" as unknown as number);
@@ -133,7 +133,7 @@ describe("vite: dev error page recovery (base, middleware mode)", { concurrent: 
       const res = await page(`${origin}/app/`);
       expect(res.status).toBe(500);
       const url = reloadURL(await res.text());
-      expect(url).toBe("/app/_nitro/dev/reload");
+      expect(url).toBe("/app/_fastnode/dev/reload");
       expect((await fetch(`${origin}${url}?id=none`)).status).toBe(200);
     } finally {
       await server.close();
@@ -142,18 +142,18 @@ describe("vite: dev error page recovery (base, middleware mode)", { concurrent: 
 
   test("gives a restarted server with inline plugins a new reload state", async () => {
     process.chdir(rootDir);
-    const { nitro } = await import("nitro/vite");
+    const { fastnode } = await import("fastnode/vite");
     const server = await createServer({
       root: rootDir,
       logLevel: "warn",
       configFile: false,
-      plugins: [nitro({ serverDir: "./" })],
+      plugins: [fastnode({ serverDir: "./" })],
     });
     try {
       await server.listen("0" as unknown as number);
       const reloadState = async () => {
         const origin = server.resolvedUrls!.local[0]!.replace(/\/$/, "");
-        return fetch(`${origin}/_nitro/dev/reload?id=none`);
+        return fetch(`${origin}/_fastnode/dev/reload?id=none`);
       };
       const before = await reloadState();
       expect(before.status).toBe(200);

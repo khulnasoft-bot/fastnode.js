@@ -1,8 +1,8 @@
-import { defineNitroPreset } from "../_utils/preset.ts";
+import { defineFastnodePreset } from "../_utils/preset.ts";
 import { writeFile } from "../_utils/fs.ts";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import { join, resolve } from "pathe";
-import { presetsDir } from "#nitro/meta";
+import { presetsDir } from "#fastnode/meta";
 import { unenvCfExternals } from "./unenv/preset.ts";
 import { extendEnv } from "../../build/env.ts";
 import {
@@ -18,7 +18,7 @@ import { cloudflareOutputRewrites } from "./output-plugins.ts";
 
 export type { CloudflareOptions as PresetOptions } from "./types.ts";
 
-const cloudflarePages = defineNitroPreset(
+const cloudflarePages = defineFastnodePreset(
   {
     extends: "base-worker",
     entry: "./cloudflare/runtime/cloudflare-pages",
@@ -35,7 +35,7 @@ const cloudflarePages = defineNitroPreset(
     },
     alias: {
       // Hotfix: Cloudflare appends /index.html if mime is not found and things like ico are not in standard lite.js!
-      // https://github.com/nitrojs/nitro/pull/933
+      // https://github.com/khulnasoft/fastnode/pull/933
       _mime: "mime/index.js",
     },
     wasm: {
@@ -51,16 +51,16 @@ const cloudflarePages = defineNitroPreset(
       plugins: [cloudflareOutputRewrites()],
     },
     hooks: {
-      "build:before": async (nitro) => {
-        extendEnv(nitro, unenvCfExternals);
-        await enableNodeCompat(nitro);
-        setupEntryExports(nitro);
+      "build:before": async (fastnode) => {
+        extendEnv(fastnode, unenvCfExternals);
+        await enableNodeCompat(fastnode);
+        setupEntryExports(fastnode);
       },
-      async compiled(nitro: Nitro) {
-        await writeWranglerConfig(nitro, "pages");
-        await writeCFRoutes(nitro);
-        await writeCFHeaders(nitro, "output");
-        await writeCFPagesRedirects(nitro);
+      async compiled(fastnode: Fastnode) {
+        await writeWranglerConfig(fastnode, "pages");
+        await writeCFRoutes(fastnode);
+        await writeCFHeaders(fastnode, "output");
+        await writeCFPagesRedirects(fastnode);
       },
     },
   },
@@ -70,7 +70,7 @@ const cloudflarePages = defineNitroPreset(
   }
 );
 
-const cloudflarePagesStatic = defineNitroPreset(
+const cloudflarePagesStatic = defineFastnodePreset(
   {
     extends: "static",
     output: {
@@ -82,9 +82,9 @@ const cloudflarePagesStatic = defineNitroPreset(
       deploy: "npx wrangler --cwd ./ pages deploy",
     },
     hooks: {
-      async compiled(nitro: Nitro) {
-        await writeCFHeaders(nitro, "output");
-        await writeCFPagesRedirects(nitro);
+      async compiled(fastnode: Fastnode) {
+        await writeCFHeaders(fastnode, "output");
+        await writeCFPagesRedirects(fastnode);
       },
     },
   },
@@ -96,16 +96,16 @@ const cloudflarePagesStatic = defineNitroPreset(
   }
 );
 
-export const cloudflareDev = defineNitroPreset(
+export const cloudflareDev = defineFastnodePreset(
   {
-    extends: "nitro-dev",
+    extends: "fastnode-dev",
     devServer: {
       runner: "miniflare",
     },
     hooks: {
-      "build:before": async (nitro) => {
-        if (nitro.options.devServer.runner === "miniflare") {
-          await setupMiniflareDev(nitro);
+      "build:before": async (fastnode) => {
+        if (fastnode.options.devServer.runner === "miniflare") {
+          await setupMiniflareDev(fastnode);
         }
       },
     },
@@ -117,7 +117,7 @@ export const cloudflareDev = defineNitroPreset(
   }
 );
 
-const cloudflareModule = defineNitroPreset(
+const cloudflareModule = defineFastnodePreset(
   {
     extends: "base-worker",
     entry: "./cloudflare/runtime/cloudflare-module",
@@ -143,23 +143,23 @@ const cloudflareModule = defineNitroPreset(
       esmImport: true,
     },
     hooks: {
-      "build:before": async (nitro) => {
-        extendEnv(nitro, unenvCfExternals);
-        await enableNodeCompat(nitro);
-        setupEntryExports(nitro);
-        setupTracingBridge(nitro);
+      "build:before": async (fastnode) => {
+        extendEnv(fastnode, unenvCfExternals);
+        await enableNodeCompat(fastnode);
+        setupEntryExports(fastnode);
+        setupTracingBridge(fastnode);
       },
-      async compiled(nitro: Nitro) {
-        await writeWranglerConfig(nitro, "module");
-        await writeCFHeaders(nitro, "assets");
-        await moveCFRedirects(nitro);
+      async compiled(fastnode: Fastnode) {
+        await writeWranglerConfig(fastnode, "module");
+        await writeCFHeaders(fastnode, "assets");
+        await moveCFRedirects(fastnode);
 
         await writeFile(
-          resolve(nitro.options.output.dir, "package.json"),
+          resolve(fastnode.options.output.dir, "package.json"),
           JSON.stringify({ private: true, main: "./server/index.mjs" }, null, 2)
         );
         await writeFile(
-          resolve(nitro.options.output.dir, "package-lock.json"),
+          resolve(fastnode.options.output.dir, "package-lock.json"),
           JSON.stringify({ lockfileVersion: 1 }, null, 2)
         );
       },
@@ -172,12 +172,12 @@ const cloudflareModule = defineNitroPreset(
 );
 
 /** @deprecated `cloudflare-module` exports the `$DurableObject` class. */
-const cloudflareDurable = defineNitroPreset(
+const cloudflareDurable = defineFastnodePreset(
   {
     extends: "cloudflare-module",
     hooks: {
-      "build:before": (nitro) => {
-        nitro.logger.warn(
+      "build:before": (fastnode) => {
+        fastnode.logger.warn(
           "[cloudflare] The `cloudflare_durable` preset is deprecated. Use `cloudflare_module` instead: it exports the same `$DurableObject` class and forwards WebSocket upgrades to it when its binding is declared in your Wrangler configuration."
         );
       },
@@ -197,19 +197,19 @@ export default [
 ];
 
 // Builds for workerd like the production presets
-async function setupMiniflareDev(nitro: Nitro) {
+async function setupMiniflareDev(fastnode: Fastnode) {
   // Resolve packages for workerd (it rejects the CJS entries of the `node` condition)
-  nitro.options.exportConditions = [
+  fastnode.options.exportConditions = [
     ...new Set([
       "workerd",
       "worker",
-      ...nitro.options.exportConditions!.filter((c) => c !== "node"),
+      ...fastnode.options.exportConditions!.filter((c) => c !== "node"),
     ]),
   ];
-  extendEnv(nitro, unenvCfExternals);
-  await setupDevEntryExports(nitro);
+  extendEnv(fastnode, unenvCfExternals);
+  await setupDevEntryExports(fastnode);
   // The bridge imports `cloudflare:workers`, only available in workerd
-  setupTracingBridge(nitro);
+  setupTracingBridge(fastnode);
 }
 
 /**
@@ -217,11 +217,11 @@ async function setupMiniflareDev(nitro: Nitro) {
  * Registered first (unshift) so the bridge subscribes to the traced channels at
  * startup, before any request is handled.
  */
-function setupTracingBridge(nitro: Nitro) {
-  if (!nitro.options.tracingChannel) {
+function setupTracingBridge(fastnode: Fastnode) {
+  if (!fastnode.options.tracingChannel) {
     return;
   }
-  nitro.options.plugins ??= [];
+  fastnode.options.plugins ??= [];
 
-  nitro.options.plugins.unshift(join(presetsDir, "cloudflare/runtime/telemetry/plugin"));
+  fastnode.options.plugins.unshift(join(presetsDir, "cloudflare/runtime/telemetry/plugin"));
 }

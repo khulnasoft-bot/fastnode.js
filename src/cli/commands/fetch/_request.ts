@@ -19,7 +19,7 @@ export const fetchArgs = {
     type: "boolean",
     default: true,
     description:
-      "send the request to the running `nitro dev` server of the project, if any (`--no-dev` starts a server)",
+      "send the request to the running `fastnode dev` server of the project, if any (`--no-dev` starts a server)",
   },
   request: {
     type: "string",
@@ -49,11 +49,15 @@ export const fetchArgs = {
   },
   head: { type: "boolean", alias: "I", description: "send a `HEAD` request, print the headers" },
   output: { type: "string", alias: "o", description: "write the body to a file instead of stdout" },
-  silent: { type: "boolean", alias: "s", description: "hide the Nitro logs and the error message" },
+  silent: {
+    type: "boolean",
+    alias: "s",
+    description: "hide the Fastnode logs and the error message",
+  },
   verbose: {
     type: "boolean",
     alias: "v",
-    description: "print the request and response headers and the Nitro info logs (to stderr)",
+    description: "print the request and response headers and the Fastnode info logs (to stderr)",
   },
 } satisfies ArgsDef;
 

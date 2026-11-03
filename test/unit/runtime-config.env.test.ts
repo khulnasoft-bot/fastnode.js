@@ -7,12 +7,12 @@ describe("env utils", () => {
     const tests = [
       {
         config: { a: "1", b: "2" },
-        env: { NITRO_A: "123" },
+        env: { FASTNODE_A: "123" },
         expected: { a: "123", b: "2" },
       },
       {
         config: { feature: { options: { option1: "original", option2: 123 } } },
-        env: { NITRO_FEATURE_OPTIONS_OPTION1: "env" },
+        env: { FASTNODE_FEATURE_OPTIONS_OPTION1: "env" },
         expected: { feature: { options: { option1: "env", option2: 123 } } },
       },
     ];
@@ -23,7 +23,7 @@ describe("env utils", () => {
         for (const key in test.env) {
           process.env[key] = test.env[key as keyof typeof test.env] as string;
         }
-        expect(applyEnv(test.config, { prefix: "NITRO_" })).toEqual(test.expected);
+        expect(applyEnv(test.config, { prefix: "FASTNODE_" })).toEqual(test.expected);
         for (const key in test.env) {
           delete process.env[key];
         }

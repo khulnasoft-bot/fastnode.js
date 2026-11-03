@@ -1,8 +1,8 @@
-import { useNitroApp } from "../app.ts";
+import { useFastnodeApp } from "../app.ts";
 
 function _captureError(error: Error, type: string): void {
   console.error(`[${type}]`, error);
-  useNitroApp().captureError?.(error, { tags: [type] });
+  useFastnodeApp().captureError?.(error, { tags: [type] });
 }
 
 export function trapUnhandledErrors(): void {

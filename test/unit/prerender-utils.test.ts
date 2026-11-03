@@ -4,7 +4,7 @@ import {
   formatPrerenderRoute,
   matchesIgnorePattern,
 } from "../../src/prerender/utils.ts";
-import type { PrerenderRoute } from "nitro/types";
+import type { PrerenderRoute } from "fastnode/types";
 
 describe("prerender utils", () => {
   it("reports parents of crawled links by their `baseURL`-relative route", async () => {

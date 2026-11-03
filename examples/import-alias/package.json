@@ -4,12 +4,12 @@
     "#server/*": "./server/*"
   },
   "scripts": {
-    "build": "nitro build",
-    "dev": "nitro dev",
+    "build": "fastnode build",
+    "dev": "fastnode dev",
     "preview": "node .output/server/index.mjs"
   },
   "devDependencies": {
-    "nitro": "latest",
+    "fastnode": "latest",
     "rolldown": "latest"
   }
 }

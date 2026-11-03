@@ -1,6 +1,6 @@
 # GitLab Pages
 
-> Deploy Nitro apps to GitLab Pages.
+> Deploy Fastnode apps to GitLab Pages.
 
 **Preset:** `gitlab_pages`
 
@@ -23,7 +23,7 @@ pages:
     paths:
       - node_modules/
   variables:
-    NITRO_PRESET: gitlab_pages
+    FASTNODE_PRESET: gitlab_pages
   script:
     - npm run build
   artifacts:

@@ -6,14 +6,14 @@ icon: i-lucide-code
 
 # Custom Renderer
 
-> Build a custom HTML renderer in Nitro with server-side data fetching.
+> Build a custom HTML renderer in Fastnode with server-side data fetching.
 
 <!-- automd:ui-code-tree src="../../examples/renderer" default="renderer.ts" ignore="README.md,GUIDE.md" expandAll -->
 
 ::code-tree{defaultValue="renderer.ts" expandAll}
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   serverDir: "./",
@@ -25,18 +25,18 @@ export default defineConfig({
 {
   "type": "module",
   "scripts": {
-    "dev": "nitro dev",
-    "build": "nitro build"
+    "dev": "fastnode dev",
+    "build": "fastnode build"
   },
   "devDependencies": {
-    "nitro": "latest",
+    "fastnode": "latest",
     "rolldown": "latest"
   }
 }
 ```
 
 ```ts [renderer.ts]
-import { fetch } from "nitro";
+import { fetch } from "fastnode";
 
 export default async function renderer({ url }: { req: Request; url: URL }) {
   const apiRes = await fetch("/api/hello").then((res) => res.text());
@@ -59,21 +59,21 @@ export default async function renderer({ url }: { req: Request; url: URL }) {
 
 ```json [tsconfig.json]
 {
-  "extends": "nitro/tsconfig"
+  "extends": "fastnode/tsconfig"
 }
 ```
 
 ```ts [vite.config.ts]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
-export default defineConfig({ plugins: [nitro()] });
+export default defineConfig({ plugins: [fastnode()] });
 ```
 
 ```ts [api/hello.ts]
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 
-export default defineHandler(() => "Nitro is amazing!");
+export default defineHandler(() => "Fastnode is amazing!");
 ```
 
 ::
@@ -82,12 +82,12 @@ export default defineHandler(() => "Nitro is amazing!");
 
 <!-- automd:file src="../../examples/renderer/README.md" -->
 
-Create a custom renderer that generates HTML responses with data from API routes. Use Nitro's internal `fetch` to call routes without network overhead.
+Create a custom renderer that generates HTML responses with data from API routes. Use Fastnode's internal `fetch` to call routes without network overhead.
 
 ## Renderer
 
 ```ts [renderer.ts]
-import { fetch } from "nitro";
+import { fetch } from "fastnode";
 
 export default async function renderer({ url }: { req: Request; url: URL }) {
   const apiRes = await fetch("/api/hello").then((res) => res.text());
@@ -108,16 +108,16 @@ export default async function renderer({ url }: { req: Request; url: URL }) {
 }
 ```
 
-Configure the renderer with `renderer: { handler: "./renderer" }` in `nitro.config.ts`, and Nitro uses it for all non-API routes. The renderer function receives the request URL and returns a `Response`. (Alternatively, if an `index.html` exists in your project root, Nitro auto-detects it as a renderer template.)
+Configure the renderer with `renderer: { handler: "./renderer" }` in `fastnode.config.ts`, and Fastnode uses it for all non-API routes. The renderer function receives the request URL and returns a `Response`. (Alternatively, if an `index.html` exists in your project root, Fastnode auto-detects it as a renderer template.)
 
-Use `fetch` from `nitro` to call API routes without network overhead—these requests stay in-process.
+Use `fetch` from `fastnode` to call API routes without network overhead—these requests stay in-process.
 
 ## API Route
 
 ```ts [api/hello.ts]
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 
-export default defineHandler(() => "Nitro is amazing!");
+export default defineHandler(() => "Fastnode is amazing!");
 ```
 
 Define API routes in the `api/` directory. When the renderer calls `fetch("/api/hello")`, this handler runs and returns its response.

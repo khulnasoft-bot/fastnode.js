@@ -25,7 +25,7 @@ main().catch((error) => {
 });
 
 async function main() {
-  console.log(c.bold("\n🚀 Nitro Release\n"));
+  console.log(c.bold("\n🚀 Fastnode Release\n"));
 
   // 1. Prechecks
   if (!args.precheck) {

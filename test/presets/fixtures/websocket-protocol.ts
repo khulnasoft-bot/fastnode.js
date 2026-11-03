@@ -1,4 +1,4 @@
-import { defineWebSocketHandler } from "nitro";
+import { defineWebSocketHandler } from "fastnode";
 
 export default defineWebSocketHandler({
   upgrade(request) {

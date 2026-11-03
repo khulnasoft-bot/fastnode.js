@@ -1,21 +1,21 @@
 // @ts-ignore
-import depA from "@fixture/nitro-dep-a";
+import depA from "@fixture/fastnode-dep-a";
 // @ts-ignore
-import depB from "@fixture/nitro-dep-b";
+import depB from "@fixture/fastnode-dep-b";
 // @ts-ignore
-import depLib from "@fixture/nitro-lib";
+import depLib from "@fixture/fastnode-lib";
 // @ts-ignore
-import subpathLib from "@fixture/nitro-lib/subpath";
+import subpathLib from "@fixture/fastnode-lib/subpath";
 // @ts-ignore
-import extraUtils from "@fixture/nitro-utils/extra";
+import extraUtils from "@fixture/fastnode-utils/extra";
 // @ts-ignore
-import cjsRequirer from "nitro-cjs-requirer";
+import cjsRequirer from "fastnode-cjs-requirer";
 // @ts-ignore
-import bundledDep from "nitro-bundled-dep";
+import bundledDep from "fastnode-bundled-dep";
 // @ts-ignore
-import cjsNestedRequirer from "nitro-cjs-nested-requirer";
+import cjsNestedRequirer from "fastnode-cjs-nested-requirer";
 // @ts-ignore
-import cjsShadowedRequirer from "nitro-cjs-shadowed-requirer";
+import cjsShadowedRequirer from "fastnode-cjs-shadowed-requirer";
 
 export default () => {
   return {

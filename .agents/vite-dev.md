@@ -1,8 +1,8 @@
 # Vite Dev Middleware — Request Routing
 
 > Scope: the request-routing logic in `src/build/vite/dev.ts` — the two
-> `server.middlewares.use(...)` registrations (`nitroDevMiddlewarePre` and the
-> catch-all `nitroDevMiddleware`): why the current design looks the way it does.
+> `server.middlewares.use(...)` registrations (`fastnodeDevMiddlewarePre` and the
+> catch-all `fastnodeDevMiddleware`): why the current design looks the way it does.
 
 ## 1. Where it lives & how it is wired
 
@@ -12,63 +12,63 @@
 
 Vite's `configureServer` contract: middleware registered **synchronously**
 inside the hook runs **before** Vite's internal middlewares; a function
-**returned** from the hook runs **after** them (the "post" hook). Nitro uses
+**returned** from the hook runs **after** them (the "post" hook). Fastnode uses
 both ends:
 
 | Registration | Site | Runs | Role |
 |---|---|---|---|
-| `nitroDevMiddlewarePre` (`const` form) | `dev.ts:284` | **before** Vite static/transform | Classifier. Route explicit-Nitro + definite navigations to Nitro immediately; let definite assets fall through to Vite, marking them `_nitroHandled` (transparent catch-all) or `_nitroAssetCheck` (opaque catch-all / no match). |
-| `nitroDevMiddleware` | defined at `dev.ts:213`, registered inside the returned `() => { ... }` | **after** Vite static/transform | Catch-all fallback. Wraps req as web `Request`, tries `ctx.devApp.fetch` then `nitroEnv.dispatchFetch`, honoring `baseURL`; inspects the response for `_nitroAssetCheck` requests. Skipped for `_nitroHandled`. |
+| `fastnodeDevMiddlewarePre` (`const` form) | `dev.ts:284` | **before** Vite static/transform | Classifier. Route explicit-Fastnode + definite navigations to Fastnode immediately; let definite assets fall through to Vite, marking them `_fastnodeHandled` (transparent catch-all) or `_fastnodeAssetCheck` (opaque catch-all / no match). |
+| `fastnodeDevMiddleware` | defined at `dev.ts:213`, registered inside the returned `() => { ... }` | **after** Vite static/transform | Catch-all fallback. Wraps req as web `Request`, tries `ctx.devApp.fetch` then `fastnodeEnv.dispatchFetch`, honoring `baseURL`; inspects the response for `_fastnodeAssetCheck` requests. Skipped for `_fastnodeHandled`. |
 
 **Why two, and why pre?** Without the pre-pass, Vite's static/transform
 middleware serves files from the project root and would answer server routes
-before Nitro sees them (see upstream **vitejs/vite#20866**, which made Vite
+before Fastnode sees them (see upstream **vitejs/vite#20866**, which made Vite
 consult `sec-fetch-dest` to let document requests fall through — the same
-header Nitro's classifier leans on).
+header Fastnode's classifier leans on).
 
-Facts about Vite's side (verified against vite@8.1.4): Nitro defaults
+Facts about Vite's side (verified against vite@8.1.4): Fastnode defaults
 `appType` to `"custom"` (`plugin.ts:199` — user-overridable; the reasoning
 below assumes the default), so Vite registers none of
 `htmlFallback`/`indexHtml`/`notFound` middlewares, and **every plain miss
 `next()`s** (sirv and transformMiddleware never self-emit a 404 for a missing
 file/module). The only terminal 404 is connect's `finalhandler`, which sits
-**after** the Nitro post-hook. So Vite genuinely hands off every request it
+**after** the Fastnode post-hook. So Vite genuinely hands off every request it
 cannot serve — the post catch-all is the last handler before `finalhandler`.
 
 ## 2. Classification
 
-`nitro.routing.routes` in an SSR app **always** contains a catch-all `/**`, so
-"does a Nitro route match?" is nearly always *yes*. The design distinguishes:
+`fastnode.routing.routes` in an SSR app **always** contains a catch-all `/**`, so
+"does a Fastnode route match?" is nearly always *yes*. The design distinguishes:
 
 - **Explicit route** — `route` set, `!== "/**"`, not `startsWith("/**:")` (a
   prefixed splat like `/api/photos/**` is explicit). Deterministic → **always
-  Nitro**, no heuristic may override (#4108, #4241, #4252, #4270).
-- **Explicit dev app route** — `NitroDevApp.hasRoute()`: a `devHandlers` route,
+  Fastnode**, no heuristic may override (#4108, #4241, #4252, #4270).
+- **Explicit dev app route** — `FastnodeDevApp.hasRoute()`: a `devHandlers` route,
   a `devProxy` route, or a public-asset dir under a non-root `baseURL` with
   `fallthrough: false` (paths below the dir, not the dir itself, same as
-  production). Root catch-alls are skipped. Marked `_nitroDevRoute` → Nitro,
+  production). Root catch-alls are skipped. Marked `_fastnodeDevRoute` → Fastnode,
   and the dev app's response (even a 404) is final.
 - **Transparent catch-all** — a *user route file* at root level
-  (`routes/[...].ts` → `/**`, `routes/[...slug].ts` → `/**:slug`). Nitro sees
+  (`routes/[...].ts` → `/**`, `routes/[...slug].ts` → `/**:slug`). Fastnode sees
   everything it can handle, so Vite stays the definitive asset handler: an
-  asset-tagged request is marked `_nitroHandled` and a Vite miss must **not**
+  asset-tagged request is marked `_fastnodeHandled` and a Vite miss must **not**
   fall back into it (#4234/#4266).
 - **Opaque catch-all** — any root catch-all that is not a scanned route file:
   the SSR renderer `/**`, a custom `serverEntry` `/**`, or a `/**` registered
   through `routes:` / `handlers:` config or a module (#4531). Their *real*
   routes are invisible to the host (`server.ts` H3 app routes, framework
   routers like TanStack Start, handlers generating assets), so an asset-tagged
-  miss from Vite must still be **dispatched** — marked `_nitroAssetCheck`,
+  miss from Vite must still be **dispatched** — marked `_fastnodeAssetCheck`,
   decided by response inspection.
-- **None** — no match. Extensionless → page navigation → Nitro; asset-tagged →
-  same as opaque (`_nitroAssetCheck`, dispatch after Vite).
+- **None** — no match. Extensionless → page navigation → Fastnode; asset-tagged →
+  same as opaque (`_fastnodeAssetCheck`, dispatch after Vite).
 
 ## 3. The asset heuristic (catch-all / none case only)
 
 Set `Vary: sec-fetch-dest, accept`, then:
 
 - **`Sec-Fetch-Dest` present & concrete** (not `empty`): `document`/`iframe`/
-  `frame` = navigation → Nitro; anything else (`image`, `video`, `style`, …) =
+  `frame` = navigation → Fastnode; anything else (`image`, `video`, `style`, …) =
   asset.
 - **Absent or `empty`**: a Vite `?import` module-graph marker
   (`/[?&]import(?:[&=]|$)/` on the URL) ⇒ asset — only Vite's module graph emits
@@ -84,21 +84,21 @@ Set `Vary: sec-fetch-dest, accept`, then:
   confined to the root so `%2e%2e` paths can't reveal outside files.
 - **Only `GET`/`HEAD` can be assets at all** — a `POST /upload.png` is never a
   browser asset load, so other methods bypass the heuristic entirely.
-- Non-asset + (matched or extensionless) → Nitro immediately (pre-Vite).
+- Non-asset + (matched or extensionless) → Fastnode immediately (pre-Vite).
 
 Two regexes to keep intact:
-- `ASSET_EXT_RE` (`dev.ts:24`) — narrow on purpose, so dotted Nitro params like
-  `/foo.bar.1` still reach Nitro (#4108).
+- `ASSET_EXT_RE` (`dev.ts:24`) — narrow on purpose, so dotted Fastnode params like
+  `/foo.bar.1` still reach Fastnode (#4108).
 - Extension is extracted from the path only (query/hash stripped) so
   `?file=bar.png` does not misclassify.
 
-## 4. Response inspection (`_nitroAssetCheck`)
+## 4. Response inspection (`_fastnodeAssetCheck`)
 
 An asset-tagged request that only an opaque catch-all could handle cannot be
 classified **a priori** — `/image.png` may be a real custom-entry route (#4252)
 or a genuinely missing asset that a naive SSR `/**` would render as a 200 page
 (#4234). It *can* be classified from the **response**: after Vite declines and
-the post catch-all dispatches to Nitro, a 2xx with a `text/html` content-type
+the post catch-all dispatches to Fastnode, a 2xx with a `text/html` content-type
 (inline check in the post middleware) means the catch-all rendered a page for a
 missing asset → the response is discarded via `next()` (connect `finalhandler`
 404, same as before). Anything else — real asset types, JSON, `text/plain`, no
@@ -110,7 +110,7 @@ Deny-list rationale (all verified empirically):
 - Only `text/html` counts as a swallow. `application/json` was originally
   denied too, but that broke real opaque frameworks: TanStack Start answers
   API routes tagged as asset loads with JSON on purpose
-  (`<img src="/api/.../thumbnail">`, TanStack/router#7403, nitro PR #4274),
+  (`<img src="/api/.../thumbnail">`, TanStack/router#7403, fastnode PR #4274),
   and sourcemaps (`.map` ∈ `ASSET_EXT_RE`) are legitimately JSON. The
   accepted trade-off: an SSR entry that swallows missing assets with *JSON*
   (pathological — real naive SSR renders HTML) now returns 200 JSON instead
@@ -140,12 +140,12 @@ no production behavior change). Known leftovers:
 - **#3649** first crude "has extension ⇒ Vite" rule; **#3804/#3805/#3817**
   middleware improvements, mounted-path skip, internal-prefix skip (survives as
   the `^\/(?:__|@)` guard); **#4098** `sec-websocket-protocol` to tell Vite HMR
-  sockets from Nitro websockets (the `upgrade` handler).
-- **#4108** baseURL-aware matching for dotted Nitro routes
+  sockets from Fastnode websockets (the `upgrade` handler).
+- **#4108** baseURL-aware matching for dotted Fastnode routes
   (TanStack/router#6903).
 - **#4234** non-loopback plain-HTTP origins omit `Sec-Fetch-*` → splat swallowed
   `<script src>` loads. Fixed by **#4238**: `Accept` + `ASSET_EXT_RE` fallback +
-  the `_nitroHandled` marker.
+  the `_fastnodeHandled` marker.
 - **#4241** #4238 over-eager: `sec-fetch-dest: image` on a real route
   (`/api/image`) sent to Vite → 404. Fixed by `7d49dcae` + `08f2ec69`
   (query-string stripped before extension matching).
@@ -154,10 +154,10 @@ no production behavior change). Known leftovers:
   classification — **an explicit route is a deterministic win no heuristic can
   touch**.
 - `7765bcb7` added `isExplicitPublicAsset`; **#4734/#4736** replaced it and the
-  pre-pass dev handler/proxy router with `NitroDevApp.hasRoute()` (#4735).
+  pre-pass dev handler/proxy router with `FastnodeDevApp.hasRoute()` (#4735).
 - **#4252 follow-ups** (katywings, jantimon/TanStack/router#7403): routes the
   classifier cannot see — a custom `server.ts` H3 app serving `/image.png`, or
-  an SSR framework serving assets — were pre-empted by `_nitroHandled` and
+  an SSR framework serving assets — were pre-empted by `_fastnodeHandled` and
   could never run. Fixed by the opaque-catch-all + response-inspection design
   above (§2, §4): the pre-emption now applies only to transparent user-file
   catch-alls, and opaque dispatches are judged by their response content-type.
@@ -168,22 +168,22 @@ no production behavior change). Known leftovers:
 
 ## 6. Runtime dispatch flow
 
-The catch-all `nitroDevMiddleware` dispatches in two stages:
+The catch-all `fastnodeDevMiddleware` dispatches in two stages:
 
-1. **`ctx.devApp.fetch(req)`** — `NitroDevApp` (`src/dev/app.ts`), host-side:
-   `devHandlers`, `/_vfs/**`, `/_nitro/tasks`, public asset dirs, `devProxy`.
-   No catch-all → a 404 means "not mine, hand off" (unless `_nitroDevRoute`,
+1. **`ctx.devApp.fetch(req)`** — `FastnodeDevApp` (`src/dev/app.ts`), host-side:
+   `devHandlers`, `/_vfs/**`, `/_fastnode/tasks`, public asset dirs, `devProxy`.
+   No catch-all → a 404 means "not mine, hand off" (unless `_fastnodeDevRoute`,
    where it is final); any non-404 is returned directly (never inspected —
    deterministic host serves are authoritative).
-2. **`nitroEnv.dispatchFetch(req)`** → env-runner → worker → `nitroApp.fetch` →
+2. **`fastnodeEnv.dispatchFetch(req)`** → env-runner → worker → `fastnodeApp.fetch` →
    full route table, middleware, catch-alls.
 
 Catch-all registration (`src/routing.ts`): a custom `serverEntry` is pushed as
-`/**` with `handler = nitro.options.serverEntry.handler`; the SSR renderer as
-`/**` with `handler = nitro.options.renderer.handler` (set by `plugin.ts`
+`/**` with `handler = fastnode.options.serverEntry.handler`; the SSR renderer as
+`/**` with `handler = fastnode.options.renderer.handler` (set by `plugin.ts`
 `configResolved` to `internal/vite/ssr-renderer` when an `ssr` service exists).
 The pre-pass treats a matched catch-all as transparent only when its `handler`
-is in `nitro.scannedHandlers` (a route file); everything else is opaque.
+is in `fastnode.scannedHandlers` (a route file); everything else is opaque.
 
 ## 7. Test coverage map
 
@@ -216,17 +216,17 @@ a real Vite dev server and `fetch()`es with hand-set headers.
 
 ## 8. Gotchas
 
-- The `server.middlewares.stack` scan in `nitroDevMiddleware` skips requests
+- The `server.middlewares.stack` scan in `fastnodeDevMiddleware` skips requests
   whose path matches any other middleware's mounted `base` (#3805), with connect's matching
   (`matchesMiddlewareRoute()`: case-insensitive, path boundary, bare `use(fn)` ignored).
-- `_nitroHandled` is a one-way latch set by the pre-pass (transparent
+- `_fastnodeHandled` is a one-way latch set by the pre-pass (transparent
   catch-all asset) and by the post catch-all itself (re-entry guard). Never set
   it for a request a real or opaque handler should still see (#4252 root
   cause).
 - Extension detection must stay path-only (strip `?#`) and `ASSET_EXT_RE` must
-  stay narrow, or dotted Nitro params regress (#4108).
+  stay narrow, or dotted Fastnode params regress (#4108).
 - The inspection's html-only check must not grow `text/plain` (bridge default
   for string returns) or `application/json` (deliberate API serves, #7403), and it must only apply to `envRes.ok` — framework 404 pages
   and redirects pass through verbatim.
 - The websocket `upgrade` handler is a separate concern sharing the "Vite's or
-  Nitro's?" theme.
+  Fastnode's?" theme.

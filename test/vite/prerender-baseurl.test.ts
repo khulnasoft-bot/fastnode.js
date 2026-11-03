@@ -2,31 +2,31 @@ import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { readFile, rm, mkdir } from "node:fs/promises";
 import { beforeAll, describe, expect, it } from "vitest";
-import { createNitro, build, prepare } from "nitro/builder";
+import { createFastnode, build, prepare } from "fastnode/builder";
 
 const fixtureDir = fileURLToPath(new URL("./prerender-baseurl-fixture", import.meta.url));
 const outDir = join(fixtureDir, ".tmp");
 
-// https://github.com/nitrojs/nitro/issues/4441
+// https://github.com/khulnasoft/fastnode/issues/4441
 describe("prerender with baseURL", () => {
   const routes: string[] = [];
 
   beforeAll(async () => {
     await rm(outDir, { recursive: true, force: true });
     await mkdir(outDir, { recursive: true });
-    const nitro = await createNitro({
+    const fastnode = await createFastnode({
       rootDir: fixtureDir,
       output: { dir: outDir },
       builder: "vite",
     });
-    nitro.hooks.hook("prerender:route", (route) => {
+    fastnode.hooks.hook("prerender:route", (route) => {
       routes.push(route.route);
     });
     try {
-      await prepare(nitro);
-      await build(nitro);
+      await prepare(fastnode);
+      await build(fastnode);
     } finally {
-      await nitro.close();
+      await fastnode.close();
     }
   }, 30_000);
 

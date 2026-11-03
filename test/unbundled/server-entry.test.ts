@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { startUnbundledServer } from "../../src/build/unbundled/serve.ts";
 
 // Native ESM fails to link a default import of a module without one, so it must not be emitted
-describe("nitro serve: server entry", () => {
+describe("fastnode serve: server entry", () => {
   it.each([
     ["no default export", `console.log("startup");`, 404, undefined],
     ["default export without fetch", `export default { port: 3999 };`, 404, undefined],
@@ -16,8 +16,8 @@ describe("nitro serve: server entry", () => {
       "from entry",
     ],
   ])("%s", async (_name, code, status, body) => {
-    const dir = await mkdtemp(join(tmpdir(), "nitro-serve-entry-"));
-    await writeFile(join(dir, "nitro.config.mjs"), `export default { serverDir: "./" };`);
+    const dir = await mkdtemp(join(tmpdir(), "fastnode-serve-entry-"));
+    await writeFile(join(dir, "fastnode.config.mjs"), `export default { serverDir: "./" };`);
     await writeFile(join(dir, "server.ts"), code);
     await mkdir(join(dir, "routes"));
     await writeFile(join(dir, "routes/hello.ts"), `export default () => "hello";`);

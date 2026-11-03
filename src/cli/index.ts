@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 import { defineCommand, runMain } from "citty";
-import { version as nitroVersion } from "#nitro/meta";
+import { version as fastnodeVersion } from "#fastnode/meta";
 import { showUsage } from "./_usage.ts";
 
 const main = defineCommand({
   meta: {
-    name: "nitro",
-    description: "Nitro CLI",
-    version: nitroVersion,
+    name: "fastnode",
+    description: "Fastnode CLI",
+    version: fastnodeVersion,
   },
   subCommands: {
     create: () => import("./commands/create/index.ts").then((r) => r.default),

@@ -6,7 +6,7 @@ icon: i-logos-react
 
 # SSR with React
 
-> Server-side rendering with React in Nitro using Vite.
+> Server-side rendering with React in Fastnode using Vite.
 
 <!-- automd:ui-code-tree src="../../examples/vite-ssr-react" default="src/entry-server.tsx" ignore="README.md,GUIDE.md" expandAll -->
 
@@ -24,7 +24,7 @@ icon: i-logos-react
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
-    "nitro": "latest",
+    "fastnode": "latest",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-refresh": "^0.19.0",
@@ -35,7 +35,7 @@ icon: i-logos-react
 
 ```json [tsconfig.json]
 {
-  "extends": "nitro/tsconfig",
+  "extends": "fastnode/tsconfig",
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "react"
@@ -45,11 +45,11 @@ icon: i-logos-react
 
 ```js [vite.config.mjs]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
-  plugins: [nitro(), react()],
+  plugins: [fastnode(), react()],
   environments: {
     client: {
       build: { rollupOptions: { input: "./src/entry-client.tsx" } },
@@ -65,7 +65,7 @@ export function App() {
   const [count, setCount] = useState(0);
   return (
     <>
-      <h1 className="hero">Nitro + Vite + React</h1>
+      <h1 className="hero">Fastnode + Vite + React</h1>
       <button onClick={() => setCount((c) => c + 1)}>Count is {count}</button>
     </>
   );
@@ -131,26 +131,26 @@ button {
 
 <!-- automd:file src="../../examples/vite-ssr-react/README.md" -->
 
-Set up server-side rendering (SSR) with React, Vite, and Nitro. This setup enables streaming HTML responses, automatic asset management, and client hydration.
+Set up server-side rendering (SSR) with React, Vite, and Fastnode. This setup enables streaming HTML responses, automatic asset management, and client hydration.
 
 ## Overview
 
-1. Add the Nitro Vite plugin to your Vite config
+1. Add the Fastnode Vite plugin to your Vite config
 2. Configure client and server entry points
 3. Create a server entry that renders your app to HTML
 4. Create a client entry that hydrates the server-rendered HTML
 
 ## 1. Configure Vite
 
-Add the Nitro and React plugins to your Vite config. Define the `client` environment with your client entry point:
+Add the Fastnode and React plugins to your Vite config. Define the `client` environment with your client entry point:
 
 ```js [vite.config.mjs]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
-  plugins: [nitro(), react()],
+  plugins: [fastnode(), react()],
   environments: {
     client: {
       build: { rollupOptions: { input: "./src/entry-client.tsx" } },
@@ -159,7 +159,7 @@ export default defineConfig({
 });
 ```
 
-The `environments.client` configuration tells Vite which file to use as the browser entry point. Nitro automatically detects the SSR entry from a file named `entry-server` in `app/`, `src/`, or the project root.
+The `environments.client` configuration tells Vite which file to use as the browser entry point. Fastnode automatically detects the SSR entry from a file named `entry-server` in `app/`, `src/`, or the project root.
 
 ## 2. Create the App Component
 
@@ -172,7 +172,7 @@ export function App() {
   const [count, setCount] = useState(0);
   return (
     <>
-      <h1 className="hero">Nitro + Vite + React</h1>
+      <h1 className="hero">Fastnode + Vite + React</h1>
       <button onClick={() => setCount((c) => c + 1)}>Count is {count}</button>
     </>
   );
@@ -218,7 +218,7 @@ export default {
 };
 ```
 
-Import assets using the `?assets=client` and `?assets=ssr` query parameters. Nitro collects CSS and JS assets from each entry point, and `merge()` combines them into a single manifest. The `assets` object provides arrays of stylesheet and script attributes, plus the client entry URL. Use `renderToReadableStream` to stream HTML as React renders, improving time-to-first-byte.
+Import assets using the `?assets=client` and `?assets=ssr` query parameters. Fastnode collects CSS and JS assets from each entry point, and `merge()` combines them into a single manifest. The `assets` object provides arrays of stylesheet and script attributes, plus the client entry URL. Use `renderToReadableStream` to stream HTML as React renders, improving time-to-first-byte.
 
 ## 4. Create the Client Entry
 
