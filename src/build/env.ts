@@ -1,11 +1,11 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import { readFileSync } from "node:fs";
 import { builtinModules } from "node:module";
 import { resolveModulePath } from "exsolve";
 import { join } from "pathe";
 import { normalizeAliases, resolveAlias } from "pathe/utils";
-import { pkgDir } from "#nitro/meta";
-import { legacyUnenvLayers } from "../config/resolvers/unenv.ts";
+import { pkgDir } from "#fastnode/meta";
+import { legacyUnenvLayers } from "../config/resolver/unenv.ts";
 import { nodeCompatEnv } from "./_node-compat.ts";
 import { isUnenvId } from "./plugins/unenv.ts";
 
@@ -24,10 +24,10 @@ export type PresetEnv = Partial<{
   builtinModules: readonly string[];
 }>;
 
-const presetEnvs = new WeakMap<Nitro, PresetEnv[]>();
+const presetEnvs = new WeakMap<Fastnode, PresetEnv[]>();
 
 const fastResponseEnv: PresetEnv = {
-  polyfills: ["#nitro/runtime/polyfills/fast-response"],
+  polyfills: ["#fastnode/runtime/polyfills/fast-response"],
 };
 
 const commonEnv: PresetEnv = {
@@ -46,12 +46,12 @@ const commonEnv: PresetEnv = {
  * Preset layers are applied in order, before user options (`alias`, `inject`,
  * `polyfills`, `builtinModules`), so they never leak into config resolution.
  */
-export function extendEnv(nitro: Nitro, env: PresetEnv) {
-  const envs = presetEnvs.get(nitro) || [];
+export function extendEnv(fastnode: Fastnode, env: PresetEnv) {
+  const envs = presetEnvs.get(fastnode) || [];
   if (!envs.includes(env)) {
     envs.push(env);
   }
-  presetEnvs.set(nitro, envs);
+  presetEnvs.set(fastnode, envs);
 }
 
 /**
@@ -62,27 +62,27 @@ export function extendEnv(nitro: Nitro, env: PresetEnv) {
  * Module ids are resolved to absolute paths so that they don't depend on the
  * importer location.
  */
-export async function resolveBuildEnv(nitro: Nitro): Promise<BuildEnv> {
+export async function resolveBuildEnv(fastnode: Fastnode): Promise<BuildEnv> {
   const layers: PresetEnv[] = [];
-  if (nitro.options.node === false) {
+  if (fastnode.options.node === false) {
     layers.push(nodeCompatEnv);
   }
   layers.push(
     commonEnv,
-    selfEnv(nitro.options.rootDir),
-    ...(presetEnvs.get(nitro) || []),
-    ...legacyUnenvLayers(nitro.options, nitro.logger),
-    (nitro.options.features?.fastResponse ?? nitro.options.node) ? fastResponseEnv : {},
+    selfEnv(fastnode.options.rootDir),
+    ...(presetEnvs.get(fastnode) || []),
+    ...legacyUnenvLayers(fastnode.options, fastnode.logger),
+    (fastnode.options.features?.fastResponse ?? fastnode.options.node) ? fastResponseEnv : {},
     {
-      alias: nitro.options.alias,
-      inject: nitro.options.inject,
-      polyfills: nitro.options.polyfills,
-      builtinModules: nitro.options.builtinModules,
+      alias: fastnode.options.alias,
+      inject: fastnode.options.inject,
+      polyfills: fastnode.options.polyfills,
+      builtinModules: fastnode.options.builtinModules,
     }
   );
 
   const env = mergeEnv(layers);
-  resolveEnvPaths(env, nitro.options.rootDir);
+  resolveEnvPaths(env, fastnode.options.rootDir);
   return env;
 }
 
@@ -105,7 +105,7 @@ function mergeEnv(layers: PresetEnv[]): BuildEnv {
   return env;
 }
 
-// Packages resolve from Nitro first, relative ids from `rootDir`. `unenv/*` ids are resolved on demand (see `plugins/unenv.ts`)
+// Packages resolve from Fastnode first, relative ids from `rootDir`. `unenv/*` ids are resolved on demand (see `plugins/unenv.ts`)
 function resolveEnvPaths(env: BuildEnv, rootDir: string) {
   const aliases = normalizeAliases(env.alias);
   const resolve = (id: string) => {
@@ -128,9 +128,9 @@ function resolveEnvPaths(env: BuildEnv, rootDir: string) {
   }
 }
 
-// Projects without their own `nitro` dependency (e.g. built by a global CLI) import this one
+// Projects without their own `fastnode` dependency (e.g. built by a global CLI) import this one
 function selfEnv(rootDir: string): PresetEnv {
-  if (resolveModulePath("nitro", { from: rootDir, try: true })) {
+  if (resolveModulePath("fastnode", { from: rootDir, try: true })) {
     return {};
   }
   const { exports } = JSON.parse(readFileSync(join(pkgDir, "package.json"), "utf8"));
@@ -138,7 +138,7 @@ function selfEnv(rootDir: string): PresetEnv {
     alias: Object.fromEntries(
       Object.entries(exports as Record<string, string>)
         .filter(([, path]) => /\.(?:mjs|json)$/.test(path))
-        .map(([id, path]) => [id.replace(/^\./, "nitro"), join(pkgDir, path)])
+        .map(([id, path]) => [id.replace(/^\./, "fastnode"), join(pkgDir, path)])
     ),
   };
 }

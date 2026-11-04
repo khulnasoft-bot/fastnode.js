@@ -3,7 +3,7 @@ import { consola } from "consola";
 import { colors } from "consola/utils";
 import { resolve } from "pathe";
 import { commonArgs } from "../common.ts";
-import { startUnbundledServer } from "../../build/unbundled/serve.ts";
+import { startUnbundledServer } from "../../build/builders/unbundled/serve.ts";
 import { runDev } from "./dev.ts";
 
 export default defineCommand({

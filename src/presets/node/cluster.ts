@@ -1,8 +1,8 @@
 import { resolve } from "pathe";
 import { writeFile } from "../../utils/fs.ts";
-import { defineNitroPreset } from "../_utils/preset.ts";
+import { defineFastnodePreset } from "../_utils/preset.ts";
 
-export const nodeCluster = defineNitroPreset(
+export const nodeCluster = defineFastnodePreset(
   {
     extends: "node-server",
     serveStatic: true,
@@ -13,8 +13,11 @@ export const nodeCluster = defineNitroPreset(
       },
     },
     hooks: {
-      async compiled(nitro) {
-        await writeFile(resolve(nitro.options.output.serverDir, "index.mjs"), nodeClusterEntry());
+      async compiled(fastnode) {
+        await writeFile(
+          resolve(fastnode.options.output.serverDir, "index.mjs"),
+          nodeClusterEntry()
+        );
       },
     },
   },
@@ -30,7 +33,7 @@ import os from "node:os";
 
 if (cluster.isPrimary) {
   const numberOfWorkers =
-    Number.parseInt(process.env.NITRO_CLUSTER_WORKERS || "") || os.availableParallelism();
+    Number.parseInt(process.env.FASTNODE_CLUSTER_WORKERS || "") || os.availableParallelism();
   const workers = [];
   for (let i = 0; i < numberOfWorkers; i++) {
     workers.push(cluster.fork({ WORKER_ID: i + 1 }));

@@ -1,20 +1,20 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 
 import { readFile } from "node:fs/promises";
 import { importOXC } from "../../utils/oxc.ts";
 
-export default function serverEntry(nitro: Nitro) {
+export default function serverEntry(fastnode: Fastnode) {
   return {
-    id: "#nitro/virtual/server-entry",
+    id: "#fastnode/virtual/server-entry",
     template: async () => {
-      const entry = nitro.options.serverEntry;
-      const builtinExports = _builtinWorkerExports(nitro);
+      const entry = fastnode.options.serverEntry;
+      const builtinExports = _builtinWorkerExports(fastnode);
       if (!entry || !entry.handler || entry.format === "node") {
         return /* js */ `${builtinExports}
 export const serverEntryOptions = {};
 export const serverEntryExports = {};`;
       }
-      if (!(await hasServerEntryDefaultExport(nitro))) {
+      if (!(await hasServerEntryDefaultExport(fastnode))) {
         return /* js */ `${builtinExports}
 import * as serverEntryExports from "${entry.handler}";
 export { serverEntryExports };
@@ -44,8 +44,8 @@ if (proto === Object.prototype || proto === null) {
  * startup logic only. Unknown cases (unreadable or invalid source) are assumed to have one,
  * so that the bundler reports them.
  */
-export async function hasServerEntryDefaultExport(nitro: Nitro): Promise<boolean> {
-  const handler = nitro.options.serverEntry && nitro.options.serverEntry.handler;
+export async function hasServerEntryDefaultExport(fastnode: Fastnode): Promise<boolean> {
+  const handler = fastnode.options.serverEntry && fastnode.options.serverEntry.handler;
   if (!handler) {
     return false;
   }
@@ -57,8 +57,8 @@ export async function hasServerEntryDefaultExport(nitro: Nitro): Promise<boolean
     return false;
   }
   const { parseSync } = await importOXC({
-    dir: nitro.options.rootDir,
-    paths: nitro.options.deps?.paths,
+    dir: fastnode.options.rootDir,
+    paths: fastnode.options.deps?.paths,
   });
   const { module, errors } = parseSync(handler, code);
   if (errors.length > 0) {
@@ -73,10 +73,10 @@ export async function hasServerEntryDefaultExport(nitro: Nitro): Promise<boolean
 
 // Worker exports a preset registers for Vite dev (e.g. the cloudflare `$DurableObject` class),
 // merged into the Worker exports of the miniflare runner by `vite/dev-entry.mjs`
-const DEV_WORKER_EXPORTS_ID = "#nitro/virtual/dev-worker-exports";
+const DEV_WORKER_EXPORTS_ID = "#fastnode/virtual/dev-worker-exports";
 
-function _builtinWorkerExports(nitro: Nitro): string {
-  return DEV_WORKER_EXPORTS_ID in nitro.options.virtual
+function _builtinWorkerExports(fastnode: Fastnode): string {
+  return DEV_WORKER_EXPORTS_ID in fastnode.options.virtual
     ? `export * as builtinWorkerExports from "${DEV_WORKER_EXPORTS_ID}";`
     : "export const builtinWorkerExports = {};";
 }

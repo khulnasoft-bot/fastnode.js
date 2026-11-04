@@ -1,4 +1,4 @@
-import { serverFetch } from "nitro";
+import { serverFetch } from "fastnode";
 
 export default async () => {
   const res = await serverFetch("/build/test.txt");

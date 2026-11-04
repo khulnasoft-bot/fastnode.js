@@ -5,7 +5,7 @@ const SPAN_KIND_INTERNAL = 1;
 const SPAN_KIND_CLIENT = 3;
 
 /**
- * Every tracing channel Nitro instruments, keyed by channel name and mapped to
+ * Every tracing channel Fastnode instruments, keyed by channel name and mapped to
  * the describer that turns a completed operation into a span name, kind and
  * attributes. The plugin subscribes to exactly these channels
  * (`tracing:<name>:*`); channels absent from this table are not traced.

@@ -150,7 +150,7 @@ export interface VercelOptions {
    * If you have enabled skew protection in the Vercel dashboard, it will
    * be enabled by default.
    *
-   * You can disable the Nitro integration by setting this option to `false`.
+   * You can disable the Fastnode integration by setting this option to `false`.
    */
   skewProtection?: boolean;
 
@@ -159,10 +159,10 @@ export interface VercelOptions {
    *
    * Immutable assets are served from the reserved `/_vercel/immutable/` base
    * (without the deployment-scoped `?dpl` query), so they can be shared across
-   * deployments to improve cross-deployment caching. Nitro also writes an
+   * deployments to improve cross-deployment caching. Fastnode also writes an
    * `immutable.json` manifest listing each emitted immutable file.
    *
-   * Opt in by setting this to `true` or the `NITRO_VERCEL_IMMUTABLE_STATIC_FILES_ENABLED`
+   * Opt in by setting this to `true` or the `FASTNODE_VERCEL_IMMUTABLE_STATIC_FILES_ENABLED`
    * environment variable. When building on Vercel, immutable output is only
    * produced if the deployment supports it (`VERCEL_IMMUTABLE_STATIC_FILES_ENABLED`);
    * otherwise it is skipped with a warning.
@@ -176,7 +176,7 @@ export interface VercelOptions {
   /**
    * Handler format to use for Vercel Serverless Functions.
    *
-   * Using `node` format enables compatibility with Node.js specific APIs in your Nitro application (e.g., `req.runtime.node`).
+   * Using `node` format enables compatibility with Node.js specific APIs in your Fastnode application (e.g., `req.runtime.node`).
    *
    * Possible values are: `web` (default) and `node`.
    */
@@ -186,7 +186,7 @@ export interface VercelOptions {
    * The route path for the Vercel cron handler endpoint.
    *
    * When `experimental.tasks` and `scheduledTasks` are configured,
-   * Nitro registers a cron handler at this path that Vercel invokes
+   * Fastnode registers a cron handler at this path that Vercel invokes
    * on each scheduled cron trigger.
    *
    * @default "/_vercel/cron"
@@ -195,8 +195,8 @@ export interface VercelOptions {
   cronHandlerRoute?: string;
 
   /**
-   * Run [`scheduledTasks`](https://nitro.build/docs/tasks#scheduled-tasks) with Vercel Schedules
-   * instead of Vercel Cron Jobs. Nitro emits one schedule per task in the Build Output API.
+   * Run [`scheduledTasks`](https://fastnode.khulnasoft.com/docs/tasks#scheduled-tasks) with Vercel Schedules
+   * instead of Vercel Cron Jobs. Fastnode emits one schedule per task in the Build Output API.
    *
    * - `"private"`: every schedule targets a private function that runs the task. Only Vercel
    *   Schedules can invoke it, so there is no public cron endpoint and no `CRON_SECRET` is needed.
@@ -207,7 +207,7 @@ export interface VercelOptions {
    * Under `vercel dev`, the local Schedules broker runs scheduled tasks instead of the
    * in-process scheduler.
    *
-   * Defaults to the `NITRO_VERCEL_SCHEDULES` environment variable (`private` or `public`).
+   * Defaults to the `FASTNODE_VERCEL_SCHEDULES` environment variable (`private` or `public`).
    *
    * @experimental Vercel Schedules is in beta.
    * @default false
@@ -221,8 +221,8 @@ export interface VercelOptions {
    *
    * @example
    * ```ts
-   * // nitro.config.ts
-   * import { defineConfig } from "nitro";
+   * // fastnode.config.ts
+   * import { defineConfig } from "fastnode";
    *
    * export default defineConfig({
    *   vercel: {
@@ -235,10 +235,10 @@ export interface VercelOptions {
    *
    * ```ts
    * // server/plugins/queues.ts
-   * import { definePlugin } from "nitro";
+   * import { definePlugin } from "fastnode";
    *
-   * export default definePlugin((nitro) => {
-   *   nitro.hooks.hook("vercel:queue", ({ message, metadata }) => {
+   * export default definePlugin((fastnode) => {
+   *   fastnode.hooks.hook("vercel:queue", ({ message, metadata }) => {
    *     console.log(`Received message on ${metadata.topicName}:`, message);
    *   });
    * });
@@ -309,7 +309,7 @@ export type PrerenderFunctionConfig = {
   /**
    * When `true`, the query string will be present on the `request` argument passed to the invoked function. The `allowQuery` filter still applies.
    *
-   * Nitro sets this to `true` when the `isr` route rule has a non-empty `allowQuery` and no `passQuery`.
+   * Fastnode sets this to `true` when the `isr` route rule has a non-empty `allowQuery` and no `passQuery`.
    */
   passQuery?: boolean;
 
@@ -321,8 +321,8 @@ export type PrerenderFunctionConfig = {
   exposeErrBody?: boolean;
 };
 
-declare module "nitro/types" {
-  export interface NitroRuntimeHooks {
+declare module "fastnode/types" {
+  export interface FastnodeRuntimeHooks {
     "vercel:queue": (_: {
       message: unknown;
       metadata: OptionalDepType<MessageMetadata, VercelQueueMessageMetadata>;

@@ -1,12 +1,12 @@
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
 import rsc from "@vitejs/plugin-rsc";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [
-    nitro(),
+    fastnode(),
     rsc({
       serverHandler: false,
       entries: {

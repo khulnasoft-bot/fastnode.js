@@ -1,12 +1,12 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import { joinURL } from "ufo";
 import { describe, expect, it } from "vitest";
-import { NitroDevApp } from "../../src/dev/app.ts";
+import { FastnodeDevApp } from "../../src/dev/app.ts";
 
-describe.each(["/", "/app/"])("NitroDevApp.hasRoute (baseURL: %s)", (baseURL) => {
+describe.each(["/", "/app/"])("FastnodeDevApp.hasRoute (baseURL: %s)", (baseURL) => {
   const url = (path: string) => joinURL(baseURL, path);
   const handler = () => "ok";
-  const app = new NitroDevApp({
+  const app = new FastnodeDevApp({
     logger: console,
     options: {
       baseURL,
@@ -26,7 +26,7 @@ describe.each(["/", "/app/"])("NitroDevApp.hasRoute (baseURL: %s)", (baseURL) =>
         [url("/_proxy/**")]: { target: "http://127.0.0.1:1" },
       },
     },
-  } as unknown as Nitro);
+  } as unknown as Fastnode);
 
   it("matches dev handler routes", () => {
     expect(app.hasRoute("GET", url("/_dev/a.woff2"))).toBe(true);

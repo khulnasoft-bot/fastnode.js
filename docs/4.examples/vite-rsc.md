@@ -6,7 +6,7 @@ icon: i-logos-react
 
 # Vite RSC
 
-> React Server Components with Vite and Nitro.
+> React Server Components with Vite and Fastnode.
 
 <!-- automd:ui-code-tree src="../../examples/vite-rsc" default="app/root.tsx" ignore="README.md,GUIDE.md" expandAll -->
 
@@ -33,7 +33,7 @@ icon: i-logos-react
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "@vitejs/plugin-rsc": "^0.5.38",
-    "nitro": "latest",
+    "fastnode": "latest",
     "rsc-html-stream": "^0.0.8",
     "vite": "latest"
   }
@@ -42,7 +42,7 @@ icon: i-logos-react
 
 ```json [tsconfig.json]
 {
-  "extends": "nitro/tsconfig",
+  "extends": "fastnode/tsconfig",
   "compilerOptions": {
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "types": ["vite/client", "@vitejs/plugin-rsc/types"],
@@ -53,14 +53,14 @@ icon: i-logos-react
 
 ```ts [vite.config.ts]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
 import rsc from "@vitejs/plugin-rsc";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [
-    nitro(),
+    fastnode(),
     rsc({
       serverHandler: false,
       entries: {
@@ -229,7 +229,7 @@ import "./index.css"; // css import is automatically injected in exported server
 import viteLogo from "./assets/vite.svg";
 import { getServerCounter, updateServerCounter } from "./action.tsx";
 import reactLogo from "./assets/react.svg";
-import nitroLogo from "./assets/nitro.svg";
+import fastnodeLogo from "./assets/fastnode.svg";
 import { ClientCounter } from "./client.tsx";
 
 export function Root(props: { url: URL }) {
@@ -240,7 +240,7 @@ export function Root(props: { url: URL }) {
         <meta charSet="UTF-8" />
         <link rel="icon" type="image/svg+xml" href="/vite.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Nitro + Vite + RSC</title>
+        <title>Fastnode + Vite + RSC</title>
       </head>
       <body>
         <App {...props} />
@@ -260,11 +260,11 @@ function App(props: { url: URL }) {
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
 
-        <a href="https://nitro.build" target="_blank">
-          <img src={nitroLogo} className="logo" alt="Nitro logo" />
+        <a href="https://fastnode.khulnasoft.com" target="_blank">
+          <img src={fastnodeLogo} className="logo" alt="Fastnode logo" />
         </a>
       </div>
-      <h1>Vite + RSC + Nitro</h1>
+      <h1>Vite + RSC + Fastnode</h1>
       <div className="card">
         <ClientCounter />
       </div>
@@ -301,8 +301,8 @@ function App(props: { url: URL }) {
 }
 ```
 
-```text [app/assets/nitro.svg]
-<!-- nitro logo -->
+```text [app/assets/fastnode.svg]
+<!-- fastnode logo -->
 <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
   <g clip-path="url(#clip0_115_108)">
     <path fill-rule="evenodd" clip-rule="evenodd"
@@ -856,7 +856,7 @@ export function parseRenderRequest(request: Request): RenderRequest {
 
 <!-- automd:file src="../../examples/vite-rsc/README.md" -->
 
-This example demonstrates React Server Components (RSC) using Vite's experimental RSC plugin with Nitro. It includes server components, client components, server actions, and streaming SSR.
+This example demonstrates React Server Components (RSC) using Vite's experimental RSC plugin with Fastnode. It includes server components, client components, server actions, and streaming SSR.
 
 ## Overview
 
@@ -960,7 +960,7 @@ import "./index.css"; // css import is automatically injected in exported server
 import viteLogo from "./assets/vite.svg";
 import { getServerCounter, updateServerCounter } from "./action.tsx";
 import reactLogo from "./assets/react.svg";
-import nitroLogo from "./assets/nitro.svg";
+import fastnodeLogo from "./assets/fastnode.svg";
 import { ClientCounter } from "./client.tsx";
 
 export function Root(props: { url: URL }) {
@@ -971,7 +971,7 @@ export function Root(props: { url: URL }) {
         <meta charSet="UTF-8" />
         <link rel="icon" type="image/svg+xml" href="/vite.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Nitro + Vite + RSC</title>
+        <title>Fastnode + Vite + RSC</title>
       </head>
       <body>
         <App {...props} />
@@ -991,11 +991,11 @@ function App(props: { url: URL }) {
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
 
-        <a href="https://nitro.build" target="_blank">
-          <img src={nitroLogo} className="logo" alt="Nitro logo" />
+        <a href="https://fastnode.khulnasoft.com" target="_blank">
+          <img src={fastnodeLogo} className="logo" alt="Fastnode logo" />
         </a>
       </div>
-      <h1>Vite + RSC + Nitro</h1>
+      <h1>Vite + RSC + Fastnode</h1>
       <div className="card">
         <ClientCounter />
       </div>

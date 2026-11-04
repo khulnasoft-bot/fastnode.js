@@ -1,14 +1,14 @@
 import { fileURLToPath } from "node:url";
 import { readFile, rm, writeFile } from "node:fs/promises";
 import { afterAll, beforeAll, describe, expect, it, vi, type MockInstance } from "vitest";
-import { build, createDevServer, createNitro, prepare } from "nitro/builder";
-import { nitro as nitroVite } from "nitro/vite";
-import type { NitroConfig } from "nitro/types";
+import { build, createDevServer, createFastnode, prepare } from "fastnode/builder";
+import { fastnode as fastnodeVite } from "fastnode/vite";
+import type { FastnodeConfig } from "fastnode/types";
 import { Miniflare } from "miniflare";
 import { resolve } from "pathe";
 
 const { createServer, createBuilder } = (await import(
-  process.env.NITRO_VITE_PKG || "vite"
+  process.env.FASTNODE_VITE_PKG || "vite"
 )) as typeof import("vite");
 
 const rootDir = fileURLToPath(new URL("../fixture/cloudflare-dev", import.meta.url));
@@ -16,11 +16,11 @@ const rootDir = fileURLToPath(new URL("../fixture/cloudflare-dev", import.meta.u
 // Dev reloads (a full rebuild with Rollup) can take longer than the default 1s poll timeout on CI
 const reloadPoll = { timeout: 10_000 };
 
-// Nitro dev server does not support the vite builder (use `vite dev`)
-const skipNitroDev = process.env.NITRO_BUILDER === "vite";
+// Fastnode dev server does not support the vite builder (use `vite dev`)
+const skipFastnodeDev = process.env.FASTNODE_BUILDER === "vite";
 
-for (const mode of ["nitro", "vite", "build", "vite-build"] as const) {
-  if (mode === "nitro" && skipNitroDev) continue;
+for (const mode of ["fastnode", "vite", "build", "vite-build"] as const) {
+  if (mode === "fastnode" && skipFastnodeDev) continue;
   describe(`cloudflare bindings: ${mode}`, { concurrent: false }, () => {
     let fetchPath: (path: string) => Promise<Response>;
     let serverURL: string | undefined;
@@ -31,27 +31,27 @@ for (const mode of ["nitro", "vite", "build", "vite-build"] as const) {
 
     beforeAll(async () => {
       await rm(`${rootDir}/.wrangler`, { recursive: true, force: true });
-      if (mode === "nitro") {
-        const nitro = await createNitro({
+      if (mode === "fastnode") {
+        const fastnode = await createFastnode({
           rootDir,
           dev: true,
-          builder: (process.env.NITRO_BUILDER as "rollup" | "rolldown") || "rolldown",
+          builder: (process.env.FASTNODE_BUILDER as "rollup" | "rolldown") || "rolldown",
         });
-        close = () => nitro.close();
-        warn = vi.spyOn(nitro.logger, "warn");
+        close = () => fastnode.close();
+        warn = vi.spyOn(fastnode.logger, "warn");
         const consoleWarn = vi.spyOn(console, "warn");
-        const server = createDevServer(nitro);
-        await prepare(nitro);
+        const server = createDevServer(fastnode);
+        await prepare(fastnode);
         const ready = new Promise<void>((resolve) =>
-          nitro.hooks.hook("dev:reload", () => resolve())
+          fastnode.hooks.hook("dev:reload", () => resolve())
         );
-        await build(nitro);
+        await build(fastnode);
         await ready;
         bundlerWarnings = consoleWarn.mock.calls.map((args) => String(args[0]));
         consoleWarn.mockRestore();
         fetchPath = async (path) => server.fetch(new Request(new URL(path, "http://localhost")));
         reload = async () => {
-          await nitro.hooks.callHook("dev:reload");
+          await fastnode.hooks.callHook("dev:reload");
         };
       } else if (mode === "vite") {
         const server = await createServer({ root: rootDir, logLevel: "warn" });
@@ -67,14 +67,14 @@ for (const mode of ["nitro", "vite", "build", "vite-build"] as const) {
           serverDir = resolve(rootDir, ".output/server");
           close = async () => {};
         } else {
-          const nitro = await createNitro({
+          const fastnode = await createFastnode({
             rootDir,
-            builder: (process.env.NITRO_BUILDER as "rollup" | "rolldown") || "rolldown",
+            builder: (process.env.FASTNODE_BUILDER as "rollup" | "rolldown") || "rolldown",
           });
-          close = () => nitro.close();
-          await prepare(nitro);
-          await build(nitro);
-          serverDir = nitro.options.output.serverDir;
+          close = () => fastnode.close();
+          await prepare(fastnode);
+          await build(fastnode);
+          serverDir = fastnode.options.output.serverDir;
         }
         const wrangler = JSON.parse(await readFile(resolve(serverDir, "wrangler.json"), "utf8"));
         expect(wrangler.env.test.durable_objects.bindings).toContainEqual({
@@ -106,10 +106,10 @@ for (const mode of ["nitro", "vite", "build", "vite-build"] as const) {
             TEST_WORKFLOW: { name: "doubler", className: "Doubler" },
           },
         });
-        const closeNitro = close;
+        const closeFastnode = close;
         close = async () => {
           await mf.dispose();
-          await closeNitro();
+          await closeFastnode();
         };
         fetchPath = async (path) => mf.dispatchFetch(new URL(path, "http://localhost")) as any;
       }
@@ -142,14 +142,14 @@ for (const mode of ["nitro", "vite", "build", "vite-build"] as const) {
       }
     });
 
-    it.runIf(mode === "nitro")("keeps binding state across reloads", async () => {
+    it.runIf(mode === "fastnode")("keeps binding state across reloads", async () => {
       await reload!();
       const response = await fetchPath("/kv");
       expect(await response.json()).toEqual({ value: "works" });
       expect(warn).not.toHaveBeenCalledWith(expect.stringContaining("did not shut down"));
     });
 
-    it.runIf(mode === "nitro")("keeps workerd built-in modules external", () => {
+    it.runIf(mode === "fastnode")("keeps workerd built-in modules external", () => {
       expect(bundlerWarnings.filter((w) => w.includes("cloudflare:workers"))).toEqual([]);
     });
 
@@ -193,7 +193,7 @@ for (const mode of ["nitro", "vite", "build", "vite-build"] as const) {
       const body = await response.text();
       expect(response.status, body).toBe(200);
       const { greeting, route, entrypoint } = JSON.parse(body);
-      expect(greeting).toBe("hello nitro");
+      expect(greeting).toBe("hello fastnode");
       expect(entrypoint).toBe(route);
     });
 
@@ -216,7 +216,7 @@ for (const mode of ["nitro", "vite", "build", "vite-build"] as const) {
       expect(JSON.parse(body)).toEqual({ value: 42, runtime: "workerd" });
     });
 
-    it.runIf(mode === "nitro" || mode === "vite")(
+    it.runIf(mode === "fastnode" || mode === "vite")(
       "reloads Durable Object dependencies and preserves state",
       async () => {
         const path = resolve(rootDir, "counter.ts");
@@ -254,24 +254,24 @@ for (const mode of ["nitro", "vite", "build", "vite-build"] as const) {
       }
     );
 
-    it.runIf(mode === "nitro" || mode === "vite")("reloads WorkerEntrypoints", async () => {
+    it.runIf(mode === "fastnode" || mode === "vite")("reloads WorkerEntrypoints", async () => {
       const path = resolve(rootDir, "greeter.ts");
       const source = await readFile(path, "utf8");
       const greeting = async () => ((await (await fetchPath("/greeter")).json()) as any).greeting;
       try {
         await writeFile(path, source.replace("hello", "hi"));
-        await expect.poll(greeting, reloadPoll).toBe("hi nitro");
+        await expect.poll(greeting, reloadPoll).toBe("hi fastnode");
       } finally {
         await waitForWatcher();
         await writeFile(path, source);
-        await expect.poll(greeting, reloadPoll).toBe("hello nitro");
+        await expect.poll(greeting, reloadPoll).toBe("hello fastnode");
       }
     });
   });
 }
 
-for (const mode of ["nitro", "vite"] as const) {
-  if (mode === "nitro" && skipNitroDev) continue;
+for (const mode of ["fastnode", "vite"] as const) {
+  if (mode === "fastnode" && skipFastnodeDev) continue;
   for (const binding of [false, true]) {
     describe(`cloudflare-dev websocket: ${mode} (\`$DurableObject\` binding: ${binding})`, () => {
       let wsURL: URL;
@@ -290,7 +290,7 @@ for (const mode of ["nitro", "vite"] as const) {
             ? {
                 wranglerEnv: "test",
                 wrangler: {
-                  name: "nitro-dev",
+                  name: "fastnode-dev",
                   env: {
                     test: {
                       durable_objects: {
@@ -299,7 +299,7 @@ for (const mode of ["nitro", "vite"] as const) {
                           {
                             name: "$DurableObject",
                             class_name: "$DurableObject",
-                            script_name: "nitro-dev-test",
+                            script_name: "fastnode-dev-test",
                           },
                         ],
                       },
@@ -308,23 +308,23 @@ for (const mode of ["nitro", "vite"] as const) {
                 },
               }
             : undefined,
-        } satisfies NitroConfig;
+        } satisfies FastnodeConfig;
         let serverURL: string;
-        if (mode === "nitro") {
-          const nitro = await createNitro({
+        if (mode === "fastnode") {
+          const fastnode = await createFastnode({
             ...config,
             rootDir,
             dev: true,
-            builder: (process.env.NITRO_BUILDER as "rollup" | "rolldown") || "rolldown",
+            builder: (process.env.FASTNODE_BUILDER as "rollup" | "rolldown") || "rolldown",
           });
-          const listener = createDevServer(nitro).listen({ port: 0, hostname: "127.0.0.1" });
+          const listener = createDevServer(fastnode).listen({ port: 0, hostname: "127.0.0.1" });
           // Closes the listener and the runner together (the sockets stay open until the runner stops)
-          close = () => nitro.close();
-          await prepare(nitro);
+          close = () => fastnode.close();
+          await prepare(fastnode);
           const ready = new Promise<void>((resolve) =>
-            nitro.hooks.hook("dev:reload", () => resolve())
+            fastnode.hooks.hook("dev:reload", () => resolve())
           );
-          await build(nitro);
+          await build(fastnode);
           await ready;
           await listener.ready();
           serverURL = listener.url!;
@@ -334,7 +334,7 @@ for (const mode of ["nitro", "vite"] as const) {
             configFile: false,
             logLevel: "warn",
             resolve: { alias: { "~vite-alias": rootDir } },
-            plugins: [nitroVite(config)],
+            plugins: [fastnodeVite(config)],
           });
           close = () => server.close();
           await server.listen(0);

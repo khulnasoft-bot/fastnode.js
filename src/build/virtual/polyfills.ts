@@ -1,8 +1,8 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 
-export default function polyfills(_nitro: Nitro, polyfills: string[]) {
+export default function polyfills(_fastnode: Fastnode, polyfills: string[]) {
   return {
-    id: "#nitro/virtual/polyfills",
+    id: "#fastnode/virtual/polyfills",
     moduleSideEffects: true,
     template: () => {
       return (

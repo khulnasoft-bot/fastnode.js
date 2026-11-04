@@ -1,3 +1,3 @@
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 
-export default defineHandler(() => "<h1>Hello Nitro!</h1>");
+export default defineHandler(() => "<h1>Hello Fastnode!</h1>");

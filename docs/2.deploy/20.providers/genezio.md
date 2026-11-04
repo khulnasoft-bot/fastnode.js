@@ -1,6 +1,6 @@
 # Genezio
 
-> Deploy Nitro apps to Genezio.
+> Deploy Fastnode apps to Genezio.
 
 **Preset:** `genezio`
 
@@ -16,7 +16,7 @@ Create a `genezio.yaml` file:
 
 ```yaml
 # The name of the project.
-name: nitro-app
+name: fastnode-app
 # The version of the Genezio YAML configuration to parse.
 yamlVersion: 2
 backend:
@@ -31,7 +31,7 @@ backend:
   # Information about the backend's functions.
   functions:
       # The name (label) of the function.
-      - name: nitroServer
+      - name: fastnodeServer
       # The path to the function's code.
         path: server/
         # The name of the function handler
@@ -51,7 +51,7 @@ To further customize the file to your needs, you can consult the
 Build with the `genezio` preset:
 
 ```bash
-NITRO_PRESET=genezio npm run build
+FASTNODE_PRESET=genezio npm run build
 ```
 
 Deploy with the [`genezio`](https://npmjs.com/package/genezio) CLI:

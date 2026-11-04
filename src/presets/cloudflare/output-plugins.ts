@@ -9,7 +9,7 @@ import { importOXC, walkAST } from "../../utils/oxc.ts";
 // fall back to a synthetic `file:///` URL so that `createRequire` succeeds and
 // any subsequent `require()` calls go through the normal Node.js compat layer
 // provided by the Workers runtime.
-// Ref: https://github.com/nitrojs/nitro/issues/4132
+// Ref: https://github.com/khulnasoft/fastnode/issues/4132
 //
 // When code-splitting is enabled, bundlers also hoist externalized `node:*`
 // built-in imports as bare side-effect imports (`import "node:buffer"`) into
@@ -20,10 +20,10 @@ import { importOXC, walkAST } from "../../utils/oxc.ts";
 // Both rewrites target syntax, so they run on the parsed chunk rather than on
 // its text: chunks also carry module sources as string and template data, and
 // replacing inside those corrupts the data they ship.
-// Ref: https://github.com/nitrojs/nitro/issues/4526
+// Ref: https://github.com/khulnasoft/fastnode/issues/4526
 export function cloudflareOutputRewrites(): Plugin {
   return {
-    name: "nitro:cloudflare-output-rewrites",
+    name: "fastnode:cloudflare-output-rewrites",
     renderChunk: {
       // After minification, so that renamed and single-line call sites are covered
       order: "post",

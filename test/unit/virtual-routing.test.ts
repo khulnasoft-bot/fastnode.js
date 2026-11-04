@@ -2,17 +2,17 @@ import { describe, expect, it } from "vitest";
 import { H3, toEventHandler } from "h3";
 import { toFetchHandler } from "srvx/node";
 import type { NodeHttp1Handler } from "srvx";
-import type { Nitro, NitroEventHandler } from "nitro/types";
+import type { Fastnode, FastnodeEventHandler } from "fastnode/types";
 
 import routing from "../../src/build/virtual/routing.ts";
 
-function createNitroStub(
+function createFastnodeStub(
   opts: {
-    tracingChannel?: Nitro["options"]["tracingChannel"];
-    handler?: Partial<NitroEventHandler>;
+    tracingChannel?: Fastnode["options"]["tracingChannel"];
+    handler?: Partial<FastnodeEventHandler>;
   } = {}
-): Nitro {
-  const handler: NitroEventHandler & { _importHash: string } = {
+): Fastnode {
+  const handler: FastnodeEventHandler & { _importHash: string } = {
     route: "/foo",
     method: "GET",
     handler: "/path/to/handler.ts",
@@ -38,19 +38,19 @@ function createNitroStub(
       },
       globalMiddleware: [],
     },
-  } as unknown as Nitro;
+  } as unknown as Fastnode;
 }
 
 describe("virtual/routing template", () => {
   it("does not wrap route handlers when tracingChannel is disabled", async () => {
-    const template = await routing(createNitroStub()).template();
+    const template = await routing(createFastnodeStub()).template();
     expect(template).not.toContain("h3/tracing");
     expect(template).not.toContain("wrapHandlerWithTracing");
   });
 
   it("does not wrap route handlers when tracingChannel.h3 is false", async () => {
     const template = await routing(
-      createNitroStub({ tracingChannel: { srvx: true, h3: false, unstorage: true } })
+      createFastnodeStub({ tracingChannel: { srvx: true, h3: false, unstorage: true } })
     ).template();
     expect(template).not.toContain("h3/tracing");
     expect(template).not.toContain("wrapHandlerWithTracing");
@@ -58,24 +58,24 @@ describe("virtual/routing template", () => {
 
   it("wraps route handlers with wrapHandlerWithTracing when tracingChannel.h3 is true", async () => {
     const template = await routing(
-      createNitroStub({ tracingChannel: { srvx: true, h3: true, unstorage: true } })
+      createFastnodeStub({ tracingChannel: { srvx: true, h3: true, unstorage: true } })
     ).template();
     expect(template).toContain(`import { wrapHandlerWithTracing } from "h3/tracing"`);
     expect(template).toContain("wrapHandlerWithTracing(h3.toEventHandler(_abc123))");
   });
 
   it("does not convert web format handlers", async () => {
-    expect(await routing(createNitroStub()).template()).not.toContain("srvxNode.toFetchHandler");
+    expect(await routing(createFastnodeStub()).template()).not.toContain("srvxNode.toFetchHandler");
   });
 
   it("exposes converted node format handlers as a fetch object", async () => {
-    const template = await routing(createNitroStub({ handler: { format: "node" } })).template();
+    const template = await routing(createFastnodeStub({ handler: { format: "node" } })).template();
     expect(template).toContain("h3.toEventHandler({ fetch: srvxNode.toFetchHandler(_abc123) })");
   });
 
   it("exposes converted lazy node format handlers as a fetch object", async () => {
     const template = await routing(
-      createNitroStub({ handler: { format: "node", lazy: true } })
+      createFastnodeStub({ handler: { format: "node", lazy: true } })
     ).template();
     expect(template).toContain(
       `h3.defineLazyEventHandler(() => import("/path/to/handler.ts").then(m => ({ fetch: srvxNode.toFetchHandler(m.default) })));`

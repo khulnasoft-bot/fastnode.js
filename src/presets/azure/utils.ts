@@ -1,9 +1,9 @@
 import fsp from "node:fs/promises";
 import { writeFile } from "../_utils/fs.ts";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import { join, resolve } from "pathe";
 
-export async function writeSWARoutes(nitro: Nitro) {
+export async function writeSWARoutes(fastnode: Fastnode) {
   const host = {
     version: "2.0",
   };
@@ -13,7 +13,7 @@ export async function writeSWARoutes(nitro: Nitro) {
   let nodeVersion = "22";
   try {
     const currentNodeVersion = JSON.parse(
-      await fsp.readFile(join(nitro.options.rootDir, "package.json"), "utf8")
+      await fsp.readFile(join(fastnode.options.rootDir, "package.json"), "utf8")
     ).engines.node;
     if (supportedNodeVersions.has(currentNodeVersion)) {
       nodeVersion = currentNodeVersion;
@@ -27,20 +27,20 @@ export async function writeSWARoutes(nitro: Nitro) {
 
   // Merge custom config into the generated config
   const config = {
-    ...nitro.options.azure?.config,
+    ...fastnode.options.azure?.config,
     // Overwrite routes for now, we will add existing routes after generating routes
     routes: [] as Array<{ route: string; redirect?: string; rewrite?: string }>,
     platform: {
       apiRuntime: `node:${nodeVersion}`,
-      ...nitro.options.azure?.config?.platform,
+      ...fastnode.options.azure?.config?.platform,
     },
     navigationFallback: {
       rewrite: "/api/server",
-      ...nitro.options.azure?.config?.navigationFallback,
+      ...fastnode.options.azure?.config?.navigationFallback,
     },
   };
 
-  const routeFiles = nitro._prerenderedRoutes || [];
+  const routeFiles = fastnode._prerenderedRoutes || [];
 
   const indexFileExists = routeFiles.some((route) => route.fileName === "/index.html");
   if (!indexFileExists) {
@@ -86,12 +86,12 @@ export async function writeSWARoutes(nitro: Nitro) {
 
   // Prepend custom routes to the beginning of the routes array and override if they exist
   if (
-    nitro.options.azure?.config &&
-    "routes" in nitro.options.azure.config &&
-    Array.isArray(nitro.options.azure.config.routes)
+    fastnode.options.azure?.config &&
+    "routes" in fastnode.options.azure.config &&
+    Array.isArray(fastnode.options.azure.config.routes)
   ) {
     // We iterate through the reverse so the order in the custom config is persisted
-    for (const customRoute of nitro.options.azure.config.routes.reverse()) {
+    for (const customRoute of fastnode.options.azure.config.routes.reverse()) {
       const existingRouteMatchIndex = config.routes.findIndex(
         (value) => value.route === customRoute.route
       );
@@ -107,19 +107,19 @@ export async function writeSWARoutes(nitro: Nitro) {
   }
 
   await writeFile(
-    resolve(nitro.options.output.serverDir, "../host.json"),
+    resolve(fastnode.options.output.serverDir, "../host.json"),
     JSON.stringify(host, null, 2)
   );
   await writeFile(
-    resolve(nitro.options.rootDir, "staticwebapp.config.json"),
+    resolve(fastnode.options.rootDir, "staticwebapp.config.json"),
     JSON.stringify(config, null, 2)
   );
   if (!indexFileExists) {
-    const baseURLSegments = nitro.options.baseURL.split("/").filter(Boolean);
+    const baseURLSegments = fastnode.options.baseURL.split("/").filter(Boolean);
     const relativePrefix = baseURLSegments.map(() => "..").join("/");
     await writeFile(
       resolve(
-        nitro.options.output.publicDir,
+        fastnode.options.output.publicDir,
         relativePrefix ? `${relativePrefix}/index.html` : "index.html"
       ),
       ""

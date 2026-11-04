@@ -1,15 +1,15 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import { normalize } from "pathe";
 
-export default function tasks(nitro: Nitro) {
+export default function tasks(fastnode: Fastnode) {
   return {
-    id: "#nitro/virtual/tasks",
+    id: "#fastnode/virtual/tasks",
     template: () => {
-      const _scheduledTasks = Object.entries(nitro.options.scheduledTasks || {})
+      const _scheduledTasks = Object.entries(fastnode.options.scheduledTasks || {})
         .map(([cron, _tasks]) => {
           const tasks = (Array.isArray(_tasks) ? _tasks : [_tasks]).filter((name) => {
-            if (!nitro.options.tasks[name]) {
-              nitro.logger.warn(`Scheduled task \`${name}\` is not defined!`);
+            if (!fastnode.options.tasks[name]) {
+              fastnode.logger.warn(`Scheduled task \`${name}\` is not defined!`);
               return false;
             }
             return true;
@@ -23,10 +23,10 @@ export default function tasks(nitro: Nitro) {
       return /* js */ `
 export const scheduledTasks = ${JSON.stringify(scheduledTasks)};
 
-export const scheduleRunner = ${nitro.options.scheduler.runner !== false};
+export const scheduleRunner = ${fastnode.options.scheduler.runner !== false};
 
 export const tasks = {
-  ${Object.entries(nitro.options.tasks)
+  ${Object.entries(fastnode.options.tasks)
     .map(
       ([name, task]) =>
         `"${name}": {

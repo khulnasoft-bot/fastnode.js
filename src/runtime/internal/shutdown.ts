@@ -1,11 +1,11 @@
 import type { Server } from "srvx";
-import { useNitroHooks } from "./app.ts";
+import { useFastnodeHooks } from "./app.ts";
 
 /**
- * Call the Nitro `close` hooks when the server shuts down.
+ * Call the Fastnode `close` hooks when the server shuts down.
  *
  * srvx handles graceful shutdown on `SIGINT` and `SIGTERM` by calling `server.close()`,
- * with no knowledge of Nitro hooks. Wrapping `close` covers both the signal path and
+ * with no knowledge of Fastnode hooks. Wrapping `close` covers both the signal path and
  * explicit `server.close()` calls, and keeps hooks awaited as part of the shutdown.
  *
  * Hooks run once (a forced close after the graceful timeout awaits the same call) and
@@ -20,8 +20,8 @@ export function setupCloseHooks(server: Server): void {
 
 async function callCloseHooks(): Promise<void> {
   try {
-    await useNitroHooks().callHook("close");
+    await useFastnodeHooks().callHook("close");
   } catch (error) {
-    console.error("[nitro] Error while calling `close` hooks:", error);
+    console.error("[fastnode] Error while calling `close` hooks:", error);
   }
 }

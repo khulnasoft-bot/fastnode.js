@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import type { NitroOptions } from "nitro/types";
-import { resolveAssetsOptions } from "../../src/config/resolvers/assets.ts";
+import type { FastnodeOptions } from "fastnode/types";
+import { resolveAssetsOptions } from "../../src/config/resolver/assets.ts";
 
 // `rootDir` intentionally has no `public/` directory, so only the configured
 // public assets are resolved.
-const options = (publicAssets: NitroOptions["publicAssets"], routeRules = {}) =>
+const options = (publicAssets: FastnodeOptions["publicAssets"], routeRules = {}) =>
   ({
     rootDir: "/app",
     serverDir: "/app/server",
@@ -12,7 +12,7 @@ const options = (publicAssets: NitroOptions["publicAssets"], routeRules = {}) =>
     publicAssets,
     serverAssets: [],
     routeRules,
-  }) as unknown as NitroOptions;
+  }) as unknown as FastnodeOptions;
 
 describe("resolveAssetsOptions - publicAssets maxAge", () => {
   // A `maxAge` of `0` must stay distinguishable from an unset one, so that

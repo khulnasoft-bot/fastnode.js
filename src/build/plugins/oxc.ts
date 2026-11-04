@@ -1,23 +1,23 @@
-import type { Nitro, OXCOptions } from "nitro/types";
+import type { Fastnode, OXCOptions } from "fastnode/types";
 import type { Plugin } from "rollup";
 import { importOXC } from "../../utils/oxc.ts";
 import { RESOLVED_RE as rawModulesRE } from "./raw.ts";
 
 export async function oxc(
-  nitro: Nitro,
+  fastnode: Fastnode,
   options: OXCOptions & { sourcemap: boolean; minify: boolean | OXCOptions["minify"] }
 ): Promise<Plugin> {
   const { transformSync, minifySync } = await importOXC({
-    dir: nitro.options.rootDir,
-    paths: nitro.options.deps?.paths,
+    dir: fastnode.options.rootDir,
+    paths: fastnode.options.deps?.paths,
   });
   if (options.minify && !minifySync) {
-    nitro.logger.warn(
+    fastnode.logger.warn(
       "Skipping minification: the `rollup` builder minifies with `rolldown`. Install `rolldown` to enable it."
     );
   }
   return {
-    name: "nitro:oxc",
+    name: "fastnode:oxc",
     transform: {
       filter: {
         // Raw modules are already plain JS holding file contents; no need to transpile
@@ -42,6 +42,7 @@ export async function oxc(
           ...(typeof options.minify === "object" ? options.minify : {}),
         } as Parameters<typeof minifySync>[2]);
       }
+      return undefined;
     },
   };
 }

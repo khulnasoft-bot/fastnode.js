@@ -105,7 +105,7 @@ export function frameType(file: string | undefined): StackFrame["type"] {
   if (!file || /^(node|ext|bun|deno):/.test(file)) {
     return "native";
   }
-  // Dot directories (e.g. `node_modules/.nitro` build dir) hold generated app code
+  // Dot directories (e.g. `node_modules/.fastnode` build dir) hold generated app code
   return /[/\\]node_modules[/\\](?!\.)/.test(file) ? "module" : "app";
 }
 

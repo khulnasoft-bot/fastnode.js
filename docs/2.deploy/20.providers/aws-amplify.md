@@ -1,6 +1,6 @@
 # AWS Amplify
 
-> Deploy Nitro apps to AWS Amplify Hosting.
+> Deploy Fastnode apps to AWS Amplify Hosting.
 
 **Preset:** `aws_amplify`
 
@@ -23,8 +23,8 @@ Integration with this provider is possible with [zero configuration](/deploy#zer
 
 You can configure advanced options of this preset using the `awsAmplify` option.
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   awsAmplify: {

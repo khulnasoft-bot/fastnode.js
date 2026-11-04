@@ -1,7 +1,7 @@
 import type { StorageInterface } from "ocache";
 import { useKV } from "./kv.ts";
 
-/** Cache storage backed by the Nitro KV storage layer (`useKV()`). */
+/** Cache storage backed by the Fastnode KV storage layer (`useKV()`). */
 export function createKVCacheStorage(): StorageInterface {
   const storage = useKV();
   return {

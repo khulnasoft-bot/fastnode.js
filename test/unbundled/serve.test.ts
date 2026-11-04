@@ -4,10 +4,10 @@ import { NodeWorkerEnvRunner } from "env-runner/runners/node-worker";
 import { SelfEnvRunner } from "env-runner/runners/self";
 import { join } from "pathe";
 import { describe, expect, it } from "vitest";
-import { startUnbundledServer } from "../../src/build/unbundled/serve.ts";
+import { startUnbundledServer } from "../../src/build/builders/unbundled/serve.ts";
 
 // In order: only the first server of the process can run on the self runner
-describe("nitro serve runner", () => {
+describe("fastnode serve runner", () => {
   it("runs in a worker with `buildPlugins`", async () => {
     await serveApp({ buildPlugins: true }, async ({ runner, text }) => {
       expect(runner).toBeInstanceOf(NodeWorkerEnvRunner);
@@ -47,13 +47,13 @@ async function serveApp(
     fetch: (path: string) => Promise<Response>;
   }) => Promise<void>
 ) {
-  const dir = await mkdtemp(join(tmpdir(), "nitro-serve-"));
+  const dir = await mkdtemp(join(tmpdir(), "fastnode-serve-"));
   const plugin = /* js */ `{
     name: "test:async",
     transform: { filter: { id: /routes/ }, handler: async (code) => code.replace("__PLUGIN__", "(plugin)") },
   }`;
   await writeFile(
-    join(dir, "nitro.config.mjs"),
+    join(dir, "fastnode.config.mjs"),
     `export default { serverDir: "./", buildPlugins: [${opts.buildPlugins ? plugin : ""}], $env: { staging: { routeRules: { "/env": { headers: { "x-env": "staging" } } } } } };`
   );
   await mkdir(join(dir, "routes"));

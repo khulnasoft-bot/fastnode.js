@@ -1,13 +1,13 @@
-import { defineNitroPreset } from "../_utils/preset.ts";
-import type { Nitro } from "nitro/types";
+import { defineFastnodePreset } from "../_utils/preset.ts";
+import type { Fastnode } from "fastnode/types";
 import { unenvCfExternals, unenvCfNodeCompat } from "../cloudflare/unenv/preset.ts";
 import { extendEnv } from "../../build/env.ts";
 import { resolve } from "pathe";
 import { importDep } from "../../utils/dep.ts";
 
 export type { ZephyrOptions as PresetOptions } from "./types.ts";
-const LOGGER_TAG = "zephyr-nitro-preset";
-const zephyr = defineNitroPreset(
+const LOGGER_TAG = "zephyr-fastnode-preset";
+const zephyr = defineFastnodePreset(
   {
     extends: "base-worker",
     entry: "./zephyr/runtime/server",
@@ -31,18 +31,18 @@ const zephyr = defineNitroPreset(
       deploy: deployToZephyr,
     },
     hooks: {
-      "build:before": (nitro: Nitro) => {
-        extendEnv(nitro, unenvCfExternals);
-        extendEnv(nitro, unenvCfNodeCompat);
+      "build:before": (fastnode: Fastnode) => {
+        extendEnv(fastnode, unenvCfExternals);
+        extendEnv(fastnode, unenvCfNodeCompat);
       },
-      compiled: async (nitro: Nitro) => {
-        if (!nitro.options.zephyr?.deployOnBuild) {
-          nitro.logger.info(
-            `[${LOGGER_TAG}] Skipping Zephyr deploy on build (use \`nitro deploy\` or set \`zephyr.deployOnBuild\`).`
+      compiled: async (fastnode: Fastnode) => {
+        if (!fastnode.options.zephyr?.deployOnBuild) {
+          fastnode.logger.info(
+            `[${LOGGER_TAG}] Skipping Zephyr deploy on build (use \`fastnode deploy\` or set \`zephyr.deployOnBuild\`).`
           );
           return;
         }
-        await deployToZephyr(nitro);
+        await deployToZephyr(fastnode);
       },
     },
   },
@@ -55,32 +55,32 @@ export default [zephyr] as const;
 
 // --- internal ---
 
-const deployed = new WeakSet<Nitro>();
+const deployed = new WeakSet<Fastnode>();
 
-async function deployToZephyr(nitro: Nitro): Promise<void> {
-  if (deployed.has(nitro)) {
-    nitro.logger.info(`[${LOGGER_TAG}] Zephyr deployment already done during build.`);
+async function deployToZephyr(fastnode: Fastnode): Promise<void> {
+  if (deployed.has(fastnode)) {
+    fastnode.logger.info(`[${LOGGER_TAG}] Zephyr deployment already done during build.`);
     return;
   }
   try {
     const zephyrAgent = await importDep({
       id: "zephyr-agent",
-      dir: nitro.options.rootDir,
-      deps: nitro.options.deps,
+      dir: fastnode.options.rootDir,
+      deps: fastnode.options.deps,
     });
 
     const { deploymentUrl } = await zephyrAgent.uploadOutputToZephyr({
-      rootDir: nitro.options.rootDir,
-      outputDir: nitro.options.output.dir,
-      baseURL: nitro.options.baseURL,
-      publicDir: resolve(nitro.options.output.dir, nitro.options.output.publicDir),
+      rootDir: fastnode.options.rootDir,
+      outputDir: fastnode.options.output.dir,
+      baseURL: fastnode.options.baseURL,
+      publicDir: resolve(fastnode.options.output.dir, fastnode.options.output.publicDir),
     });
     if (deploymentUrl) {
-      nitro.logger.success(`[${LOGGER_TAG}] Zephyr deployment succeeded: ${deploymentUrl}`);
+      fastnode.logger.success(`[${LOGGER_TAG}] Zephyr deployment succeeded: ${deploymentUrl}`);
     } else {
-      nitro.logger.success(`[${LOGGER_TAG}] Zephyr deployment succeeded.`);
+      fastnode.logger.success(`[${LOGGER_TAG}] Zephyr deployment succeeded.`);
     }
-    deployed.add(nitro);
+    deployed.add(fastnode);
   } catch (error) {
     if (error instanceof Error) {
       throw error;

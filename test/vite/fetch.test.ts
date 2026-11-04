@@ -4,12 +4,12 @@ import type { ViteDevServer } from "vite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 const { createServer } = (await import(
-  process.env.NITRO_VITE_PKG || "vite"
+  process.env.FASTNODE_VITE_PKG || "vite"
 )) as typeof import("vite");
 
 const cli = fileURLToPath(new URL("../../dist/cli/index.mjs", import.meta.url));
 
-describe("vite: nitro fetch (running dev server)", () => {
+describe("vite: fastnode fetch (running dev server)", () => {
   const rootDir = fileURLToPath(new URL("./fetch-fixture", import.meta.url));
   const originalCwd = process.cwd();
   let server: ViteDevServer;

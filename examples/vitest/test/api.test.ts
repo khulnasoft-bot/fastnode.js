@@ -1,6 +1,6 @@
 import { beforeEach, expect, test } from "vitest";
-import { serverFetch } from "nitro";
-import { useKV } from "nitro/kv";
+import { serverFetch } from "fastnode";
+import { useKV } from "fastnode/kv";
 
 beforeEach(async () => {
   await useKV().removeItem("visits");
@@ -9,7 +9,7 @@ beforeEach(async () => {
 test("GET /api/hello", async () => {
   const res = await serverFetch("/api/hello");
   expect(res.status).toBe(200);
-  expect(await res.json()).toEqual({ message: "Hello from Nitro!" });
+  expect(await res.json()).toEqual({ message: "Hello from Fastnode!" });
 });
 
 test("GET /api/visits", async () => {

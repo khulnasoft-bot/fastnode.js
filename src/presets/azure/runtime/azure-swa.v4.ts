@@ -1,11 +1,11 @@
-import "#nitro/virtual/polyfills";
+import "#fastnode/virtual/polyfills";
 import { app } from "@azure/functions";
-import { useNitroApp } from "nitro/app";
+import { useFastnodeApp } from "fastnode/app";
 import { getAzureParsedCookiesFromHeaders, getRequestURL } from "./_utils.ts";
 
 import type { HttpRequest, HttpResponseInit } from "@azure/functions";
 
-const nitroApp = useNitroApp();
+const fastnodeApp = useFastnodeApp();
 
 // https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference-node?pivots=nodejs-model-v4
 app.http("server", {
@@ -25,7 +25,7 @@ async function handle(req: HttpRequest): Promise<HttpResponseInit> {
     body: req.body ? await req.arrayBuffer() : undefined,
   });
 
-  const response = await nitroApp.fetch(request);
+  const response = await fastnodeApp.fetch(request);
 
   return {
     status: response.status,

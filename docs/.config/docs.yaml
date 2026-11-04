@@ -1,9 +1,9 @@
 # yaml-language-server: $schema=https://unpkg.com/undocs/schema/config.json
-name: Nitro
+name: Fastnode
 shortDescription: builds full-stack servers that deploy anywhere
 description: Add server API routes to any Vite apps and deploy with zero configuration on your favorite hosting platform.
-github: nitrojs/nitro
-url: https://nitro.build
+github: khulnasoft/fastnode
+url: https://fastnode.khulnasoft.com
 themeColor: "pink"
 automd: true
 branch: main
@@ -11,11 +11,11 @@ versions:
   - label: "v3"
     active: true
   - label: "v2"
-    to: "https://v2.nitro.build"
+    to: "https://v2.fastnode.khulnasoft.com"
 socials:
-  x: "https://x.com/nitrojsdev"
-  bluesky: "https://bsky.app/profile/nitro.build"
-  discord: https://discord.nitro.build
+  x: "https://x.com/khulnasoftdev"
+  bluesky: "https://bsky.app/profile/fastnode.khulnasoft.com"
+  discord: https://discord.fastnode.khulnasoft.com
 sponsors:
   api: https://sponsors.pi0.io/sponsors.json
 redirects:

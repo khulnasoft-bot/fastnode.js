@@ -20,34 +20,40 @@ import type { UnwasmPluginOptions } from "unwasm/plugin";
 import type { RunnerName, RunnerReloadOptions } from "env-runner";
 import type {
   EventHandlerFormat,
-  NitroDevEventHandler,
-  NitroErrorHandler,
-  NitroEventHandler,
+  FastnodeDevEventHandler,
+  FastnodeErrorHandler,
+  FastnodeEventHandler,
 } from "./handler.ts";
-import type { NitroHooks } from "./hooks.ts";
-import type { NitroModuleInput } from "./module.ts";
-import type { Nitro, NitroFrameworkInfo } from "./nitro.ts";
-import type { NitroOpenAPIConfig } from "./openapi.ts";
-export type { NitroOpenAPIConfig } from "./openapi.ts";
-import type { NitroPreset } from "./preset.ts";
-import type { NitroBuildPluginOption, OXCOptions, RolldownConfig } from "./build.ts";
+import type { FastnodeHooks } from "./hooks.ts";
+import type { FastnodeModuleInput } from "./module.ts";
+import type { Fastnode, FastnodeFrameworkInfo } from "./fastnode.ts";
+import type { FastnodeOpenAPIConfig } from "./openapi.ts";
+export type { FastnodeOpenAPIConfig } from "./openapi.ts";
+import type { FastnodePreset } from "./preset.ts";
+import type { FastnodeBuildPluginOption, OXCOptions, RolldownConfig } from "./build.ts";
 import type { CommonJSOptions } from "./_bundler.ts";
 import type { RollupConfig } from "./build.ts";
 import type { NormalizedRouteRules, RouteRuleConfig } from "./route-rules.ts";
 import type { JsonValue, OptionalDepType, SerializableOptions } from "./_utils.ts";
 
 /**
- * Fully resolved Nitro options available on `nitro.options`.
+ * Fully resolved Fastnode options available on `fastnode.options`.
  *
  * These are the normalized options after preset defaults and user config
- * have been merged. For the user-facing input type, see {@link NitroConfig}.
+ * have been merged. For the user-facing input type, see {@link FastnodeConfig}.
  *
- * @see https://nitro.build/config
+ * @see https://fastnode.khulnasoft.com/config
  */
-export interface NitroOptions extends PresetOptions {
-  // Internal
-  _config: NitroConfig;
-  _c12: ResolvedConfig<NitroConfig> | ConfigWatcher<NitroConfig>;
+/**
+ * Internal configuration properties populated during config resolution.
+ * Not part of the user-facing {@link FastnodeConfig}.
+ */
+export interface FastnodeInternalOptions {
+  /** The raw user config overrides passed to `loadOptions()`. */
+  _config: FastnodeConfig;
+  /** The resolved c12 config result (or watcher). */
+  _c12: ResolvedConfig<FastnodeConfig> | ConfigWatcher<FastnodeConfig>;
+  /** CLI-specific metadata (command name, …). */
   _cli?: {
     command?: string;
   };
@@ -59,26 +65,29 @@ export interface NitroOptions extends PresetOptions {
    * added with `extends` (local directories, config files, npm packages, or
    * remote sources). Presets and inline config overrides are not included.
    */
-  layers: NitroConfigLayer[];
+  layers: FastnodeConfigLayer[];
+}
 
-  // General
-
+/**
+ * General framework configuration: preset, compatibility date, logging level.
+ */
+export interface FastnodeGeneralOptions {
   /**
    * Opt-in date for deployment provider and runtime compatibility features.
    *
-   * Providers introduce new features that Nitro presets can leverage, but
+   * Providers introduce new features that Fastnode presets can leverage, but
    * some need to be explicitly opted into. Set to the latest tested date
    * in `YYYY-MM-DD` format.
    *
    * @default "latest"
-   * @see https://nitro.build/config/general#compatibilitydate
+   * @see https://fastnode.khulnasoft.com/config/general#compatibilitydate
    */
   compatibilityDate: CompatibilityDates;
 
   /**
-   * Enables debugging nitro (build time) hooks in the console.
+   * Enables debugging fastnode (build time) hooks in the console.
    *
-   * @see https://nitro.build/config/general#debug
+   * @see https://fastnode.khulnasoft.com/config/general#debug
    */
   debug: boolean;
 
@@ -87,10 +96,10 @@ export interface NitroOptions extends PresetOptions {
    *
    * Determines how the production bundle is built and optimized for a
    * specific hosting provider or runtime. Auto-detected in known
-   * environments when not set. Use the `NITRO_PRESET` environment
+   * environments when not set. Use the `FASTNODE_PRESET` environment
    * variable as an alternative.
    *
-   * @see https://nitro.build/config/general#preset
+   * @see https://fastnode.khulnasoft.com/config/general#preset
    */
   preset: PresetName;
 
@@ -102,7 +111,7 @@ export interface NitroOptions extends PresetOptions {
    *
    * Note: This does not enable prerendering on its own — configure `prerender` options separately.
    *
-   * @see https://nitro.build/config/general#static
+   * @see https://fastnode.khulnasoft.com/config/general#static
    */
   static: boolean;
 
@@ -111,7 +120,7 @@ export interface NitroOptions extends PresetOptions {
    *
    * Defaults to `3`, or `1` when a testing environment is detected.
    *
-   * @see https://nitro.build/config/general#loglevel
+   * @see https://fastnode.khulnasoft.com/config/general#loglevel
    * @see https://github.com/unjs/consola
    */
   logLevel: LogLevel;
@@ -120,37 +129,40 @@ export interface NitroOptions extends PresetOptions {
    * Server runtime configuration accessible via `useRuntimeConfig()`.
    *
    * Values can be overridden at runtime using environment variables with
-   * the `NITRO_` prefix. An alternative prefix can be configured via
-   * `runtimeConfig.nitro.envPrefix` or `NITRO_ENV_PREFIX`.
+   * the `FASTNODE_` prefix. An alternative prefix can be configured via
+   * `runtimeConfig.fastnode.envPrefix` or `FASTNODE_ENV_PREFIX`.
    *
-   * **Note:** The `nitro` namespace is reserved for internal use.
+   * **Note:** The `fastnode` namespace is reserved for internal use.
    *
    * @example
    * ```ts
    * runtimeConfig: {
-   *   apiSecret: "default-secret", // override with NITRO_API_SECRET
+   *   apiSecret: "default-secret", // override with FASTNODE_API_SECRET
    * }
    * ```
    *
-   * @see https://nitro.build/config/general#runtimeconfig
+   * @see https://fastnode.khulnasoft.com/config/general#runtimeconfig
    */
-  runtimeConfig: NitroRuntimeConfig;
+  runtimeConfig: FastnodeRuntimeConfig;
+}
 
-  // Dirs
-
+/**
+ * Directory and output path configuration.
+ */
+export interface FastnodeDirOptions {
   /**
    * Project workspace root directory.
    *
    * Auto-detected from the workspace (e.g. pnpm workspace) when not set.
    *
-   * @see https://nitro.build/config/directories#workspacedir
+   * @see https://fastnode.khulnasoft.com/config/directories#workspacedir
    */
   workspaceDir: string;
 
   /**
    * Project main root directory.
    *
-   * @see https://nitro.build/config/directories#rootdir
+   * @see https://fastnode.khulnasoft.com/config/directories#rootdir
    */
   rootDir: string;
 
@@ -162,7 +174,7 @@ export interface NitroOptions extends PresetOptions {
    * the root directory, or `"./server"` to use a `server/` subdirectory.
    *
    * @default false
-   * @see https://nitro.build/config/directories#serverdir
+   * @see https://fastnode.khulnasoft.com/config/directories#serverdir
    */
   serverDir: string | false;
 
@@ -170,7 +182,7 @@ export interface NitroOptions extends PresetOptions {
    * Additional directories to scan and auto-register files such as API
    * route handlers.
    *
-   * @see https://nitro.build/config/directories#scandirs
+   * @see https://fastnode.khulnasoft.com/config/directories#scandirs
    */
   scanDirs: string[];
 
@@ -178,7 +190,7 @@ export interface NitroOptions extends PresetOptions {
    * Directory name to scan for API route handlers.
    *
    * @default "api"
-   * @see https://nitro.build/config/directories#apidir
+   * @see https://fastnode.khulnasoft.com/config/directories#apidir
    */
   apiDir: string;
 
@@ -186,22 +198,22 @@ export interface NitroOptions extends PresetOptions {
    * Directory name to scan for route handlers.
    *
    * @default "routes"
-   * @see https://nitro.build/config/directories#routesdir
+   * @see https://fastnode.khulnasoft.com/config/directories#routesdir
    */
   routesDir: string;
 
   /**
-   * Nitro's temporary working directory for build-related files.
+   * Fastnode's temporary working directory for build-related files.
    *
-   * @default "node_modules/.nitro"
-   * @see https://nitro.build/config/directories#builddir
+   * @default "node_modules/.fastnode"
+   * @see https://fastnode.khulnasoft.com/config/directories#builddir
    */
   buildDir: string;
 
   /**
    * Output directories for the production bundle.
    *
-   * @see https://nitro.build/config/directories#output
+   * @see https://fastnode.khulnasoft.com/config/directories#output
    */
   output: {
     /** Production output root directory. */
@@ -224,355 +236,18 @@ export interface NitroOptions extends PresetOptions {
 
   /** @deprecated Migrate to `serverDir`. */
   srcDir: string;
+}
 
-  // Features
-
-  /**
-   * KV storage mount configuration.
-   *
-   * Keys are mount-point paths; values specify the unstorage driver and
-   * its options.
-   *
-   * @see https://nitro.build/config/storage#kv
-   * @see https://nitro.build/docs/storage
-   */
-  kv: KVMounts;
-
-  /** @deprecated Migrate to `kv`. */
-  storage: KVMounts;
-
-  /** @deprecated Migrate to `kv` inside `$development` (and `$prerender`) config. */
-  devStorage: KVMounts;
-
-  /**
-   * Cache storage and global default options for cached functions, cached handlers
-   * and `cache` route rules.
-   *
-   * @see https://nitro.build/config/storage#cache
-   * @see https://nitro.build/docs/cache
-   */
-  cache: NitroCacheConfig;
-
-  /**
-   * Database connection configurations.
-   *
-   * Requires `experimental.database: true`.
-   *
-   * @see https://nitro.build/config/storage#database
-   * @see https://nitro.build/docs/database
-   */
-  database: DatabaseConnectionConfigs;
-
-  /**
-   * Database connection overrides for development mode.
-   *
-   * @see https://nitro.build/config/storage#devdatabase
-   * @see https://nitro.build/docs/database
-   */
-  devDatabase: DatabaseConnectionConfigs;
-
-  /**
-   * Server-side rendering entry configuration.
-   *
-   * Points to the main render handler (the file should export an event
-   * handler as default). Set to `false` to disable.
-   *
-   * @see https://nitro.build/config/features#renderer
-   * @see https://nitro.build/docs/renderer
-   */
-  renderer?: { handler?: string; static?: boolean; template?: string };
-
-  /**
-   * Routes that should be server-side rendered.
-   */
-  ssrRoutes: string[];
-
-  /**
-   * Include a static asset handler in the server bundle to serve public assets.
-   *
-   * - `true` or `"node"` — read assets from the filesystem using Node.js `fs`.
-   * - `"inline"` — base64-encode assets directly into the server bundle.
-   * - `false` — do not serve static assets from the server (rely on a CDN or reverse proxy).
-   *
-   * Most self-hosted presets (e.g. `node-server`, `bun`) enable this by default.
-   *
-   * @see https://nitro.build/config/assets#servestatic
-   */
-  serveStatic: boolean | "node" | "inline";
-
-  /**
-   * Disable the public output directory entirely.
-   *
-   * Skips preparing the `.output/public` directory, copying public
-   * assets, and prerendering routes.
-   *
-   * @see https://nitro.build/config/assets#nopublicdir
-   */
-  noPublicDir: boolean;
-  tracingChannel?: undefined | TracingChannelOptions;
-
-  /**
-   * Build manifest options.
-   */ manifest?: {
-    /** Custom deployment identifier included in the build manifest. */
-    deploymentId?: string;
-  };
-
-  /**
-   * Built-in feature flags.
-   *
-   * @see https://nitro.build/config/features#features
-   */
-  features: {
-    /**
-     * Enable runtime hooks for request and response.
-     *
-     * By default this feature will be enabled if there is at least one nitro plugin.
-     */
-    runtimeHooks?: boolean;
-
-    /**
-     * Enable WebSocket support.
-     */
-    websocket?: boolean;
-
-    /**
-     * Replace the global `Response` with srvx `FastResponse`, so that
-     * `new Response()` skips the native Response overhead in Node.js.
-     *
-     * Enabled by default when `node` is `true`.
-     */
-    fastResponse?: boolean;
-  };
-
-  /**
-   * Native wasm compatibility/bundling support configuration.
-   *
-   * Set to `false` to disable.
-   *
-   * @see https://nitro.build/config/features#wasm
-   * @see https://github.com/unjs/unwasm
-   */
-  wasm?: false | UnwasmPluginOptions;
-
-  /**
-   * OpenAPI specification generation and UI configuration.
-   *
-   * @see https://nitro.build/config/features#openapi
-   * @see https://nitro.build/docs/openapi
-   */
-  openAPI?: NitroOpenAPIConfig;
-
-  /**
-   * Experimental feature flags.
-   *
-   * These features are not yet stable and may change in future releases.
-   *
-   * @see https://nitro.build/config/features#experimental
-   */
-  experimental: {
-    /**
-     * Enable experimental OpenAPI support
-     *
-     * @see https://nitro.build/docs/openapi
-     */
-    openAPI?: boolean;
-    /**
-     * See https://github.com/microsoft/TypeScript/pull/51669
-     */
-    typescriptBundlerResolution?: boolean;
-    /**
-     * Enable native async context support for useRequest()
-     */
-    asyncContext?: boolean;
-    /**
-     * Set to `false` to disable sourcemap minification in production builds.
-     *
-     * Sourcemap minification is enabled by default when `sourcemap` is on.
-     */
-    sourcemapMinify?: false;
-    /**
-     * Set to `false` to disable entries-aware library chunks (Rolldown and Vite builders).
-     *
-     * By default, each `node_modules` package chunk is split by the entries (main entry and lazy
-     * route handlers) that use it, so startup does not load code that only lazy routes need.
-     * Disabling it produces fewer, larger library chunks.
-     */
-    entriesAwareLibChunks?: false;
-    /**
-     * Allow env expansion in runtime config
-     *
-     * @see https://github.com/nitrojs/nitro/pull/2043
-     */
-    envExpansion?: boolean;
-    /**
-     * Enable WebSocket upgrade support
-     *
-     * @deprecated Use `features.websocket` instead.
-     */
-    websocket?: boolean;
-    /**
-     * Enable experimental Database support
-     *
-     * @see https://nitro.build/docs/database
-     */
-    database?: boolean;
-    /**
-     * Enable experimental Tasks support
-     *
-     * @see https://nitro.build/docs/tasks
-     */
-    tasks?: boolean;
-
-    /**
-     * Log Nitro tracing-channel spans to the console.
-     *
-     * Enables a built-in, dependency-free telemetry sink that `console.log`s
-     * each completed span (h3, srvx, unstorage, db0, …). Requires `tracingChannel`
-     * to be enabled.
-     */
-    tracingLogger?: boolean;
-  };
-
-  /**
-   * Server-side asset directories bundled at build time.
-   *
-   * @see https://nitro.build/config/assets#serverassets
-   * @see https://nitro.build/docs/assets#server-assets
-   */
-  serverAssets: ServerAssetDir[];
-
-  /**
-   * Public asset directories served in development and bundled in production.
-   *
-   * A `public/` directory is added by default when detected.
-   *
-   * @see https://nitro.build/config/assets#publicassets
-   * @see https://nitro.build/docs/assets
-   */
-  publicAssets: PublicAssetDir[];
-
-  /**
-   * Nitro modules to extend behavior during initialization.
-   *
-   * Accepts module path strings, {@link NitroModule} objects, or bare setup functions.
-   *
-   * @see https://nitro.build/config/features#modules
-   */
-  modules?: NitroModuleInput[];
-
-  /**
-   * Paths to Nitro runtime plugins.
-   *
-   * Plugins in the `plugins/` directory are auto-registered.
-   *
-   * @see https://nitro.build/config/features#plugins
-   * @see https://nitro.build/docs/plugins
-   */
-  plugins: string[];
-
-  /**
-   * Task definitions.
-   *
-   * Each key is a task name with a `handler` path and optional `description`.
-   *
-   * @example
-   * ```ts
-   * tasks: {
-   *   "db:migrate": {
-   *     handler: "./tasks/db-migrate",
-   *     description: "Run database migrations",
-   *   },
-   * }
-   * ```
-   *
-   * @see https://nitro.build/config/features#tasks
-   * @see https://nitro.build/docs/tasks
-   */
-  tasks: { [name: string]: { handler?: string; description?: string } };
-
-  /**
-   * Map of cron expressions to task name(s).
-   *
-   * @example
-   * ```ts
-   * scheduledTasks: {
-   *   "0 * * * *": "cleanup:temp",
-   *   "*​/5 * * * *": ["health:check", "metrics:collect"],
-   * }
-   * ```
-   *
-   * @see https://nitro.build/config/features#scheduledtasks
-   * @see https://nitro.build/docs/tasks
-   */
-  scheduledTasks: { [cron: string]: string | string[] };
-
-  /**
-   * Scheduler options for `scheduledTasks`.
-   *
-   * @see https://nitro.build/config/features#scheduler
-   */
-  scheduler: {
-    /**
-     * Run `scheduledTasks` in-process with the built-in cron runner, in presets that use it
-     * (`dev`, `node_*`, `bun` and `deno_server`).
-     *
-     * Set to `false` when something else invokes the scheduled tasks, such as a system cron.
-     * The tasks stay registered, so `runCronTasks()` and the `/_nitro/tasks` dev route keep
-     * working. Platform schedules (Cloudflare Cron Triggers, Vercel Cron Jobs) are not affected.
-     *
-     * @default true
-     */
-    runner?: boolean;
-  };
-
-  /**
-   * Virtual module definitions.
-   *
-   * A map from dynamic virtual import names to their contents or an async
-   * function that returns them.
-   *
-   * @see https://nitro.build/config/features#virtual
-   */
-  virtual: Record<string, string | (() => string | Promise<string>)>;
-
-  /**
-   * Pre-compress public assets and prerendered routes.
-   *
-   * Generates gzip and brotli (and zstd when available)
-   * variants of compressible assets larger than 1024 bytes. Pass an
-   * object to selectively enable/disable each encoding.
-   *
-   * @see https://nitro.build/config/assets#compresspublicassets
-   */
-  compressPublicAssets: boolean | CompressOptions;
-
-  /**
-   * Glob patterns to ignore when scanning directories.
-   *
-   * @see https://nitro.build/config/directories#ignore
-   */
-  ignore: string[];
-
-  /**
-   * Additional dotted suffixes to keep as part of scanned file names (e.g. `"prompt"` for
-   * `routes/system.prompt.ts` → `/system.prompt`).
-   *
-   * Nitro reserves trailing lowercase suffixes in scanned file names. Known file extensions
-   * (e.g. `.json`, `.md`, `.xml`) are always kept.
-   *
-   * @see https://nitro.build/config/directories#scansuffixes
-   */
-  scanSuffixes: string[];
-
-  // Dev
-
+/**
+ * Development-mode configuration: dev server, watcher, proxy.
+ */
+export interface FastnodeDevOptions {
   /**
    * Whether the current build targets development mode.
    *
    * Defaults to `true` during development and `false` for production.
    *
-   * @see https://nitro.build/config/advanced#dev
+   * @see https://fastnode.khulnasoft.com/config/advanced#dev
    */
   dev: boolean;
 
@@ -581,17 +256,17 @@ export interface NitroOptions extends PresetOptions {
    *
    * Defaults to `"development"` in development and `"production"` otherwise. A custom
    * name (for example `"staging"`) can be set with the `--envName` CLI flag or the
-   * `c12.envName` load option of `createNitro()`. Available in server code as
+   * `c12.envName` load option of `createFastnode()`. Available in server code as
    * `import.meta.envName`.
    *
-   * @see https://nitro.build/docs/configuration#environment-specific-config
+   * @see https://fastnode.khulnasoft.com/docs/configuration#environment-specific-config
    */
   envName: string;
 
   /**
    * Development server options.
    *
-   * @see https://nitro.build/config/dev#devserver
+   * @see https://fastnode.khulnasoft.com/config/dev#devserver
    */
   devServer: {
     /** Port number for the dev server. */
@@ -624,7 +299,7 @@ export interface NitroOptions extends PresetOptions {
   /**
    * File watcher options for development mode.
    *
-   * @see https://nitro.build/config/dev#watchoptions
+   * @see https://fastnode.khulnasoft.com/config/dev#watchoptions
    * @see https://github.com/paulmillr/chokidar
    */
   watchOptions: ChokidarOptions;
@@ -642,17 +317,20 @@ export interface NitroOptions extends PresetOptions {
    * }
    * ```
    *
-   * @see https://nitro.build/config/dev#devproxy
+   * @see https://fastnode.khulnasoft.com/config/dev#devproxy
    * @see https://github.com/unjs/httpxy
    */
   devProxy: Record<string, string | ProxyServerOptions>;
+}
 
-  // Logging
-
+/**
+ * Build logging configuration.
+ */
+export interface FastnodeLoggingOptions {
   /**
    * Build logging behavior.
    *
-   * @see https://nitro.build/config/general#logging
+   * @see https://fastnode.khulnasoft.com/config/general#logging
    */
   logging: {
     /** Report compressed bundle sizes after build. */
@@ -660,16 +338,424 @@ export interface NitroOptions extends PresetOptions {
     /** Show the build success message. */
     buildSuccess?: boolean;
   };
+}
 
-  // Routing
+/**
+ * Advanced configuration: TypeScript, hooks, commands, framework metadata.
+ */
+export interface FastnodeAdvancedOptions {
+  /**
+   * TypeScript configuration options.
+   *
+   * @see https://fastnode.khulnasoft.com/config/advanced#typescript
+   */
+  typescript: {
+    /**
+     * TypeScript config used by the bundler (JSX options and path aliases).
+     *
+     * Defaults to the resolved `tsconfig.json` of the project root.
+     */
+    tsConfig?: Partial<TSConfig>;
 
+    /**
+     * Resolve path aliases (`compilerOptions.paths`) of `tsConfig` for the server sources.
+     *
+     * @default true
+     */
+    tsconfigPaths?: boolean;
+  };
+
+  /**
+   * Fastnode lifecycle hooks.
+   *
+   * @see https://fastnode.khulnasoft.com/config/advanced#hooks
+   * @see https://fastnode.khulnasoft.com/docs/lifecycle
+   * @see https://github.com/unjs/hookable
+   */
+  hooks: NestedHooks<FastnodeHooks>;
+
+  /**
+   * Preview and deploy command hints (usually filled by deployment presets).
+   *
+   * @see https://fastnode.khulnasoft.com/config/advanced#commands
+   */
+  commands: {
+    /** Command to preview the production build locally. */
+    preview?: string;
+    /**
+     * Command to deploy the production build.
+     *
+     * Can be a shell command (`./` paths are resolved relative to the output directory)
+     * or a function (used by presets that deploy programmatically).
+     */
+    deploy?: string | ((fastnode: Fastnode, opts: DeployOptions) => void | Promise<void>);
+  };
+
+  /**
+   * Metadata about the higher-level framework using Fastnode (e.g. Nuxt).
+   *
+   * Used by presets and included in build info output.
+   *
+   * @see https://fastnode.khulnasoft.com/config/advanced#framework
+   */
+  framework: FastnodeFrameworkInfo;
+}
+
+/**
+ * Feature flag and optional subsystem configuration: KV, cache, database,
+ * renderer, assets, plugins, modules, tasks, virtual modules, prerendering.
+ */
+export interface FastnodeFeatureOptions {
+  /**
+   * KV storage mount configuration.
+   *
+   * Keys are mount-point paths; values specify the unstorage driver and
+   * its options.
+   *
+   * @see https://fastnode.khulnasoft.com/config/storage#kv
+   * @see https://fastnode.khulnasoft.com/docs/storage
+   */
+  kv: KVMounts;
+
+  /** @deprecated Migrate to `kv`. */
+  storage: KVMounts;
+
+  /** @deprecated Migrate to `kv` inside `$development` (and `$prerender`) config. */
+  devStorage: KVMounts;
+
+  /**
+   * Cache storage and global default options for cached functions, cached handlers
+   * and `cache` route rules.
+   *
+   * @see https://fastnode.khulnasoft.com/config/storage#cache
+   * @see https://fastnode.khulnasoft.com/docs/cache
+   */
+  cache: FastnodeCacheConfig;
+
+  /**
+   * Database connection configurations.
+   *
+   * Requires `experimental.database: true`.
+   *
+   * @see https://fastnode.khulnasoft.com/config/storage#database
+   * @see https://fastnode.khulnasoft.com/docs/database
+   */
+  database: DatabaseConnectionConfigs;
+
+  /**
+   * Database connection overrides for development mode.
+   *
+   * @see https://fastnode.khulnasoft.com/config/storage#devdatabase
+   * @see https://fastnode.khulnasoft.com/docs/database
+   */
+  devDatabase: DatabaseConnectionConfigs;
+
+  /**
+   * Server-side rendering entry configuration.
+   *
+   * Points to the main render handler (the file should export an event
+   * handler as default). Set to `false` to disable.
+   *
+   * @see https://fastnode.khulnasoft.com/config/features#renderer
+   * @see https://fastnode.khulnasoft.com/docs/renderer
+   */
+  renderer?: { handler?: string; static?: boolean; template?: string };
+
+  /**
+   * Routes that should be server-side rendered.
+   */
+  ssrRoutes: string[];
+
+  /**
+   * Include a static asset handler in the server bundle to serve public assets.
+   *
+   * - `true` or `"node"` — read assets from the filesystem using Node.js `fs`.
+   * - `"inline"` — base64-encode assets directly into the server bundle.
+   * - `false` — do not serve static assets from the server (rely on a CDN or reverse proxy).
+   *
+   * Most self-hosted presets (e.g. `node-server`, `bun`) enable this by default.
+   *
+   * @see https://fastnode.khulnasoft.com/config/assets#servestatic
+   */
+  serveStatic: boolean | "node" | "inline";
+
+  /**
+   * Disable the public output directory entirely.
+   *
+   * Skips preparing the `.output/public` directory, copying public
+   * assets, and prerendering routes.
+   *
+   * @see https://fastnode.khulnasoft.com/config/assets#nopublicdir
+   */
+  noPublicDir: boolean;
+  tracingChannel?: undefined | TracingChannelOptions;
+
+  /**
+   * Build manifest options.
+   */ manifest?: {
+    /** Custom deployment identifier included in the build manifest. */
+    deploymentId?: string;
+  };
+
+  /**
+   * Built-in feature flags.
+   *
+   * @see https://fastnode.khulnasoft.com/config/features#features
+   */
+  features: {
+    /**
+     * Enable runtime hooks for request and response.
+     *
+     * By default this feature will be enabled if there is at least one fastnode plugin.
+     */
+    runtimeHooks?: boolean;
+
+    /**
+     * Enable WebSocket support.
+     */
+    websocket?: boolean;
+
+    /**
+     * Replace the global `Response` with srvx `FastResponse`, so that
+     * `new Response()` skips the native Response overhead in Node.js.
+     *
+     * Enabled by default when `node` is `true`.
+     */
+    fastResponse?: boolean;
+  };
+
+  /**
+   * Native wasm compatibility/bundling support configuration.
+   *
+   * Set to `false` to disable.
+   *
+   * @see https://fastnode.khulnasoft.com/config/features#wasm
+   * @see https://github.com/unjs/unwasm
+   */
+  wasm?: false | UnwasmPluginOptions;
+
+  /**
+   * OpenAPI specification generation and UI configuration.
+   *
+   * @see https://fastnode.khulnasoft.com/config/features#openapi
+   * @see https://fastnode.khulnasoft.com/docs/openapi
+   */
+  openAPI?: FastnodeOpenAPIConfig;
+
+  /**
+   * Experimental feature flags.
+   *
+   * These features are not yet stable and may change in future releases.
+   *
+   * @see https://fastnode.khulnasoft.com/config/features#experimental
+   */
+  experimental: {
+    /**
+     * Enable experimental OpenAPI support
+     *
+     * @see https://fastnode.khulnasoft.com/docs/openapi
+     */
+    openAPI?: boolean;
+    /**
+     * See https://github.com/microsoft/TypeScript/pull/51669
+     */
+    typescriptBundlerResolution?: boolean;
+    /**
+     * Enable native async context support for useRequest()
+     */
+    asyncContext?: boolean;
+    /**
+     * Set to `false` to disable sourcemap minification in production builds.
+     *
+     * Sourcemap minification is enabled by default when `sourcemap` is on.
+     */
+    sourcemapMinify?: false;
+    /**
+     * Set to `false` to disable entries-aware library chunks (Rolldown and Vite builders).
+     *
+     * By default, each `node_modules` package chunk is split by the entries (main entry and lazy
+     * route handlers) that use it, so startup does not load code that only lazy routes need.
+     * Disabling it produces fewer, larger library chunks.
+     */
+    entriesAwareLibChunks?: false;
+    /**
+     * Allow env expansion in runtime config
+     *
+     * @see https://github.com/khulnasoft/fastnode/pull/2043
+     */
+    envExpansion?: boolean;
+    /**
+     * Enable WebSocket upgrade support
+     *
+     * @deprecated Use `features.websocket` instead.
+     */
+    websocket?: boolean;
+    /**
+     * Enable experimental Database support
+     *
+     * @see https://fastnode.khulnasoft.com/docs/database
+     */
+    database?: boolean;
+    /**
+     * Enable experimental Tasks support
+     *
+     * @see https://fastnode.khulnasoft.com/docs/tasks
+     */
+    tasks?: boolean;
+
+    /**
+     * Log Fastnode tracing-channel spans to the console.
+     *
+     * Enables a built-in, dependency-free telemetry sink that `console.log`s
+     * each completed span (h3, srvx, unstorage, db0, …). Requires `tracingChannel`
+     * to be enabled.
+     */
+    tracingLogger?: boolean;
+  };
+
+  /**
+   * Server-side asset directories bundled at build time.
+   *
+   * @see https://fastnode.khulnasoft.com/config/assets#serverassets
+   * @see https://fastnode.khulnasoft.com/docs/assets#server-assets
+   */
+  serverAssets: ServerAssetDir[];
+
+  /**
+   * Public asset directories served in development and bundled in production.
+   *
+   * A `public/` directory is added by default when detected.
+   *
+   * @see https://fastnode.khulnasoft.com/config/assets#publicassets
+   * @see https://fastnode.khulnasoft.com/docs/assets
+   */
+  publicAssets: PublicAssetDir[];
+
+  /**
+   * Fastnode modules to extend behavior during initialization.
+   *
+   * Accepts module path strings, {@link FastnodeModule} objects, or bare setup functions.
+   *
+   * @see https://fastnode.khulnasoft.com/config/features#modules
+   */
+  modules?: FastnodeModuleInput[];
+
+  /**
+   * Paths to Fastnode runtime plugins.
+   *
+   * Plugins in the `plugins/` directory are auto-registered.
+   *
+   * @see https://fastnode.khulnasoft.com/config/features#plugins
+   * @see https://fastnode.khulnasoft.com/docs/plugins
+   */
+  plugins: string[];
+
+  /**
+   * Task definitions.
+   *
+   * Each key is a task name with a `handler` path and optional `description`.
+   *
+   * @example
+   * ```ts
+   * tasks: {
+   *   "db:migrate": {
+   *     handler: "./tasks/db-migrate",
+   *     description: "Run database migrations",
+   *   },
+   * }
+   * ```
+   *
+   * @see https://fastnode.khulnasoft.com/config/features#tasks
+   * @see https://fastnode.khulnasoft.com/docs/tasks
+   */
+  tasks: { [name: string]: { handler?: string; description?: string } };
+
+  /**
+   * Map of cron expressions to task name(s).
+   *
+   * @example
+   * ```ts
+   * scheduledTasks: {
+   *   "0 * * * *": "cleanup:temp",
+   *   "*​/5 * * * *": ["health:check", "metrics:collect"],
+   * }
+   * ```
+   *
+   * @see https://fastnode.khulnasoft.com/config/features#scheduledtasks
+   * @see https://fastnode.khulnasoft.com/docs/tasks
+   */
+  scheduledTasks: { [cron: string]: string | string[] };
+
+  /**
+   * Scheduler options for `scheduledTasks`.
+   *
+   * @see https://fastnode.khulnasoft.com/config/features#scheduler
+   */
+  scheduler: {
+    /**
+     * Run `scheduledTasks` in-process with the built-in cron runner, in presets that use it
+     * (`dev`, `node_*`, `bun` and `deno_server`).
+     *
+     * Set to `false` when something else invokes the scheduled tasks, such as a system cron.
+     * The tasks stay registered, so `runCronTasks()` and the `/_fastnode/tasks` dev route keep
+     * working. Platform schedules (Cloudflare Cron Triggers, Vercel Cron Jobs) are not affected.
+     *
+     * @default true
+     */
+    runner?: boolean;
+  };
+
+  /**
+   * Virtual module definitions.
+   *
+   * A map from dynamic virtual import names to their contents or an async
+   * function that returns them.
+   *
+   * @see https://fastnode.khulnasoft.com/config/features#virtual
+   */
+  virtual: Record<string, string | (() => string | Promise<string>)>;
+
+  /**
+   * Pre-compress public assets and prerendered routes.
+   *
+   * Generates gzip and brotli (and zstd when available)
+   * variants of compressible assets larger than 1024 bytes. Pass an
+   * object to selectively enable/disable each encoding.
+   *
+   * @see https://fastnode.khulnasoft.com/config/assets#compresspublicassets
+   */
+  compressPublicAssets: boolean | CompressOptions;
+
+  /**
+   * Glob patterns to ignore when scanning directories.
+   *
+   * @see https://fastnode.khulnasoft.com/config/directories#ignore
+   */
+  ignore: string[];
+
+  /**
+   * Additional dotted suffixes to keep as part of scanned file names (e.g. `"prompt"` for
+   * `routes/system.prompt.ts` → `/system.prompt`).
+   *
+   * Fastnode reserves trailing lowercase suffixes in scanned file names. Known file extensions
+   * (e.g. `.json`, `.md`, `.xml`) are always kept.
+   *
+   * @see https://fastnode.khulnasoft.com/config/directories#scansuffixes
+   */
+  scanSuffixes: string[];
+}
+
+/**
+ * Routing configuration: base URL, API routes, handlers, route rules, prerendering.
+ */
+export interface FastnodeRoutingOptions {
   /**
    * Server's main base URL prefix.
    *
-   * Can also be set via the `NITRO_APP_BASE_URL` environment variable.
+   * Can also be set via the `FASTNODE_APP_BASE_URL` environment variable.
    *
    * @default "/"
-   * @see https://nitro.build/config/routing#baseurl
+   * @see https://fastnode.khulnasoft.com/config/routing#baseurl
    */
   baseURL: string;
 
@@ -677,7 +763,7 @@ export interface NitroOptions extends PresetOptions {
    * Base URL prefix for API routes.
    *
    * @default "/api"
-   * @see https://nitro.build/config/routing#apibaseurl
+   * @see https://fastnode.khulnasoft.com/config/routing#apibaseurl
    */
   apiBaseURL: string;
 
@@ -686,7 +772,7 @@ export interface NitroOptions extends PresetOptions {
    *
    * Set to `false` to disable the default server entry.
    *
-   * @see https://nitro.build/docs/server-entry
+   * @see https://fastnode.khulnasoft.com/docs/server-entry
    */
   serverEntry: false | { handler: string; format?: EventHandlerFormat };
 
@@ -694,21 +780,21 @@ export interface NitroOptions extends PresetOptions {
    * Server handler registrations.
    *
    * Handlers in `routes/`, `api/`, and `middleware/` directories are
-   * auto-registered when {@link NitroOptions.serverDir | serverDir} is set.
+   * auto-registered when {@link FastnodeOptions.serverDir | serverDir} is set.
    *
-   * @see https://nitro.build/config/routing#handlers
-   * @see https://nitro.build/docs/routing
+   * @see https://fastnode.khulnasoft.com/config/routing#handlers
+   * @see https://fastnode.khulnasoft.com/docs/routing
    */
-  handlers: NitroEventHandler[];
+  handlers: FastnodeEventHandler[];
 
   /**
    * Development-only event handlers with inline handler functions.
    *
    * Not included in production builds.
    *
-   * @see https://nitro.build/config/routing#devhandlers
+   * @see https://fastnode.khulnasoft.com/config/routing#devhandlers
    */
-  devHandlers: NitroDevEventHandler[];
+  devHandlers: FastnodeDevEventHandler[];
 
   /**
    * Route rules applied to matching request paths.
@@ -717,8 +803,8 @@ export interface NitroOptions extends PresetOptions {
    * Rules are matched using rou3 patterns and deep-merged when multiple
    * patterns match.
    *
-   * @see https://nitro.build/config/routing#routerules
-   * @see https://nitro.build/docs/routing#route-rules
+   * @see https://fastnode.khulnasoft.com/config/routing#routerules
+   * @see https://fastnode.khulnasoft.com/docs/routing#route-rules
    */
   routeRules: { [path: string]: NormalizedRouteRules };
 
@@ -727,9 +813,9 @@ export interface NitroOptions extends PresetOptions {
    *
    * A map from route pattern to handler path or handler options.
    *
-   * @see https://nitro.build/config/routing#routes
+   * @see https://fastnode.khulnasoft.com/config/routing#routes
    */
-  routes: Record<string, string | Omit<NitroEventHandler, "route" | "middleware">>;
+  routes: Record<string, string | Omit<FastnodeEventHandler, "route" | "middleware">>;
 
   /**
    * Path(s) to custom runtime error handler(s).
@@ -737,16 +823,16 @@ export interface NitroOptions extends PresetOptions {
    * Custom handlers run before the built-in error handler, which is
    * always added as a fallback.
    *
-   * @see https://nitro.build/config/routing#errorhandler
+   * @see https://fastnode.khulnasoft.com/config/routing#errorhandler
    */
   errorHandler: string | string[];
 
   /**
    * Custom error handler function for development mode.
    *
-   * @see https://nitro.build/config/advanced#deverrorhandler
+   * @see https://fastnode.khulnasoft.com/config/advanced#deverrorhandler
    */
-  devErrorHandler: NitroErrorHandler;
+  devErrorHandler: FastnodeErrorHandler;
 
   /**
    * Prerendering options.
@@ -754,7 +840,7 @@ export interface NitroOptions extends PresetOptions {
    * Routes specified here are fetched during the build and copied to
    * `.output/public` as static assets.
    *
-   * @see https://nitro.build/config/routing#prerender
+   * @see https://fastnode.khulnasoft.com/config/routing#prerender
    */
   prerender: {
     /**
@@ -784,33 +870,36 @@ export interface NitroOptions extends PresetOptions {
     /** Explicit list of routes to prerender. */
     routes?: string[];
   };
+}
 
-  // Build
-
+/**
+ * Build configuration: bundler, Vite, Rollup/Rolldown, aliases, polyfills, tracing.
+ */
+export interface FastnodeBuildOptions {
   /**
    * Bundler to use for production builds.
    *
    * Auto-detected when not set: `"vite"` if a `vite.config` with the
-   * `nitro()` plugin is found, otherwise `"rolldown"` (installed on demand). In development,
+   * `fastnode()` plugin is found, otherwise `"rolldown"` (installed on demand). In development,
    * `false` is used when `rolldown` is not installed.
-   * Use the `NITRO_BUILDER` environment variable as an alternative.
+   * Use the `FASTNODE_BUILDER` environment variable as an alternative.
    *
    * Set to `false` to run the server sources without bundling (experimental, `dev` and
    * `preview` only).
    *
-   * @see https://nitro.build/config/build#builder
+   * @see https://fastnode.khulnasoft.com/config/build#builder
    */
   builder?: "rollup" | "rolldown" | "vite" | false;
 
   /**
-   * Options for the `vite` builder and the `nitro/vite` plugin.
+   * Options for the `vite` builder and the `fastnode/vite` plugin.
    */
   vite?: {
     /**
      * The `vite` package to use, as a path or `file://` URL to its directory or entry
      * (e.g. `import.meta.resolve("vite")`).
      *
-     * By default, the `nitro/vite` plugin uses the running `vite` and the `vite` builder
+     * By default, the `fastnode/vite` plugin uses the running `vite` and the `vite` builder
      * resolves it from the project root.
      */
     path?: string;
@@ -841,12 +930,12 @@ export interface NitroOptions extends PresetOptions {
   };
 
   /**
-   * Options for the optional dependencies Nitro installs on demand (such as `vite`, `rolldown`,
+   * Options for the optional dependencies Fastnode installs on demand (such as `vite`, `rolldown`,
    * `unstorage` or `db0`).
    *
-   * @see https://nitro.build/config/build#deps
+   * @see https://fastnode.khulnasoft.com/config/build#deps
    */
-  deps?: NitroDepsOptions;
+  deps?: FastnodeDepsOptions;
 
   /**
    * Build plugins, applied with every builder (`rollup`, `rolldown`, `vite` and `false`).
@@ -855,31 +944,31 @@ export interface NitroOptions extends PresetOptions {
    * are supported by all builders; with `builder: false`, plugins run in
    * [env-runner](https://github.com/unjs/env-runner), which supports only these.
    *
-   * Plugins with `enforce: "pre"` are placed before Nitro's own plugins, the others after them
+   * Plugins with `enforce: "pre"` are placed before Fastnode's own plugins, the others after them
    * (a hook's own `order` takes precedence).
    *
-   * @see https://nitro.build/config/build#buildplugins
+   * @see https://fastnode.khulnasoft.com/config/build#buildplugins
    */
-  buildPlugins: NitroBuildPluginOption[];
+  buildPlugins: FastnodeBuildPluginOption[];
 
   /**
    * Additional Rollup configuration.
    *
-   * @see https://nitro.build/config/build#rollupconfig
+   * @see https://fastnode.khulnasoft.com/config/build#rollupconfig
    */
   rollupConfig?: RollupConfig;
 
   /**
    * Additional Rolldown configuration.
    *
-   * @see https://nitro.build/config/build#rolldownconfig
+   * @see https://fastnode.khulnasoft.com/config/build#rolldownconfig
    */
   rolldownConfig?: RolldownConfig;
 
   /**
    * Bundler entry point path.
    *
-   * @see https://nitro.build/config/build#entry
+   * @see https://fastnode.khulnasoft.com/config/build#entry
    */
   entry: string;
 
@@ -897,7 +986,7 @@ export interface NitroOptions extends PresetOptions {
    * }
    * ```
    *
-   * @see https://nitro.build/config/build#alias
+   * @see https://fastnode.khulnasoft.com/config/build#alias
    */
   alias: Record<string, string>;
 
@@ -915,7 +1004,7 @@ export interface NitroOptions extends PresetOptions {
    * }
    * ```
    *
-   * @see https://nitro.build/config/build#inject
+   * @see https://fastnode.khulnasoft.com/config/build#inject
    */
   inject: Record<string, string | [id: string, exportName: string] | false>;
 
@@ -924,7 +1013,7 @@ export interface NitroOptions extends PresetOptions {
    *
    * Prefix an entry with `!` to remove a default polyfill.
    *
-   * @see https://nitro.build/config/build#polyfills
+   * @see https://fastnode.khulnasoft.com/config/build#polyfills
    */
   polyfills: string[];
 
@@ -938,14 +1027,14 @@ export interface NitroOptions extends PresetOptions {
    *
    * Prefix an entry with `!` to remove a default (e.g. one added by a preset).
    *
-   * @see https://nitro.build/config/build#builtinmodules
+   * @see https://fastnode.khulnasoft.com/config/build#builtinmodules
    */
   builtinModules: string[];
 
   /**
    * Minify the production bundle.
    *
-   * @see https://nitro.build/config/build#minify
+   * @see https://fastnode.khulnasoft.com/config/build#minify
    */
   minify: boolean;
 
@@ -955,14 +1044,14 @@ export interface NitroOptions extends PresetOptions {
    * When `false`, each route handler becomes a separate chunk loaded
    * on-demand. Some presets enable this by default.
    *
-   * @see https://nitro.build/config/build#inlinedynamicimports
+   * @see https://fastnode.khulnasoft.com/config/build#inlinedynamicimports
    */
   inlineDynamicImports: boolean;
 
   /**
    * Enable source map generation.
    *
-   * @see https://nitro.build/config/build#sourcemap
+   * @see https://fastnode.khulnasoft.com/config/build#sourcemap
    */
   sourcemap: boolean;
 
@@ -972,39 +1061,39 @@ export interface NitroOptions extends PresetOptions {
    * When `true` (default), the bundler targets the `node` platform, prefers
    * Node.js built-in modules, and enables dependency externalization.
    *
-   * When `false`, Nitro adds default `alias`, `inject` and `polyfills`
+   * When `false`, Fastnode adds default `alias`, `inject` and `polyfills`
    * entries that polyfill Node.js globals and built-ins for non-Node
    * runtimes (workers, edge, Deno).
    *
-   * @see https://nitro.build/config/build#node
+   * @see https://fastnode.khulnasoft.com/config/build#node
    */
   node: boolean;
 
   /**
    * OXC options for Rolldown builds (minification and transforms).
    *
-   * @see https://nitro.build/config/build#oxc
+   * @see https://fastnode.khulnasoft.com/config/build#oxc
    */
   oxc?: OXCOptions;
 
   /**
    * Build-time string replacements.
    *
-   * @see https://nitro.build/config/build#replace
+   * @see https://fastnode.khulnasoft.com/config/build#replace
    */
   replace: Record<string, string | ((id: string) => string)>;
 
   /**
    * Additional configuration for the Rollup CommonJS plugin.
    *
-   * @see https://nitro.build/config/build#commonjs
+   * @see https://fastnode.khulnasoft.com/config/build#commonjs
    */
   commonJS?: CommonJSOptions;
 
   /**
    * Custom export conditions for module resolution.
    *
-   * @see https://nitro.build/config/build#exportconditions
+   * @see https://fastnode.khulnasoft.com/config/build#exportconditions
    */
   exportConditions?: string[];
 
@@ -1014,7 +1103,7 @@ export interface NitroOptions extends PresetOptions {
    * Set to `true` to bundle all dependencies, or pass an array of patterns
    * matched against both the import specifier and the resolved module path.
    *
-   * @see https://nitro.build/config/build#noexternals
+   * @see https://fastnode.khulnasoft.com/config/build#noexternals
    */
   noExternals?: boolean | (string | RegExp)[];
 
@@ -1023,92 +1112,47 @@ export interface NitroOptions extends PresetOptions {
    *
    * Supports `!pkg` to exclude and `pkg*` for full package trace.
    *
-   * @see https://nitro.build/config/build#tracedeps
+   * @see https://fastnode.khulnasoft.com/config/build#tracedeps
    */
   traceDeps?: (string | RegExp)[];
 
   /**
    * Advanced options for dependency tracing via nf3.
    *
-   * @see https://nitro.build/config/build#traceopts
+   * @see https://fastnode.khulnasoft.com/config/build#traceopts
    * @see https://github.com/unjs/nf3
    */
   traceOpts?: Pick<ExternalsTraceOptions, "nft" | "traceAlias" | "chmod" | "transform" | "hooks">;
-
-  // Advanced
-
-  /**
-   * TypeScript configuration options.
-   *
-   * @see https://nitro.build/config/advanced#typescript
-   */
-  typescript: {
-    /**
-     * TypeScript config used by the bundler (JSX options and path aliases).
-     *
-     * Defaults to the resolved `tsconfig.json` of the project root.
-     */
-    tsConfig?: Partial<TSConfig>;
-
-    /**
-     * Resolve path aliases (`compilerOptions.paths`) of `tsConfig` for the server sources.
-     *
-     * @default true
-     */
-    tsconfigPaths?: boolean;
-  };
-
-  /**
-   * Nitro lifecycle hooks.
-   *
-   * @see https://nitro.build/config/advanced#hooks
-   * @see https://nitro.build/docs/lifecycle
-   * @see https://github.com/unjs/hookable
-   */
-  hooks: NestedHooks<NitroHooks>;
-
-  /**
-   * Preview and deploy command hints (usually filled by deployment presets).
-   *
-   * @see https://nitro.build/config/advanced#commands
-   */
-  commands: {
-    /** Command to preview the production build locally. */
-    preview?: string;
-    /**
-     * Command to deploy the production build.
-     *
-     * Can be a shell command (`./` paths are resolved relative to the output directory)
-     * or a function (used by presets that deploy programmatically).
-     */
-    deploy?: string | ((nitro: Nitro, opts: DeployOptions) => void | Promise<void>);
-  };
-
-  /**
-   * Metadata about the higher-level framework using Nitro (e.g. Nuxt).
-   *
-   * Used by presets and included in build info output.
-   *
-   * @see https://nitro.build/config/advanced#framework
-   */
-  framework: NitroFrameworkInfo;
 }
 
+export interface FastnodeOptions
+  extends
+    PresetOptions,
+    FastnodeInternalOptions,
+    FastnodeGeneralOptions,
+    FastnodeDirOptions,
+    FastnodeFeatureOptions,
+    FastnodeDevOptions,
+    FastnodeLoggingOptions,
+    FastnodeRoutingOptions,
+    FastnodeBuildOptions,
+    FastnodeAdvancedOptions {}
+
 /**
- * User-facing Nitro configuration used in `nitro.config.ts` or
+ * User-facing Fastnode configuration used in `fastnode.config.ts` or
  * `defineConfig()`.
  *
  * All properties are optional and will be merged with defaults and preset
- * values to produce the fully resolved {@link NitroOptions}.
+ * values to produce the fully resolved {@link FastnodeOptions}.
  *
- * @see https://nitro.build/config
- * @see https://nitro.build/docs/configuration
+ * @see https://fastnode.khulnasoft.com/config
+ * @see https://fastnode.khulnasoft.com/docs/configuration
  */
-export interface NitroConfig
+export interface FastnodeConfig
   extends
     Partial<
       Omit<
-        NitroOptions,
+        FastnodeOptions,
         | "routeRules"
         | "rollupConfig"
         | "preset"
@@ -1125,9 +1169,9 @@ export interface NitroConfig
         | "tracingChannel"
       >
     >,
-    C12InputConfig<NitroConfig> {
+    C12InputConfig<FastnodeConfig> {
   /** Config overrides applied when prerendering (on top of the build env overrides, `$production` by default). */
-  $prerender?: NitroConfig;
+  $prerender?: FastnodeConfig;
 
   preset?: PresetNameInput;
 
@@ -1135,27 +1179,27 @@ export interface NitroConfig
    * Customize the preset used as the **fallback** when no `preset` is set and
    * none of the known hosting providers are auto-detected.
    *
-   * By default, Nitro falls back to the runtime-based preset (`node`, and
+   * By default, Fastnode falls back to the runtime-based preset (`node`, and
    * `deno` or `bun` when running on those runtimes). An explicit `preset`,
-   * the `NITRO_PRESET` environment variable, and auto-detected providers
+   * the `FASTNODE_PRESET` environment variable, and auto-detected providers
    * (Vercel, Netlify, Cloudflare Pages, …) all take precedence over this.
    *
    * Accepts a preset name or an inline preset definition.
    *
-   * @see https://nitro.build/config/general#defaultpreset
+   * @see https://fastnode.khulnasoft.com/config/general#defaultpreset
    */
-  defaultPreset?: PresetNameInput | NitroPreset;
+  defaultPreset?: PresetNameInput | FastnodePreset;
 
-  extends?: string | string[] | NitroPreset;
+  extends?: string | string[] | FastnodePreset;
   routeRules?: { [path: string]: RouteRuleConfig };
   rollupConfig?: Partial<RollupConfig>;
   compatibilityDate?: CompatibilityDateSpec;
   /** @deprecated Migrate to `alias`, `inject`, `polyfills` and `builtinModules`. */
   unenv?: LegacyUnenvPreset | LegacyUnenvPreset[];
   serverDir?: boolean | "./" | "./server" | (string & {});
-  serverEntry?: string | NitroOptions["serverEntry"];
-  renderer?: false | NitroOptions["renderer"];
-  output?: Partial<NitroOptions["output"]>;
+  serverEntry?: string | FastnodeOptions["serverEntry"];
+  renderer?: false | FastnodeOptions["renderer"];
+  output?: Partial<FastnodeOptions["output"]>;
   tracingChannel?: boolean | TracingChannelOptions;
 }
 
@@ -1163,7 +1207,7 @@ export interface NitroConfig
 // Config Loader
 // ------------------------------------------------------------
 
-/** Options for loading Nitro configuration via c12. */
+/** Options for loading Fastnode configuration via c12. */
 export interface LoadConfigOptions {
   watch?: boolean;
   c12?: WatchConfigOptions;
@@ -1176,9 +1220,9 @@ export interface LoadConfigOptions {
 // ------------------------------------------------------------
 
 /**
- * A resolved config layer available on `nitro.options.layers`.
+ * A resolved config layer available on `fastnode.options.layers`.
  */
-export interface NitroConfigLayer {
+export interface FastnodeConfigLayer {
   /** Absolute path to the layer directory. */
   cwd: string;
 
@@ -1190,25 +1234,25 @@ export interface NitroConfigLayer {
    * defaults). Environment-specific overrides such as `$production` are
    * already applied.
    */
-  config: NitroConfig;
+  config: FastnodeConfig;
 
   /** Layer metadata from `$meta` in the layer config or `extends` options. */
   meta?: { name?: string; [key: string]: unknown };
 }
 
 /**
- * Options for the optional dependencies Nitro installs on demand.
+ * Options for the optional dependencies Fastnode installs on demand.
  *
- * @see https://nitro.build/config/build#deps
+ * @see https://fastnode.khulnasoft.com/config/build#deps
  */
-export interface NitroDepsOptions {
+export interface FastnodeDepsOptions {
   /**
    * Explicit packages to use, by package name, as a path or `file://` URL to the package
    * directory or entry (e.g. `import.meta.resolve("unstorage")`). Relative paths resolve
    * against `rootDir`.
    *
    * By default, these packages are resolved from the project root and installed on demand. A
-   * framework built on top of Nitro can pass its own copies, so the versions it depends on are
+   * framework built on top of Fastnode can pass its own copies, so the versions it depends on are
    * the ones that run. `deps.paths.vite` and `vite.path` are aliases.
    */
   paths?: Record<string, string>;
@@ -1229,7 +1273,7 @@ export interface NitroDepsOptions {
 /**
  * Vite environment registered as a fetchable service.
  *
- * @see https://nitro.build/config/build#vite
+ * @see https://fastnode.khulnasoft.com/config/build#vite
  */
 export interface ViteServiceConfig {
   /** Path to the service entry. */
@@ -1240,8 +1284,8 @@ export interface ViteServiceConfig {
  * Configuration for a public asset directory served in development and
  * bundled in production.
  *
- * @see https://nitro.build/config/assets#publicassets
- * @see https://nitro.build/docs/assets
+ * @see https://fastnode.khulnasoft.com/config/assets#publicassets
+ * @see https://fastnode.khulnasoft.com/docs/assets
  */
 export interface PublicAssetDir {
   /** URL prefix under which these assets are served. */
@@ -1260,7 +1304,7 @@ export interface PublicAssetDir {
   /**
    * Pass `false` to disable ignore patterns when scanning the directory,
    * or pass an array of glob patterns to ignore (overrides global
-   * `nitro.ignore` patterns).
+   * `fastnode.ignore` patterns).
    */
   ignore?: false | string[];
 }
@@ -1268,7 +1312,7 @@ export interface PublicAssetDir {
 /**
  * Pre-compression options for public assets and prerendered routes.
  *
- * @see https://nitro.build/config/assets#compresspublicassets
+ * @see https://fastnode.khulnasoft.com/config/assets#compresspublicassets
  */
 export interface CompressOptions {
   /** Enable gzip pre-compression. */
@@ -1282,8 +1326,8 @@ export interface CompressOptions {
 /**
  * Configuration for a server-side asset directory bundled at build time.
  *
- * @see https://nitro.build/config/assets#serverassets
- * @see https://nitro.build/docs/assets#server-assets
+ * @see https://fastnode.khulnasoft.com/config/assets#serverassets
+ * @see https://fastnode.khulnasoft.com/docs/assets#server-assets
  */
 export interface ServerAssetDir {
   /** Logical name used to access the asset group at runtime. */
@@ -1299,7 +1343,7 @@ export interface ServerAssetDir {
 /**
  * Tracing channel options.
  *
- * @see https://nitro.build/config/advanced#tracingchannel
+ * @see https://fastnode.khulnasoft.com/config/advanced#tracingchannel
  */
 export interface TracingChannelOptions {
   srvx?: boolean;
@@ -1359,8 +1403,8 @@ export type KVMount = BuiltinKVMount | CustomKVMount;
  * Keys are mount-point paths; values specify the unstorage driver
  * and its options.
  *
- * @see https://nitro.build/config/storage#kv
- * @see https://nitro.build/docs/storage
+ * @see https://fastnode.khulnasoft.com/config/storage#kv
+ * @see https://fastnode.khulnasoft.com/docs/storage
  */
 export interface KVMounts {
   [path: string]: KVMount;
@@ -1375,16 +1419,16 @@ export type StorageMounts = KVMounts;
 // Cache
 
 /** Cache storage driver. */
-export type NitroCacheDriver = "memory" | "fs" | "kv";
+export type FastnodeCacheDriver = "memory" | "fs" | "kv";
 
 /** Options shared by cached functions and cached handlers. */
-export type NitroCacheFunctionDefaults = Pick<
+export type FastnodeCacheFunctionDefaults = Pick<
   OCacheOptions,
   "maxAge" | "swr" | "staleMaxAge" | "maxResolveTime" | "base"
 >;
 
 /** Options that only apply to cached handlers and `cache` route rules. */
-export type NitroCacheHandlerDefaults = Pick<
+export type FastnodeCacheHandlerDefaults = Pick<
   OCacheEventHandlerOptions,
   | "varies"
   | "allowQuery"
@@ -1396,25 +1440,26 @@ export type NitroCacheHandlerDefaults = Pick<
 >;
 
 /** Global default options for cached functions, cached handlers and `cache` route rules. */
-export interface NitroCacheDefaults extends NitroCacheFunctionDefaults, NitroCacheHandlerDefaults {}
+export interface FastnodeCacheDefaults
+  extends FastnodeCacheFunctionDefaults, FastnodeCacheHandlerDefaults {}
 
 /**
  * Cache configuration.
  *
- * @see https://nitro.build/config/storage#cache
+ * @see https://fastnode.khulnasoft.com/config/storage#cache
  */
-export interface NitroCacheConfig {
+export interface FastnodeCacheConfig {
   /**
    * Cache storage driver.
    *
    * - `"memory"`: in-process LRU memory storage (not persisted across restarts).
    * - `"fs"`: filesystem storage (Node.js compatible runtimes only).
-   * - `"kv"`: the Nitro [KV storage layer](https://nitro.build/docs/storage) (`useKV()`).
+   * - `"kv"`: the Fastnode [KV storage layer](https://fastnode.khulnasoft.com/docs/storage) (`useKV()`).
    *
    * Defaults to `"kv"` when a `cache` (or `cache:*` / `cache/*`) KV mount point is
    * configured, and to `"memory"` otherwise.
    */
-  driver?: NitroCacheDriver;
+  driver?: FastnodeCacheDriver;
 
   /** Options for the `memory` driver. */
   memory?: Omit<OCacheMemoryStorageOptions, "sizeOf">;
@@ -1439,7 +1484,7 @@ export interface NitroCacheConfig {
    * them, handler-only options only apply to cached handlers and route rules.
    * Per-cache options take precedence.
    */
-  defaults?: NitroCacheDefaults;
+  defaults?: FastnodeCacheDefaults;
 }
 
 // Database
@@ -1450,8 +1495,8 @@ export type DatabaseConnectionName = "default" | (string & {});
 /**
  * Database connection configuration specifying a db0 connector and options.
  *
- * @see https://nitro.build/config/storage#database
- * @see https://nitro.build/docs/database
+ * @see https://fastnode.khulnasoft.com/config/storage#database
+ * @see https://fastnode.khulnasoft.com/docs/database
  */
 export type DatabaseConnectionConfig = [DatabaseConnectorName] extends [never]
   ? { connector: string; options?: Record<string, JsonValue> }
@@ -1476,19 +1521,19 @@ export type DatabaseConnectionConfigs = Record<DatabaseConnectionName, DatabaseC
  * Server runtime configuration accessible via `useRuntimeConfig()`.
  *
  * Values can be overridden at runtime using environment variables with
- * the `NITRO_` prefix. An alternative prefix can be configured via
- * `nitro.envPrefix` or `NITRO_ENV_PREFIX`.
+ * the `FASTNODE_` prefix. An alternative prefix can be configured via
+ * `fastnode.envPrefix` or `FASTNODE_ENV_PREFIX`.
  *
- * @see https://nitro.build/config/general#runtimeconfig
+ * @see https://fastnode.khulnasoft.com/config/general#runtimeconfig
  */
-export interface NitroRuntimeConfig {
-  nitro?: {
+export interface FastnodeRuntimeConfig {
+  fastnode?: {
     envPrefix?: string;
     envExpansion?: boolean;
     routeRules?: {
       [path: string]: RouteRuleConfig;
     };
-    openAPI?: NitroOpenAPIConfig;
+    openAPI?: FastnodeOpenAPIConfig;
   };
   [key: string]: any;
 }

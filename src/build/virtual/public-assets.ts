@@ -2,8 +2,8 @@ import { promises as fsp } from "node:fs";
 import createEtag from "etag";
 import { glob } from "tinyglobby";
 import mime from "mime";
-import type { Nitro } from "nitro/types";
-import type { PublicAsset } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
+import type { PublicAsset } from "fastnode/types";
 import { relative, resolve } from "pathe";
 import { joinURL, withTrailingSlash } from "ufo";
 import { runParallel } from "../../utils/parallel.ts";
@@ -11,7 +11,7 @@ import { getPrerenderMeta } from "../../prerender/_meta.ts";
 import { globPublicAssets } from "../assets.ts";
 
 const readAssetHandler: Record<
-  Exclude<Nitro["options"]["serveStatic"] | "true" | "false", boolean>,
+  Exclude<Fastnode["options"]["serveStatic"] | "true" | "false", boolean>,
   "node" | "null" | "inline"
 > = {
   true: "node",
@@ -20,18 +20,18 @@ const readAssetHandler: Record<
   inline: "inline",
 };
 
-export default function publicAssets(nitro: Nitro) {
+export default function publicAssets(fastnode: Fastnode) {
   return [
     // public-assets-data
     {
-      id: "#nitro/virtual/public-assets-data",
+      id: "#fastnode/virtual/public-assets-data",
       template: async () => {
         const assets: Record<string, PublicAsset> = {};
 
-        if (nitro.options.dev) {
-          for (const asset of nitro.options.publicAssets) {
-            for (const file of await globPublicAssets(nitro, asset)) {
-              const assetId = joinURL(nitro.options.baseURL, asset.baseURL || "/", file);
+        if (fastnode.options.dev) {
+          for (const asset of fastnode.options.publicAssets) {
+            for (const file of await globPublicAssets(fastnode, asset)) {
+              const assetId = joinURL(fastnode.options.baseURL, asset.baseURL || "/", file);
               let type = mime.getType(file) || "text/plain";
               if (type.startsWith("text")) {
                 type += "; charset=utf-8";
@@ -49,7 +49,7 @@ export default function publicAssets(nitro: Nitro) {
         }
 
         const files = await glob("**", {
-          cwd: nitro.options.output.publicDir,
+          cwd: fastnode.options.output.publicDir,
           absolute: false,
           dot: true,
         });
@@ -61,7 +61,7 @@ export default function publicAssets(nitro: Nitro) {
             if (mimeType.startsWith("text")) {
               mimeType += "; charset=utf-8";
             }
-            const fullPath = resolve(nitro.options.output.publicDir, id);
+            const fullPath = resolve(fastnode.options.output.publicDir, id);
             const [assetData, stat] = await Promise.all([
               fsp.readFile(fullPath),
               fsp.stat(fullPath),
@@ -69,7 +69,7 @@ export default function publicAssets(nitro: Nitro) {
 
             const etag = createEtag(assetData);
 
-            const assetId = joinURL(nitro.options.baseURL, decodeURIComponent(id));
+            const assetId = joinURL(fastnode.options.baseURL, decodeURIComponent(id));
 
             let encoding;
             if (id.endsWith(".gz")) {
@@ -81,14 +81,16 @@ export default function publicAssets(nitro: Nitro) {
             }
 
             assets[assetId] = {
-              type: getPrerenderMeta(nitro)[assetId]?.contentType || mimeType,
+              type: getPrerenderMeta(fastnode)[assetId]?.contentType || mimeType,
               encoding,
               etag,
               mtime: stat.mtime.toJSON(),
               size: stat.size,
-              path: relative(nitro.options.output.serverDir, fullPath),
+              path: relative(fastnode.options.output.serverDir, fullPath),
               data:
-                nitro.options.serveStatic === "inline" ? assetData.toString("base64") : undefined,
+                fastnode.options.serveStatic === "inline"
+                  ? assetData.toString("base64")
+                  : undefined,
             };
           },
           { concurrency: 25 }
@@ -110,25 +112,25 @@ export default function publicAssets(nitro: Nitro) {
 
     // public-assets
     {
-      id: "#nitro/virtual/public-assets",
+      id: "#fastnode/virtual/public-assets",
       template: () => {
         const publicAssetBases = Object.fromEntries(
-          nitro.options.publicAssets
+          fastnode.options.publicAssets
             .filter((dir) => !dir.fallthrough && dir.baseURL !== "/")
             .map((dir) => [
-              withTrailingSlash(joinURL(nitro.options.baseURL, dir.baseURL || "/")),
+              withTrailingSlash(joinURL(fastnode.options.baseURL, dir.baseURL || "/")),
               { maxAge: dir.maxAge },
             ])
         );
 
         // prettier-ignore
-        type _serveStaticAsKey = Exclude<typeof nitro.options.serveStatic, boolean> | "true" | "false";
+        type _serveStaticAsKey = Exclude<typeof fastnode.options.serveStatic, boolean> | "true" | "false";
         // prettier-ignore
-        const handlerName = readAssetHandler[nitro.options.serveStatic as _serveStaticAsKey] || "null";
-        const readAssetImport = `#nitro/virtual/public-assets-${handlerName}`;
+        const handlerName = readAssetHandler[fastnode.options.serveStatic as _serveStaticAsKey] || "null";
+        const readAssetImport = `#fastnode/virtual/public-assets-${handlerName}`;
 
         return /* js */ `
-import assets from '#nitro/virtual/public-assets-data'
+import assets from '#fastnode/virtual/public-assets-data'
 export { readAsset } from "${readAssetImport}"
 export const publicAssetBases = ${JSON.stringify(publicAssetBases)}
 
@@ -164,15 +166,15 @@ export function hasAsset (id = '') {
 
     // public-assets-node
     {
-      id: "#nitro/virtual/public-assets-node",
+      id: "#fastnode/virtual/public-assets-node",
       template: () => {
         return /* js */ `
 import { promises as fsp } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { resolve, dirname } from 'node:path'
-import assets from '#nitro/virtual/public-assets-data'
+import assets from '#fastnode/virtual/public-assets-data'
 export function readAsset (id) {
-  const serverDir = dirname(fileURLToPath(globalThis.__nitro_main__))
+  const serverDir = dirname(fileURLToPath(globalThis.__fastnode_main__))
   // Public dirs might be pruned after the build (uploaded to a CDN, sourcemaps
   // stripped), so a manifest entry with no file behind it reads as absent, not broken.
   return fsp.readFile(resolve(serverDir, assets[id].path)).catch((error) => {
@@ -184,7 +186,7 @@ export function readAsset (id) {
 
     // public-assets-null
     {
-      id: "#nitro/virtual/public-assets-null",
+      id: "#fastnode/virtual/public-assets-null",
       template: () => {
         return /* js */ `
     export function readAsset (id) {
@@ -195,10 +197,10 @@ export function readAsset (id) {
 
     // public-assets-inline
     {
-      id: "#nitro/virtual/public-assets-inline",
+      id: "#fastnode/virtual/public-assets-inline",
       template: () => {
         return /* js */ `
-  import assets from '#nitro/virtual/public-assets-data'
+  import assets from '#fastnode/virtual/public-assets-data'
   export function readAsset (id) {
     if (!assets[id]) { return undefined }
     if (assets[id]._data) { return assets[id]._data }

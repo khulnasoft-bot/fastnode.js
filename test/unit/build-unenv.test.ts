@@ -3,14 +3,14 @@ import { readdir, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "pathe";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { Nitro } from "nitro/types";
-import { build, copyPublicAssets, createNitro, prepare } from "../../src/builder.ts";
+import type { Fastnode } from "fastnode/types";
+import { build, copyPublicAssets, createFastnode, prepare } from "../../src/builder.ts";
 import { getDepMeta } from "../../src/utils/_deps.ts";
 import * as dep from "../../src/utils/dep.ts";
 
 vi.mock("../../src/utils/dep.ts", { spy: true });
 
-// The vite builder loads `nitro/vite` from `dist/`, so it would not use (or mock) the sources here
+// The vite builder loads `fastnode/vite` from `dist/`, so it would not use (or mock) the sources here
 const builders = ["rolldown", "rollup"] as const;
 
 // With the defaults of the dependency manifest applied
@@ -32,7 +32,7 @@ async function buildApp(
   server: string,
   opts: { preset?: string; node?: boolean; files?: Record<string, string> } = {}
 ) {
-  const rootDir = mkdtempSync(join(tmpdir(), "nitro-build-unenv-"));
+  const rootDir = mkdtempSync(join(tmpdir(), "fastnode-build-unenv-"));
   tmpDirs.push(rootDir);
   const appFiles = {
     "package.json": JSON.stringify({ type: "module" }),
@@ -43,7 +43,7 @@ async function buildApp(
     mkdirSync(dirname(join(rootDir, path)), { recursive: true });
     writeFileSync(join(rootDir, path), contents);
   }
-  const nitro = await createNitro({
+  const fastnode = await createFastnode({
     rootDir,
     builder,
     preset: opts.preset || "cloudflare-module",
@@ -52,13 +52,13 @@ async function buildApp(
     logLevel: 0,
   });
   try {
-    await prepare(nitro);
-    await copyPublicAssets(nitro);
-    await build(nitro);
+    await prepare(fastnode);
+    await copyPublicAssets(fastnode);
+    await build(fastnode);
   } finally {
-    await nitro.close();
+    await fastnode.close();
   }
-  const serverDir = nitro.options.output.serverDir;
+  const serverDir = fastnode.options.output.serverDir;
   const files = await readdir(serverDir, { recursive: true });
   const code = await Promise.all(
     files.filter((f) => f.endsWith(".mjs")).map((f) => readFile(join(serverDir, f), "utf8"))
@@ -157,8 +157,10 @@ describe.each(builders)("unenv on demand (%s)", (builder) => {
 describe("unenv plugin", () => {
   it("resolves unenv once it is installed after a failure (no memoized result)", async () => {
     const { unenv } = await import("../../src/build/plugins/unenv.ts");
-    const nitro = { options: { rootDir: process.cwd(), preset: "cloudflare-module" } } as Nitro;
-    const plugin = unenv(nitro, {
+    const fastnode = {
+      options: { rootDir: process.cwd(), preset: "cloudflare-module" },
+    } as Fastnode;
+    const plugin = unenv(fastnode, {
       alias: { "node:inspector": "unenv/node/inspector" },
       inject: {},
       polyfills: [],
@@ -172,7 +174,7 @@ describe("unenv plugin", () => {
       "`npx nypm add -D unenv@^2.0.0-rc.24`"
     );
 
-    // e.g. installed manually while `nitro dev` is running
+    // e.g. installed manually while `fastnode dev` is running
     expect(await handler.call(ctx, "node:inspector", "/app/server.ts", {})).toMatch(
       /unenv[/\\].*inspector/
     );

@@ -13,7 +13,7 @@ import type {
 } from "env-runner";
 import type { RunnerName } from "env-runner";
 import { RunnerManager, loadRunner } from "env-runner";
-import type { Nitro, WorkerAddress } from "nitro/types";
+import type { Fastnode, WorkerAddress } from "fastnode/types";
 
 import { HTTPError } from "h3";
 
@@ -23,7 +23,7 @@ import { resolve } from "pathe";
 import { serve } from "srvx";
 import { debounce } from "perfect-debounce";
 import { isTest, isCI } from "std-env";
-import { NitroDevApp } from "./app.ts";
+import { FastnodeDevApp } from "./app.ts";
 import { withDevErrorRecovery } from "./_error-recovery.ts";
 import { createWatcher } from "../utils/watch.ts";
 import { resolveRunnerDeps } from "./runner-deps.ts";
@@ -33,7 +33,7 @@ import { createWorkerWebSocketProxy } from "./_proxy.ts";
 import { webSocketPlugin } from "./_ws.ts";
 import { writeDevBuildInfo } from "../build/info.ts";
 
-export interface NitroDevServer {
+export interface FastnodeDevServer {
   fetch: (req: Request) => Response | Promise<Response>;
   upgrade: (req: IncomingMessage, socket: Socket, head: any) => Promise<void>;
   listen: (opts?: Partial<Omit<ServerOptions, "fetch">>) => Server;
@@ -41,11 +41,11 @@ export interface NitroDevServer {
   close: () => Promise<void>;
 }
 
-export function createDevServer(nitro: Nitro): NitroDevServer {
-  return new DevServer(nitro);
+export function createDevServer(fastnode: Fastnode): FastnodeDevServer {
+  return new DevServer(fastnode);
 }
 
-class DevServer extends NitroDevApp implements NitroDevServer, RunnerRPCHooks {
+class DevServer extends FastnodeDevApp implements FastnodeDevServer, RunnerRPCHooks {
   #entry: string;
   #workerData: EnvRunnerData = {};
   #plugins?: EnvRunnerPluginOption[];
@@ -65,8 +65,8 @@ class DevServer extends NitroDevApp implements NitroDevServer, RunnerRPCHooks {
   #shuttingDown: boolean = false;
   #closing: boolean = false;
 
-  constructor(nitro: Nitro) {
-    super(nitro, async (event) => {
+  constructor(fastnode: Fastnode) {
+    super(fastnode, async (event) => {
       if (this.#building) {
         await this.#waitForBuild();
       }
@@ -96,13 +96,17 @@ class DevServer extends NitroDevApp implements NitroDevServer, RunnerRPCHooks {
     this.fetch = async (req) =>
       withDevErrorRecovery(req, await appFetch(req), {
         signal: this.reloadSignal,
-        base: nitro.options.baseURL,
+        base: fastnode.options.baseURL,
       });
 
-    // Attach to Nitro.fetch
-    nitro.fetch = this.fetch.bind(this);
+    // Attach to Fastnode.fetch
+    fastnode.fetch = this.fetch.bind(this);
 
-    this.#entry = resolve(nitro.options.output.dir, nitro.options.output.serverDir, "index.mjs");
+    this.#entry = resolve(
+      fastnode.options.output.dir,
+      fastnode.options.output.serverDir,
+      "index.mjs"
+    );
 
     this.#manager = new RunnerManager();
     this.#workerWebSocket = createWorkerWebSocketProxy(
@@ -132,11 +136,11 @@ class DevServer extends NitroDevApp implements NitroDevServer, RunnerRPCHooks {
       }
       this.#workerError = cause;
       if (this.#workerRetries++ < 3) {
-        this.nitro.logger.info("Restarting dev worker...", cause ? `Cause: ${cause}` : "");
+        this.fastnode.logger.info("Restarting dev worker...", cause ? `Cause: ${cause}` : "");
         // Open error pages are not reloaded, since the worker may crash again on each request
         this.#queueReload();
       } else {
-        this.nitro.logger.error(
+        this.fastnode.logger.error(
           "Dev worker failed after 3 retries.",
           cause ? `Last cause: ${cause}` : ""
         );
@@ -148,19 +152,19 @@ class DevServer extends NitroDevApp implements NitroDevServer, RunnerRPCHooks {
       handleDevRPC(message, {
         sendMessage: (message) => this.#manager.sendMessage(message),
         handlers: {
-          rendererTemplate: () => readFile(nitro.options.renderer!.template!, "utf8"),
+          rendererTemplate: () => readFile(fastnode.options.renderer!.template!, "utf8"),
         },
       })
     );
 
-    nitro.hooks.hook("close", () => this.close());
+    fastnode.hooks.hook("close", () => this.close());
 
-    nitro.hooks.hook("dev:start", () => {
+    fastnode.hooks.hook("dev:start", () => {
       this.#building = true;
       this.#buildError = undefined;
     });
 
-    nitro.hooks.hook("dev:reload", (payload) => {
+    fastnode.hooks.hook("dev:reload", (payload) => {
       this.#buildError = undefined;
       this.#building = false;
       if (payload?.entry) {
@@ -175,16 +179,16 @@ class DevServer extends NitroDevApp implements NitroDevServer, RunnerRPCHooks {
       this.reload();
     });
 
-    nitro.hooks.hook("dev:error", (cause: unknown) => {
+    fastnode.hooks.hook("dev:error", (cause: unknown) => {
       this.#buildError = cause;
       this.#building = false;
       this.reloadSignal.bump();
     });
 
-    const devWatch = nitro.options.devServer.watch;
+    const devWatch = fastnode.options.devServer.watch;
     if (devWatch && devWatch.length > 0) {
       const debouncedReload = debounce(() => this.reload());
-      this.#watcher = createWatcher(nitro, devWatch, nitro.options.watchOptions);
+      this.#watcher = createWatcher(fastnode, devWatch, fastnode.options.watchOptions);
       this.#watcher.on("add", debouncedReload).on("change", debouncedReload);
     }
   }
@@ -240,7 +244,7 @@ class DevServer extends NitroDevApp implements NitroDevServer, RunnerRPCHooks {
     this.reloadSignal.close();
     await this.#reloadPromise?.catch(() => {});
     // With drain, the manager shuts the active and draining workers down gracefully
-    const drain = this.nitro.options.devServer.drain;
+    const drain = this.fastnode.options.devServer.drain;
     if (!drain) {
       await this.#shutdownWorker();
     }
@@ -283,18 +287,18 @@ class DevServer extends NitroDevApp implements NitroDevServer, RunnerRPCHooks {
   }
 
   async #reload() {
-    const drain = this.nitro.options.devServer.drain;
+    const drain = this.fastnode.options.devServer.drain;
     // A drained worker is shut down by the manager once its requests settle
     if (!drain) {
       await this.#shutdownWorker();
     }
-    const runnerName = (this.nitro.options.devServer.runner ||
-      process.env.NITRO_DEV_RUNNER ||
+    const runnerName = (this.fastnode.options.devServer.runner ||
+      process.env.FASTNODE_DEV_RUNNER ||
       "node-worker") as RunnerName;
     this.#runnerName = runnerName;
     const runner = await loadRunner(runnerName, {
-      ...(await resolveRunnerDeps(this.nitro, runnerName)),
-      name: `Nitro_${this.#workerIdCtr++}`,
+      ...(await resolveRunnerDeps(this.fastnode, runnerName)),
+      name: `Fastnode_${this.#workerIdCtr++}`,
       data: { entry: this.#entry, ...this.#workerData },
       plugins: this.#plugins,
     });
@@ -324,19 +328,21 @@ class DevServer extends NitroDevApp implements NitroDevServer, RunnerRPCHooks {
     }
     this.#shuttingDown = true;
     try {
-      await shutdownRunner(this.#manager, { warn: (message) => this.nitro.logger.warn(message) });
+      await shutdownRunner(this.#manager, {
+        warn: (message) => this.fastnode.logger.warn(message),
+      });
     } finally {
       this.#shuttingDown = false;
     }
   }
 
-  /** Point CLI commands (`nitro task`, `nitro fetch`) to this dev server. */
+  /** Point CLI commands (`fastnode task`, `fastnode fetch`) to this dev server. */
   #writeDevInfo() {
     // One write at a time, so that an earlier one does not finish last
     this.#devInfoWrite = this.#devInfoWrite
-      .then(() => writeDevBuildInfo(this.nitro, this.#devInfo))
+      .then(() => writeDevBuildInfo(this.fastnode, this.#devInfo))
       .catch((error) => {
-        this.nitro.logger.warn(
+        this.fastnode.logger.warn(
           `Failed to write dev build info: ${error instanceof Error ? error.message : String(error)}`
         );
       });

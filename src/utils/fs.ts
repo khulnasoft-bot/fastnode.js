@@ -1,4 +1,4 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import { randomBytes } from "node:crypto";
 import { stat, mkdir, rm, writeFile as fspWriteFile } from "node:fs/promises";
 import { dirname, join } from "pathe";
@@ -13,9 +13,9 @@ export function prettyPath(p: string, highlight = true) {
   return highlight ? colors.cyan(p) : p;
 }
 
-export function resolveNitroPath(
+export function resolveFastnodePath(
   path: string,
-  nitroOptions: Nitro["options"],
+  fastnodeOptions: Fastnode["options"],
   base?: string
 ): string {
   if (typeof path !== "string") {
@@ -23,15 +23,15 @@ export function resolveNitroPath(
   }
 
   // TODO: Skip if no template used
-  path = _compilePathTemplate(path)(nitroOptions);
-  path = resolveAlias(path, nitroOptions.alias);
+  path = _compilePathTemplate(path)(fastnodeOptions);
+  path = resolveAlias(path, fastnodeOptions.alias);
 
   // eslint-disable-next-line no-control-regex
   if (/^[#\u0000]/.test(path)) {
     return path;
   }
 
-  return resolve(base || nitroOptions.rootDir, path);
+  return resolve(base || fastnodeOptions.rootDir, path);
 }
 
 function _compilePathTemplate(contents: string) {
@@ -67,7 +67,7 @@ export async function isDirectory(path: string) {
  */
 export async function isCaseInsensitiveFS(dir: string) {
   await mkdir(dir, { recursive: true });
-  const name = `.nitro-case-${randomBytes(6).toString("hex")}`;
+  const name = `.fastnode-case-${randomBytes(6).toString("hex")}`;
   const probe = join(dir, name);
   await fspWriteFile(probe, "");
   try {

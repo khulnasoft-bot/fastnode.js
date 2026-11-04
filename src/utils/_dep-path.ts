@@ -69,6 +69,7 @@ function _findPackageDir(dir: string, name: string): string | undefined {
     }
     dir = parent;
   }
+  return undefined;
 }
 
 function _readPackageJSON(dir: string): { name?: string; main?: string } | undefined {
@@ -81,4 +82,5 @@ function _readPackageJSON(dir: string): { name?: string; main?: string } | undef
   } catch {
     // Ignore unreadable or invalid `package.json` files
   }
+  return undefined;
 }

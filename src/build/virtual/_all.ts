@@ -1,4 +1,4 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 
 import app from "./app.ts";
 import cache from "./cache.ts";
@@ -23,8 +23,8 @@ type VirtualTemplate = {
   template: string | (() => string | Promise<string>);
 };
 
-export function virtualTemplates(nitro: Nitro, _polyfills: string[]): VirtualTemplate[] {
-  const nitroTemplates = [
+export function virtualTemplates(fastnode: Fastnode, _polyfills: string[]): VirtualTemplate[] {
+  const fastnodeTemplates = [
     app,
     cache,
     database,
@@ -42,12 +42,12 @@ export function virtualTemplates(nitro: Nitro, _polyfills: string[]): VirtualTem
     serverEntry,
     tasks,
     tracing,
-  ].flatMap((t) => t(nitro, _polyfills));
+  ].flatMap((t) => t(fastnode, _polyfills));
 
-  const customTemplates = Object.entries(nitro.options.virtual).map(([id, template]) => ({
+  const customTemplates = Object.entries(fastnode.options.virtual).map(([id, template]) => ({
     id,
     template,
   }));
 
-  return [...nitroTemplates, ...customTemplates];
+  return [...fastnodeTemplates, ...customTemplates];
 }

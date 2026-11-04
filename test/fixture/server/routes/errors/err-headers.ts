@@ -1,4 +1,4 @@
-import { H3Event, HTTPError } from "nitro/h3";
+import { H3Event, HTTPError } from "fastnode/h3";
 
 export default (event: H3Event) => {
   event.res.headers.set("x-success-only", "1");

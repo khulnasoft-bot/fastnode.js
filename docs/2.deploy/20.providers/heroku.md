@@ -1,6 +1,6 @@
 # Heroku
 
-> Deploy Nitro apps to Heroku.
+> Deploy Fastnode apps to Heroku.
 
 **Preset:** `heroku`
 
@@ -23,14 +23,14 @@
 1. Configure your app.
 
    ```bash
-   heroku config:set NITRO_PRESET=heroku
+   heroku config:set FASTNODE_PRESET=heroku
    ```
 
 1. Ensure you have `start` and `build` commands in your `package.json` file.
 
    ```json5
    "scripts": {
-     "build": "nitro build", // or `nuxt build` if using nuxt
+     "build": "fastnode build", // or `nuxt build` if using nuxt
      "start": "node .output/server/index.mjs"
    }
    ```
@@ -39,10 +39,10 @@
 
 1. Add the [Heroku nginx buildpack](https://github.com/heroku/heroku-buildpack-nginx.git)
 
-1. Change to the `node_middleware` preset in your Nitro config
+1. Change to the `node_middleware` preset in your Fastnode config
 
-   ```ts [nitro.config.ts]
-   import { defineConfig } from "nitro";
+   ```ts [fastnode.config.ts]
+   import { defineConfig } from "fastnode";
 
    export default defineConfig({
      preset: "node_middleware",
@@ -53,7 +53,7 @@
 
    ```ts [nuxt.config.ts]
    export default defineNuxtConfig({
-     nitro: {
+     fastnode: {
        preset: "node_middleware",
      },
    })
@@ -75,13 +75,13 @@
    server.listen('/tmp/nginx.socket') //following the buildpack doc
    ```
 
-1. To create the `/tmp/app-initialized` file, use a Nitro plugin (e.g. `initServer.ts` at the root of the project):
+1. To create the `/tmp/app-initialized` file, use a Fastnode plugin (e.g. `initServer.ts` at the root of the project):
 
    ```ts
    import fs from "node:fs"
-   import { definePlugin } from "nitro"
+   import { definePlugin } from "fastnode"
 
-   export default definePlugin((nitroApp) => {
+   export default definePlugin((fastnodeApp) => {
       if((process.env.NODE_ENV || 'development') != 'development') {
          fs.openSync('/tmp/app-initialized', 'w')
       }

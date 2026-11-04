@@ -1,10 +1,11 @@
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 import { container, text } from "takumi-js/helpers";
 import ImageResponse from "takumi-js/response";
 
 export default defineHandler(async ({ url }) => {
-  const title = url.searchParams.get("title") ?? "Takumi + Nitro";
-  const description = url.searchParams.get("description") ?? "Render OG images from a Nitro route.";
+  const title = url.searchParams.get("title") ?? "Takumi + Fastnode";
+  const description =
+    url.searchParams.get("description") ?? "Render OG images from a Fastnode route.";
 
   const start = performance.now();
 

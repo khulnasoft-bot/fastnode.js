@@ -1,4 +1,4 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import type { H3Event } from "h3";
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -13,22 +13,22 @@ import { isLocalDevRequest } from "./_request.ts";
  */
 export const DEVTOOLS_JSON_ROUTE = "/.well-known/appspecific/com.chrome.devtools.json";
 
-export function createDevToolsJSONHandler(nitro: Nitro) {
+export function createDevToolsJSONHandler(fastnode: Fastnode) {
   let uuid: Promise<string> | undefined;
   return async (event: H3Event) => {
-    const rootDir = withoutTrailingSlash(nitro.options.rootDir);
+    const rootDir = withoutTrailingSlash(fastnode.options.rootDir);
     return {
       workspace: {
         // Avoid exposing the absolute project path to other hosts
         root: isLocalDevRequest(event) ? toDevToolsPath(rootDir) : basename(rootDir),
-        uuid: await (uuid ??= getWorkspaceUUID(nitro)),
+        uuid: await (uuid ??= getWorkspaceUUID(fastnode)),
       },
     };
   };
 }
 
-async function getWorkspaceUUID(nitro: Nitro): Promise<string> {
-  const uuidFile = join(nitro.options.buildDir, "devtools-uuid");
+async function getWorkspaceUUID(fastnode: Fastnode): Promise<string> {
+  const uuidFile = join(fastnode.options.buildDir, "devtools-uuid");
   const cached = await readFile(uuidFile, "utf8").then(
     (contents) => contents.trim(),
     () => ""
@@ -41,7 +41,7 @@ async function getWorkspaceUUID(nitro: Nitro): Promise<string> {
     await mkdir(dirname(uuidFile), { recursive: true });
     await writeFile(uuidFile, uuid, "utf8");
   } catch (error) {
-    nitro.logger.warn(
+    fastnode.logger.warn(
       `Failed to persist Chrome DevTools workspace UUID to \`${uuidFile}\`:`,
       error
     );

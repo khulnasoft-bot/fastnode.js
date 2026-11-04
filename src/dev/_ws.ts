@@ -6,7 +6,7 @@ import denoAdapter from "crossws/adapters/deno";
 /**
  * srvx plugin handling WebSocket upgrades with `crossws` on Bun and Deno native servers.
  *
- * Node.js listeners proxy raw upgrade sockets instead (see `NitroDevServer.upgrade()`).
+ * Node.js listeners proxy raw upgrade sockets instead (see `FastnodeDevServer.upgrade()`).
  */
 export function webSocketPlugin(resolve: ResolveHooks): ServerPlugin {
   return (server) => {

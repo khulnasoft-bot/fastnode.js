@@ -41,7 +41,7 @@ export const nodeCompatEnv: PresetEnv = {
     "node:sqlite": "unenv/node/sqlite",
   },
   inject: {
-    global: "#nitro/runtime/polyfills/globalthis",
+    global: "#fastnode/runtime/polyfills/globalthis",
     process: "node:process",
     Buffer: ["node:buffer", "Buffer"],
     clearImmediate: ["node:timers", "clearImmediate"],
@@ -51,9 +51,9 @@ export const nodeCompatEnv: PresetEnv = {
     BroadcastChannel: ["node:worker_threads", "BroadcastChannel"],
   },
   polyfills: [
-    "#nitro/runtime/polyfills/global",
-    "#nitro/runtime/polyfills/process",
-    "#nitro/runtime/polyfills/buffer",
-    "#nitro/runtime/polyfills/timers",
+    "#fastnode/runtime/polyfills/global",
+    "#fastnode/runtime/polyfills/process",
+    "#fastnode/runtime/polyfills/buffer",
+    "#fastnode/runtime/polyfills/timers",
   ],
 };

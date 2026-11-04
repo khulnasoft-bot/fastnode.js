@@ -11,7 +11,7 @@ const props = defineProps<{
     label: string
     /**
      * Cosmetic starting point for the count-up, not a measurement: the counter
-     * sweeps from here to `value`. Never read it as a real Nitro number.
+     * sweeps from here to `value`. Never read it as a real Fastnode number.
      */
     animateFrom?: number
   }[]

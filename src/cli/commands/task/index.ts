@@ -3,7 +3,7 @@ import { defineCommand } from "citty";
 export default defineCommand({
   meta: {
     name: "task",
-    description: "Operate in nitro tasks (experimental)",
+    description: "Operate in fastnode tasks (experimental)",
   },
   subCommands: {
     list: () => import("./list.ts").then((r) => r.default),

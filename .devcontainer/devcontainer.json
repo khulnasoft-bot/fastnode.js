@@ -1,7 +1,7 @@
 // https://code.visualstudio.com/docs/devcontainers/containers
 // https://containers.dev/implementors/json_reference/
 {
-  "name": "nitro-devcontainer",
+  "name": "fastnode-devcontainer",
   "forwardPorts": [3000],
   "image": "node:lts",
   "features": {},

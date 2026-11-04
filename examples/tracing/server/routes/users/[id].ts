@@ -1,4 +1,4 @@
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 
 // A dynamic route — spans are named by the matched route template
 // (`GET /users/:id`), not the concrete path, to keep cardinality low.

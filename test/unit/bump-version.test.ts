@@ -73,7 +73,7 @@ describe("resolveVersion", async () => {
     it(`${name}: ${existing.join(", ") || "(none)"} → ${expected}`, async () => {
       mockRegistry(existing);
       const version = await resolveVersion(
-        "nitro",
+        "fastnode",
         "260311",
         ...(prerelease !== undefined ? [prerelease] : [])
       );

@@ -1,4 +1,4 @@
-import { fetch } from "nitro";
+import { fetch } from "fastnode";
 
 export default async function renderer({ url }: { req: Request; url: URL }) {
   const apiRes = await fetch("/api/hello").then((res) => res.text());

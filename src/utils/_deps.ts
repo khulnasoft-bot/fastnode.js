@@ -12,9 +12,9 @@ export interface DepMeta {
   dev?: boolean;
   /** Install without prompting, also in interactive environments (never in test mode). */
   autoInstall?: boolean;
-  /** Only resolve from the project, ignoring Nitro's own dependencies. */
+  /** Only resolve from the project, ignoring Fastnode's own dependencies. */
   projectOnly?: boolean;
-  /** Imported by the Nitro runtime: resolved from the project and installed when the app bundle imports it. */
+  /** Imported by the Fastnode runtime: resolved from the project and installed when the app bundle imports it. */
   runtime?: boolean;
   /** Imported by the public types, with a fallback type when not installed (see `OptionalDepType`). */
   types?: boolean;
@@ -24,10 +24,10 @@ export interface DepMeta {
  * Optional dependencies installed on demand in the user project (see `utils/dep.ts`), from the
  * `deps.json` manifest (ranges synced with `scripts/sync-deps.ts`).
  *
- * Nitro does not depend on any of them: the version installed next to the app is the version
- * that runs. They are kept external in Nitro's own build (see `build.config.ts`).
+ * Fastnode does not depend on any of them: the version installed next to the app is the version
+ * that runs. They are kept external in Fastnode's own build (see `build.config.ts`).
  *
- * Optional dependencies of the libraries Nitro bundles are not listed here (see `src/shims/`).
+ * Optional dependencies of the libraries Fastnode bundles are not listed here (see `src/shims/`).
  */
 export const deps = manifest.deps satisfies Record<string, DepMeta>;
 

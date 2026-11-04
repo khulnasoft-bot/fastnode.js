@@ -2,32 +2,32 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import type { NitroConfig } from "nitro/types";
-import { createNitro } from "../../src/nitro.ts";
-import { getRollupConfig } from "../../src/build/rollup/config.ts";
-import { getBundlerConfig } from "../../src/build/vite/bundler.ts";
-import type { NitroPluginContext } from "../../src/build/vite/types.ts";
+import type { FastnodeConfig } from "fastnode/types";
+import { createFastnode } from "../../src/core/application/fastnode.ts";
+import { getRollupConfig } from "../../src/build/builders/rollup/config.ts";
+import { getBundlerConfig } from "../../src/build/builders/vite/bundler.ts";
+import type { FastnodePluginContext } from "../../src/build/builders/vite/types.ts";
 
-const nitroFor = (config?: NitroConfig) =>
-  createNitro({
-    rootDir: mkdtempSync(join(tmpdir(), "nitro-import-attributes-")),
+const fastnodeFor = (config?: FastnodeConfig) =>
+  createFastnode({
+    rootDir: mkdtempSync(join(tmpdir(), "fastnode-import-attributes-")),
     compatibilityDate: "latest",
     ...config,
   });
 
-const viteRollupOutput = async (config?: NitroConfig) => {
-  const nitro = await nitroFor(config);
+const viteRollupOutput = async (config?: FastnodeConfig) => {
+  const fastnode = await fastnodeFor(config);
   const { rollupConfig } = await getBundlerConfig({
-    nitro,
+    fastnode,
     _isRolldown: false,
-  } as unknown as NitroPluginContext);
+  } as unknown as FastnodePluginContext);
   return rollupConfig!.output!;
 };
 
 // Rollup 4 defaults to `assert`, which Node.js removed in v22.
 describe("import attributes", () => {
   it("emits external imports with the `with` key", async () => {
-    const { output } = await getRollupConfig(await nitroFor());
+    const { output } = await getRollupConfig(await fastnodeFor());
     expect((output as { importAttributesKey?: string }).importAttributesKey).toBe("with");
   });
 
@@ -36,10 +36,10 @@ describe("import attributes", () => {
   });
 
   it("keeps an explicit key from user config", async () => {
-    const userConfig: NitroConfig = {
+    const userConfig: FastnodeConfig = {
       rollupConfig: { output: { importAttributesKey: "assert" } },
     };
-    const { output } = await getRollupConfig(await nitroFor(userConfig));
+    const { output } = await getRollupConfig(await fastnodeFor(userConfig));
     expect((output as { importAttributesKey?: string }).importAttributesKey).toBe("assert");
     expect((await viteRollupOutput(userConfig)).importAttributesKey).toBe("assert");
   });

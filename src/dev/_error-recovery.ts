@@ -136,7 +136,7 @@ if (!document.querySelector("script[type=module][src]")) {
     })().finally(() => (handling = undefined));
   }
   // Scoped to the route, for apps served on one origin through a proxy
-  const name = "nitro:dev-reload:" + state.url;
+  const name = "fastnode:dev-reload:" + state.url;
   const channel = typeof BroadcastChannel === "function" ? new BroadcastChannel(name) : undefined;
   channel?.addEventListener("message", (event) => onAnswer(event.data));
   // Asks for the server state, at once or (with \`v\`) once the server is past generation \`v\`.

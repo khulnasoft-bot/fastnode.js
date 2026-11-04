@@ -1,7 +1,7 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type { TracingChannel } from "node:diagnostics_channel";
 
-vi.mock("nitro", () => ({ definePlugin: (def: unknown) => def }));
+vi.mock("fastnode", () => ({ definePlugin: (def: unknown) => def }));
 
 import loggerPlugin from "../../src/runtime/internal/telemetry/logger-plugin.ts";
 
@@ -19,7 +19,7 @@ function traced(
   return channel.tracePromise(fn, data);
 }
 
-/** Minimal stand-in for `nitroApp.hooks` (the `request`/`response` runtime hooks). */
+/** Minimal stand-in for `fastnodeApp.hooks` (the `request`/`response` runtime hooks). */
 function createHooks() {
   const listeners = new Map<string, Array<(...args: any[]) => unknown>>();
   return {
@@ -34,7 +34,7 @@ function createHooks() {
 
 const hooks = createHooks();
 
-/** Drive a full request lifecycle in a single async context, as nitro/h3 does. */
+/** Drive a full request lifecycle in a single async context, as fastnode/h3 does. */
 async function handleRequest(path: string, ops: Array<Parameters<typeof traced>>): Promise<void> {
   const event = { req: { method: "GET", url: `http://localhost${path}` } };
   await hooks.callHook("request", event);

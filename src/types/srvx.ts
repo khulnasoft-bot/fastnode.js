@@ -12,11 +12,11 @@ export type { ServerRequest, ServerRequestContext, ServerRuntimeContext } from "
  * Only server options that are safe to ignore by other presets (and explicit runtime specific
  * `node`, `bun` and `deno` options) are supported. Options that change request handling
  * (`middleware`, `plugins`, `error`) are not, as they would not apply to serverless presets or
- * `nitroApp.fetch`.
+ * `fastnodeApp.fetch`.
  *
- * @see https://nitro.build/docs/server-entry
+ * @see https://fastnode.khulnasoft.com/docs/server-entry
  */
-export interface NitroServerEntry extends Pick<
+export interface FastnodeServerEntry extends Pick<
   ServerOptions,
   | "port"
   | "hostname"

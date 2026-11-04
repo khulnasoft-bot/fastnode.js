@@ -6,14 +6,14 @@ icon: i-logos-hono
 
 # Hono
 
-> Integrate Hono with Nitro using the server entry.
+> Integrate Hono with Fastnode using the server entry.
 
 <!-- automd:ui-code-tree src="../../examples/hono" default="server.ts" ignore="README.md,GUIDE.md" expandAll -->
 
 ::code-tree{defaultValue="server.ts" expandAll}
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({});
 ```
@@ -22,12 +22,12 @@ export default defineConfig({});
 {
   "type": "module",
   "scripts": {
-    "build": "nitro build",
-    "dev": "nitro dev"
+    "build": "fastnode build",
+    "dev": "fastnode dev"
   },
   "devDependencies": {
+    "fastnode": "latest",
     "hono": "^4.13.14",
-    "nitro": "latest",
     "rolldown": "latest"
   }
 }
@@ -39,7 +39,7 @@ import { Hono } from "hono";
 const app = new Hono();
 
 app.get("/", (c) => {
-  return c.text("Hello, Hono with Nitro!");
+  return c.text("Hello, Hono with Fastnode!");
 });
 
 export default app;
@@ -47,15 +47,15 @@ export default app;
 
 ```json [tsconfig.json]
 {
-  "extends": "nitro/tsconfig"
+  "extends": "fastnode/tsconfig"
 }
 ```
 
 ```ts [vite.config.ts]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
-export default defineConfig({ plugins: [nitro()] });
+export default defineConfig({ plugins: [fastnode()] });
 ```
 
 ::
@@ -72,15 +72,15 @@ import { Hono } from "hono";
 const app = new Hono();
 
 app.get("/", (c) => {
-  return c.text("Hello, Hono with Nitro!");
+  return c.text("Hello, Hono with Fastnode!");
 });
 
 export default app;
 ```
 
-Nitro auto-detects `server.ts` in your project root and uses it as the server entry. The Hono app handles all incoming requests, giving you full control over routing and middleware.
+Fastnode auto-detects `server.ts` in your project root and uses it as the server entry. The Hono app handles all incoming requests, giving you full control over routing and middleware.
 
-Hono is cross-runtime compatible, so this server entry works across all Nitro deployment targets including Node.js, Deno, Bun, and Cloudflare Workers.
+Hono is cross-runtime compatible, so this server entry works across all Fastnode deployment targets including Node.js, Deno, Bun, and Cloudflare Workers.
 
 <!-- /automd -->
 

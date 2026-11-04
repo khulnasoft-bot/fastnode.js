@@ -1,8 +1,8 @@
-import { definePlugin } from "nitro";
+import { definePlugin } from "fastnode";
 
-export default definePlugin((nitroApp) => {
-  nitroApp.hooks.hook("close", async () => {
-    if (!globalThis.process?.env?.NITRO_TEST_CLOSE_HOOK) {
+export default definePlugin((fastnodeApp) => {
+  fastnodeApp.hooks.hook("close", async () => {
+    if (!globalThis.process?.env?.FASTNODE_TEST_CLOSE_HOOK) {
       return;
     }
     // Deliberately async: the shutdown tests assert the marker is printed before

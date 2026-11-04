@@ -1,4 +1,4 @@
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 // @ts-ignore
 import message from "virtual:build-plugin";
 

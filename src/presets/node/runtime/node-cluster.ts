@@ -1,27 +1,27 @@
-import "#nitro/virtual/polyfills";
+import "#fastnode/virtual/polyfills";
 import cluster from "node:cluster";
 import { NodeRequest, serve } from "srvx/node";
 import wsAdapter from "crossws/adapters/node";
 
-import { useNitroApp } from "nitro/app";
-import { startScheduleRunner } from "#nitro/runtime/task";
-import { trapUnhandledErrors } from "#nitro/runtime/error/hooks";
-import { resolveWebsocketHooks } from "#nitro/runtime/app";
-import { resolveServeOptions } from "#nitro/runtime/serve";
-import { setupCloseHooks } from "#nitro/runtime/shutdown";
+import { useFastnodeApp } from "fastnode/app";
+import { startScheduleRunner } from "#fastnode/runtime/task";
+import { trapUnhandledErrors } from "#fastnode/runtime/error/hooks";
+import { resolveWebsocketHooks } from "#fastnode/runtime/app";
+import { resolveServeOptions } from "#fastnode/runtime/serve";
+import { setupCloseHooks } from "#fastnode/runtime/shutdown";
 
 const clusterId = cluster.isWorker && process.env.WORKER_ID;
 if (clusterId) {
   console.log(`Worker #${clusterId} started`);
 }
 
-const nitroApp = useNitroApp();
+const fastnodeApp = useFastnodeApp();
 
 const silent = !!clusterId && clusterId !== "1";
 
 const server = serve(
   resolveServeOptions({
-    fetch: nitroApp.fetch,
+    fetch: fastnodeApp.fetch,
     node: { exclusive: false },
     ...(silent ? { silent: true } : {}),
   })
@@ -30,7 +30,7 @@ const server = serve(
 // srvx only sets `process.exitCode` on listen errors; the IPC channel and other handles would keep the worker alive.
 server.ready().catch((error) => {
   if (!silent) {
-    console.error("[nitro] Failed to start server:", error);
+    console.error("[fastnode] Failed to start server:", error);
   }
   process.exit(1);
 });

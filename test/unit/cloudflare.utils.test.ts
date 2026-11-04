@@ -4,13 +4,13 @@ import { join, resolve } from "pathe";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { writeWranglerConfig } from "../../src/presets/cloudflare/utils.ts";
 
-function createNitroStub(
+function createFastnodeStub(
   overrides: { static?: boolean; compatibilityDate?: string; wrangler?: Record<string, any> } = {}
 ) {
-  const root = mkdtempSync(join(tmpdir(), "nitro-cf-wrangler-"));
+  const root = mkdtempSync(join(tmpdir(), "fastnode-cf-wrangler-"));
   return {
     root,
-    nitro: {
+    fastnode: {
       options: {
         static: overrides.static ?? false,
         baseURL: "/",
@@ -51,9 +51,9 @@ describe("writeWranglerConfig (cloudflare-module)", () => {
   });
 
   it("emits main and ASSETS binding for a normal (non-static) build", async () => {
-    const { root, nitro } = createNitroStub({ static: false });
+    const { root, fastnode } = createFastnodeStub({ static: false });
     cleanup.push(root);
-    await writeWranglerConfig(nitro, "module");
+    await writeWranglerConfig(fastnode, "module");
     const config = JSON.parse(readFileSync(join(root, ".output/server/wrangler.json"), "utf8"));
     expect(config.main).toBe("index.mjs");
     expect(config.assets).toEqual({ binding: "ASSETS", directory: "../public" });
@@ -63,11 +63,11 @@ describe("writeWranglerConfig (cloudflare-module)", () => {
 
   it("omits main, ASSETS binding and module bundling rules for a static build", async () => {
     // Regression test for nuxt/nuxt#34186 — `nuxt generate` (which sets
-    // `nitro.options.static = true`) targeting cloudflare_module previously
+    // `fastnode.options.static = true`) targeting cloudflare_module previously
     // wrote a wrangler.json pointing at a non-existent index.mjs.
-    const { root, nitro } = createNitroStub({ static: true });
+    const { root, fastnode } = createFastnodeStub({ static: true });
     cleanup.push(root);
-    await writeWranglerConfig(nitro, "module");
+    await writeWranglerConfig(fastnode, "module");
     const config = JSON.parse(readFileSync(join(root, ".output/server/wrangler.json"), "utf8"));
     expect(config.main).toBeUndefined();
     expect(config.assets).toEqual({ directory: "../public" });
@@ -85,9 +85,9 @@ describe("writeWranglerConfig (cloudflare-module)", () => {
   ])(
     "uses the required Node.js compatibility flags for compatibility date %s",
     async (compatibilityDate, expected) => {
-      const { root, nitro } = createNitroStub({ compatibilityDate });
+      const { root, fastnode } = createFastnodeStub({ compatibilityDate });
       cleanup.push(root);
-      await writeWranglerConfig(nitro, "module");
+      await writeWranglerConfig(fastnode, "module");
       const config = JSON.parse(readFileSync(join(root, ".output/server/wrangler.json"), "utf8"));
       expect(config.compatibility_flags).toEqual(expected);
     }
@@ -171,7 +171,7 @@ describe("writeWranglerConfig override warnings", () => {
     ctx?: Record<string, any>;
     warns: false | "file" | "context";
   }[])("reports assets $title correctly", async (input) => {
-    const { root, nitro } = createNitroStub({
+    const { root, fastnode } = createFastnodeStub({
       static: input.static,
       wrangler: input.ctx && { assets: input.ctx },
     });
@@ -179,12 +179,12 @@ describe("writeWranglerConfig override warnings", () => {
     if (input.file) {
       writeFileSync(join(root, "wrangler.json"), JSON.stringify({ assets: input.file }));
     }
-    await writeWranglerConfig(nitro, "module");
+    await writeWranglerConfig(fastnode, "module");
     const config = JSON.parse(readFileSync(join(root, ".output/server/wrangler.json"), "utf8"));
     expect(resolve(root, ".output/server", config.assets.directory)).toBe(
       resolve(root, ".output/public")
     );
-    const message = nitro.logger.warn.mock.calls
+    const message = fastnode.logger.warn.mock.calls
       .map(([message]: [string]) => message)
       .find((message: string) => message.includes("Wrangler config `assets`"));
     expect(Boolean(message)).toBe(Boolean(input.warns));
@@ -197,10 +197,10 @@ describe("writeWranglerConfig override warnings", () => {
   });
 
   it("separates the context source from the key in other override warnings", async () => {
-    const { root, nitro } = createNitroStub({ wrangler: { main: "./custom.mjs" } });
+    const { root, fastnode } = createFastnodeStub({ wrangler: { main: "./custom.mjs" } });
     cleanup.push(root);
-    await writeWranglerConfig(nitro, "module");
-    expect(nitro.logger.warn).toHaveBeenCalledWith(
+    await writeWranglerConfig(fastnode, "module");
+    expect(fastnode.logger.warn).toHaveBeenCalledWith(
       "[cloudflare] Wrangler config `main` set by config or modules is overridden and will be ignored."
     );
   });

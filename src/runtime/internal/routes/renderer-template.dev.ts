@@ -4,7 +4,7 @@ import {
   rendererTemplate,
   rendererTemplateFile,
   isStaticTemplate,
-} from "#nitro/virtual/renderer-template";
+} from "#fastnode/virtual/renderer-template";
 import { HTTPResponse } from "h3";
 import { hasTemplateSyntax, renderToResponse, compileTemplate } from "rendu";
 

@@ -101,7 +101,7 @@ async function runRecoveryScript(
     querySelector: () => (opts.clientModules ? {} : null),
   };
   const source = devErrorRecoveryScript({
-    url: "/_nitro/dev/reload",
+    url: "/_fastnode/dev/reload",
     id: "a",
     v: 1,
     poll: opts.poll,
@@ -135,8 +135,8 @@ async function runRecoveryScript(
 
 const tick = () => new Promise((resolve) => setTimeout(resolve, 10));
 
-const checkURL = "/_nitro/dev/reload?id=a";
-const waitURL = (v: number) => `/_nitro/dev/reload?id=a&v=${v}`;
+const checkURL = "/_fastnode/dev/reload?id=a";
+const waitURL = (v: number) => `/_fastnode/dev/reload?id=a&v=${v}`;
 
 describe("dev error page recovery", () => {
   it("only rewrites GET HTML 5xx responses in an ASCII-compatible encoding", () => {
@@ -183,7 +183,7 @@ describe("dev error page recovery", () => {
       headers: { "content-type": "text/html", "content-length": "11" },
     });
     const recovered = appendDevErrorRecovery(res, {
-      url: "/base/_nitro/dev/reload",
+      url: "/base/_fastnode/dev/reload",
       id: "a",
       v: 3,
     });
@@ -200,7 +200,7 @@ describe("dev error page recovery", () => {
     for (let chunk = await reader.read(); !chunk.done; chunk = await reader.read()) {
       rest += decoder.decode(chunk.value);
     }
-    expect(rest).toContain(`{"url":"/base/_nitro/dev/reload","id":"a","v":3}`);
+    expect(rest).toContain(`{"url":"/base/_fastnode/dev/reload","id":"a","v":3}`);
     expect(rest.trimEnd().endsWith("</script>")).toBe(true);
   });
 
@@ -213,7 +213,7 @@ describe("dev error page recovery", () => {
         base: "/app/",
       }).text();
     expect(await page({ "sec-fetch-dest": "document" })).toContain(
-      JSON.stringify({ url: "/app/_nitro/dev/reload", id: signal.id, v: 1 })
+      JSON.stringify({ url: "/app/_fastnode/dev/reload", id: signal.id, v: 1 })
     );
     expect(await page({ "sec-fetch-dest": "empty" })).toBe("<p>error</p>");
     expect(await page({ "sec-fetch-dest": "document" }, "POST")).toBe("<p>error</p>");
@@ -392,7 +392,7 @@ describe("dev error page recovery across tabs", () => {
 describe("dev reload signal", () => {
   const request = (signal: DevReloadSignal, query: string, abort?: AbortSignal) => {
     const event = {
-      url: new URL(`http://localhost/_nitro/dev/reload?${query}`),
+      url: new URL(`http://localhost/_fastnode/dev/reload?${query}`),
       req: { signal: abort },
       res: { headers: new Headers() },
     } as unknown as H3Event;

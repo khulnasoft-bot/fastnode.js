@@ -1,5 +1,5 @@
 import { colors } from "consola/utils";
-import type { PrerenderRoute } from "nitro/types";
+import type { PrerenderRoute } from "fastnode/types";
 import { routeToRegExp } from "rou3";
 import { parseURL, withoutBase } from "ufo";
 import { parse as parseHTML, walk } from "ultrahtml";
@@ -44,8 +44,8 @@ export async function extractLinks(
     });
   }
 
-  // Extract from x-nitro-prerender headers
-  const header = res.headers.get("x-nitro-prerender") || "";
+  // Extract from x-fastnode-prerender headers
+  const header = res.headers.get("x-fastnode-prerender") || "";
   _links.push(...header.split(",").map((i) => decodeURIComponent(i.trim())));
 
   for (const link of _links.filter(Boolean)) {

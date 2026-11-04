@@ -1,6 +1,6 @@
-import { defineHandler, getQuery } from "nitro/h3";
+import { defineHandler, getQuery } from "fastnode/h3";
 
-import { useKV } from "nitro/kv";
+import { useKV } from "fastnode/kv";
 
 export default defineHandler(async (event) => {
   const query = getQuery(event);

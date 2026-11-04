@@ -9,23 +9,23 @@ import { expect, it } from "vitest";
 import type { Context } from "../tests.ts";
 
 /**
- * Assert that a built server listens on `NITRO_UNIX_SOCKET` instead of a TCP port.
+ * Assert that a built server listens on `FASTNODE_UNIX_SOCKET` instead of a TCP port.
  */
 export function testUnixSocket(
   ctx: Context,
   opts: { command: string; args: (entry: string) => string[]; env?: Record<string, string> }
 ): void {
   it.skipIf(isWindows)(
-    "listens on NITRO_UNIX_SOCKET",
+    "listens on FASTNODE_UNIX_SOCKET",
     async () => {
       // Socket paths are limited to ~108 chars, so use a short temp dir
-      const dir = await mkdtemp(join(tmpdir(), "nitro-sock-"));
-      const socketPath = join(dir, "nitro.sock");
+      const dir = await mkdtemp(join(tmpdir(), "fastnode-sock-"));
+      const socketPath = join(dir, "fastnode.sock");
       const child = execa(opts.command, opts.args(resolve(ctx.outDir, "server/index.mjs")), {
         env: {
           ...opts.env,
-          NITRO_UNIX_SOCKET: socketPath,
-          NITRO_PORT: String(await getRandomPort()),
+          FASTNODE_UNIX_SOCKET: socketPath,
+          FASTNODE_PORT: String(await getRandomPort()),
         },
         stdio: process.env.TEST_DEBUG ? "inherit" : "ignore",
         reject: false,

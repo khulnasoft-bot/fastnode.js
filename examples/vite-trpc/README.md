@@ -1,22 +1,22 @@
-Set up tRPC with Vite and Nitro for end-to-end typesafe APIs without code generation. This example builds a counter with server-side rendering for the initial value and client-side updates.
+Set up tRPC with Vite and Fastnode for end-to-end typesafe APIs without code generation. This example builds a counter with server-side rendering for the initial value and client-side updates.
 
 ## Overview
 
-1. Configure Vite with the Nitro plugin and route tRPC requests
+1. Configure Vite with the Fastnode plugin and route tRPC requests
 2. Create a tRPC router with procedures
 3. Create an HTML page with server-side rendering and client interactivity
 
 ## 1. Configure Vite
 
-Add the Nitro plugin and configure the `/trpc/**` route to point to your tRPC handler:
+Add the Fastnode plugin and configure the `/trpc/**` route to point to your tRPC handler:
 
 ```ts [vite.config.ts]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
 export default defineConfig({
   plugins: [
-    nitro({
+    fastnode({
       routes: {
         "/trpc/**": "./server/trpc.ts",
       },

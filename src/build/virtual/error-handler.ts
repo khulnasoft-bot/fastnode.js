@@ -1,18 +1,18 @@
-import type { Nitro } from "nitro/types";
-import { runtimeDir } from "#nitro/meta";
+import type { Fastnode } from "fastnode/types";
+import { runtimeDir } from "#fastnode/meta";
 import { join } from "pathe";
 
-export default function errorHandler(nitro: Nitro) {
+export default function errorHandler(fastnode: Fastnode) {
   return {
-    id: "#nitro/virtual/error-handler",
+    id: "#fastnode/virtual/error-handler",
     template: () => {
-      const errorHandlers = Array.isArray(nitro.options.errorHandler)
-        ? nitro.options.errorHandler
-        : [nitro.options.errorHandler];
+      const errorHandlers = Array.isArray(fastnode.options.errorHandler)
+        ? fastnode.options.errorHandler
+        : [fastnode.options.errorHandler];
 
       const builtinHandler = join(
         runtimeDir,
-        `internal/error/${nitro.options.dev ? "dev" : "prod"}`
+        `internal/error/${fastnode.options.dev ? "dev" : "prod"}`
       );
 
       return /* js */ `

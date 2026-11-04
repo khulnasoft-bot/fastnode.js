@@ -2,9 +2,9 @@ import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { rm, mkdir, readFile } from "node:fs/promises";
 import { beforeAll, describe, expect, it } from "vitest";
-import { createNitro, build, prepare } from "nitro/builder";
+import { createFastnode, build, prepare } from "fastnode/builder";
 
-import { routes } from "./route-pattern-fixture/nitro.config.ts";
+import { routes } from "./route-pattern-fixture/fastnode.config.ts";
 
 const fixtureDir = fileURLToPath(new URL("./route-pattern-fixture", import.meta.url));
 const tmpDir = join(fixtureDir, ".tmp");
@@ -13,17 +13,17 @@ async function buildFixture(preset: string) {
   const outDir = join(tmpDir, preset);
   await rm(outDir, { recursive: true, force: true });
   await mkdir(outDir, { recursive: true });
-  const nitro = await createNitro({
+  const fastnode = await createFastnode({
     rootDir: fixtureDir,
     preset,
     output: { dir: outDir },
     builder: "vite",
   });
   try {
-    await prepare(nitro);
-    await build(nitro);
+    await prepare(fastnode);
+    await build(fastnode);
   } finally {
-    await nitro.close();
+    await fastnode.close();
   }
   return outDir;
 }

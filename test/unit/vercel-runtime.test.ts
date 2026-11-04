@@ -1,10 +1,10 @@
 import { mkdtemp, readFile, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "pathe";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import { isBun } from "std-env";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createNitro } from "../../src/builder.ts";
+import { createFastnode } from "../../src/builder.ts";
 import { generateFunctionFiles, resolveVercelRuntime } from "../../src/presets/vercel/utils.ts";
 
 describe("vercel: resolveVercelRuntime", () => {
@@ -12,7 +12,7 @@ describe("vercel: resolveVercelRuntime", () => {
   let warn: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
-    rootDir = await realpath(await mkdtemp(join(tmpdir(), "nitro-vercel-runtime-")));
+    rootDir = await realpath(await mkdtemp(join(tmpdir(), "fastnode-vercel-runtime-")));
     warn = vi.fn();
     stubNodeVersion("26.0.0");
   });
@@ -34,12 +34,12 @@ describe("vercel: resolveVercelRuntime", () => {
         JSON.stringify({ bunVersion: opts.bunVersion })
       );
     }
-    const nitro = {
+    const fastnode = {
       logger: { warn },
       options: { rootDir, vercel: { functions: { runtime: opts.runtime } } },
-    } as unknown as Nitro;
-    const runtime = await resolveVercelRuntime(nitro);
-    expect(nitro.options.vercel!.functions!.runtime).toBe(runtime);
+    } as unknown as Fastnode;
+    const runtime = await resolveVercelRuntime(fastnode);
+    expect(fastnode.options.vercel!.functions!.runtime).toBe(runtime);
     return runtime;
   }
 
@@ -179,7 +179,7 @@ describe("vercel preset: function runtime from engines", () => {
   let rootDir: string;
 
   beforeEach(async () => {
-    rootDir = await realpath(await mkdtemp(join(tmpdir(), "nitro-vercel-preset-runtime-")));
+    rootDir = await realpath(await mkdtemp(join(tmpdir(), "fastnode-vercel-preset-runtime-")));
   });
 
   afterEach(async () => {
@@ -189,19 +189,19 @@ describe("vercel preset: function runtime from engines", () => {
 
   async function generateFunctionConfig(engines: Record<string, string>) {
     await writeFile(join(rootDir, "package.json"), JSON.stringify({ type: "module", engines }));
-    const nitro = await createNitro({
+    const fastnode = await createFastnode({
       rootDir,
       preset: "vercel",
       compatibilityDate: "2025-01-01",
       logLevel: 0,
     });
-    await nitro.hooks.callHook("build:before", nitro);
-    await generateFunctionFiles(nitro);
-    await nitro.close();
+    await fastnode.hooks.callHook("build:before", fastnode);
+    await generateFunctionFiles(fastnode);
+    await fastnode.close();
     const config = JSON.parse(
-      await readFile(join(nitro.options.output.serverDir, ".vc-config.json"), "utf8")
+      await readFile(join(fastnode.options.output.serverDir, ".vc-config.json"), "utf8")
     );
-    return { runtime: config.runtime, exportConditions: nitro.options.exportConditions };
+    return { runtime: config.runtime, exportConditions: fastnode.options.exportConditions };
   }
 
   it("writes a Node.js function without the bun condition for engines.node built with Bun", async () => {

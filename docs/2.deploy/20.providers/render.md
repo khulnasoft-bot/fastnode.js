@@ -1,6 +1,6 @@
 # Render.com
 
-> Deploy Nitro apps to Render.com.
+> Deploy Fastnode apps to Render.com.
 
 **Preset:** `render_com`
 
@@ -11,7 +11,7 @@
 1. [Create a new Web Service](https://dashboard.render.com/select-repo?type=web) and select the repository that contains your code.
 2. Ensure the 'Node' environment is selected.
 3. Update the start command to `node .output/server/index.mjs`
-4. Click 'Advanced' and add an environment variable with `NITRO_PRESET` set to `render_com`. You may also need to add a `NODE_VERSION` environment variable set to `20` for the build to succeed ([docs](https://render.com/docs/node-version)).
+4. Click 'Advanced' and add an environment variable with `FASTNODE_PRESET` set to `render_com`. You may also need to add a `NODE_VERSION` environment variable set to `20` for the build to succeed ([docs](https://render.com/docs/node-version)).
 5. Click 'Create Web Service'.
 
 ## Infrastructure as Code (IaC)
@@ -27,7 +27,7 @@
        startCommand: node .output/server/index.mjs
        buildCommand: npx nypm install && npm run build
        envVars:
-       - key: NITRO_PRESET
+       - key: FASTNODE_PRESET
          value: render_com
    ```
 

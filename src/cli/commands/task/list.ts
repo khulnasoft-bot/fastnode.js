@@ -1,6 +1,6 @@
 import { defineCommand } from "citty";
 import { consola } from "consola";
-import { listTasks, loadOptions } from "nitro/builder";
+import { listTasks, loadOptions } from "fastnode/builder";
 import { resolve } from "pathe";
 
 export default defineCommand({
@@ -20,7 +20,7 @@ export default defineCommand({
 
     const tasks = await listTasks({
       cwd,
-      buildDir: options?.buildDir || ".nitro",
+      buildDir: options?.buildDir || ".fastnode",
     });
     for (const [name, task] of Object.entries(tasks)) {
       consola.log(` - \`${name}\`${task.meta?.description ? ` - ${task.meta.description}` : ""}`);

@@ -1,4 +1,4 @@
-Use Shiki for syntax highlighting with TextMate grammars. This example highlights code on the server using Nitro's server scripts feature, which runs JavaScript inside HTML files before sending the response.
+Use Shiki for syntax highlighting with TextMate grammars. This example highlights code on the server using Fastnode's server scripts feature, which runs JavaScript inside HTML files before sending the response.
 
 ## API Route
 

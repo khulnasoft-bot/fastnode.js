@@ -96,7 +96,7 @@ async function loadSourceMap(file: string): Promise<LoadedSourceMap | undefined>
   };
 }
 
-// Sources may contain URL special chars (e.g. `#nitro/virtual/app`)
+// Sources may contain URL special chars (e.g. `#fastnode/virtual/app`)
 function escapeURLPath(path: string): string {
   return path.replace(/[%#?]/g, (c) => encodeURIComponent(c));
 }

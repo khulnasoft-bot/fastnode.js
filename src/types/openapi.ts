@@ -21,7 +21,7 @@ export interface SwaggerUIConfig {
   /** Only "alpha" is supported (function values are not JSON-serializable). */
   tagsSorter?: "alpha";
   /**
-   * Note: function callbacks cannot be passed via Nitro configuration (not JSON-serializable).
+   * Note: function callbacks cannot be passed via Fastnode configuration (not JSON-serializable).
    */
   onComplete?: never;
   layout?: string;
@@ -32,12 +32,12 @@ export interface SwaggerUIConfig {
 }
 
 /**
- * Nitro OpenAPI configuration.
+ * Fastnode OpenAPI configuration.
  *
- * @see https://nitro.build/config/features#openapi
- * @see https://nitro.build/docs/openapi
+ * @see https://fastnode.khulnasoft.com/config/features#openapi
+ * @see https://fastnode.khulnasoft.com/docs/openapi
  */
-export interface NitroOpenAPIConfig {
+export interface FastnodeOpenAPIConfig {
   /**
    * OpenAPI document metadata.
    */
@@ -61,7 +61,7 @@ export interface NitroOpenAPIConfig {
    * - `"prerender"` — prerender the JSON response at build time (most efficient).
    * - `false` — disable in production.
    *
-   * @see https://nitro.build/config/features#openapi
+   * @see https://fastnode.khulnasoft.com/config/features#openapi
    */
   production?: false | "runtime" | "prerender";
 

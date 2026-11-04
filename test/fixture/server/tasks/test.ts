@@ -1,4 +1,4 @@
-import { defineTask } from "nitro/task";
+import { defineTask } from "fastnode/task";
 
 export default defineTask({
   meta: {

@@ -1,4 +1,4 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import type { Plugin } from "rollup";
 import { existsSync, statSync } from "node:fs";
 import { createPathsMatcher } from "get-tsconfig";
@@ -12,8 +12,11 @@ import { chain } from "../../utils/sync.ts";
  * Relative targets of a `typescript.tsConfig` object resolve from `rootDir` (or `baseUrl`),
  * those of a loaded `tsconfig.json` from the config declaring them (`extends`).
  */
-export function tsconfigPaths(nitro: Nitro, aliases: Record<string, string>): Plugin | undefined {
-  const paths = loadPaths(nitro);
+export function tsconfigPaths(
+  fastnode: Fastnode,
+  aliases: Record<string, string>
+): Plugin | undefined {
+  const paths = loadPaths(fastnode);
   if (!paths) {
     return;
   }
@@ -25,7 +28,7 @@ export function tsconfigPaths(nitro: Nitro, aliases: Record<string, string>): Pl
   ];
   const idRE = new RegExp(`^(?!${excludes.join("|")})(?:${keys.map(patternRegExp).join("|")})$`);
   return {
-    name: "nitro:tsconfig-paths",
+    name: "fastnode:tsconfig-paths",
     resolveId: {
       // Before the builtin resolvers (Vite), like the `paths` of TypeScript
       order: "pre",
@@ -59,8 +62,8 @@ export function tsconfigPaths(nitro: Nitro, aliases: Record<string, string>): Pl
  * calling plugins. Exact keys are only included with an existing target (otherwise the
  * package would be inlined), patterns without a prefix (`*`) would include all dependencies.
  */
-export function tsconfigPathsNoExternal(nitro: Nitro): RegExp[] {
-  const paths = loadPaths(nitro);
+export function tsconfigPathsNoExternal(fastnode: Fastnode): RegExp[] {
+  const paths = loadPaths(fastnode);
   const keys = (paths?.keys || []).filter((key) =>
     key.includes("*") ? !key.startsWith("*") : paths!.candidates(key).some(isFile)
   );
@@ -73,29 +76,29 @@ interface TsconfigPaths {
   candidates: (id: string) => string[];
 }
 
-const pathsCache = new WeakMap<Nitro, TsconfigPaths | undefined>();
+const pathsCache = new WeakMap<Fastnode, TsconfigPaths | undefined>();
 
-function loadPaths(nitro: Nitro): TsconfigPaths | undefined {
-  if (!pathsCache.has(nitro)) {
-    pathsCache.set(nitro, _loadPaths(nitro));
+function loadPaths(fastnode: Fastnode): TsconfigPaths | undefined {
+  if (!pathsCache.has(fastnode)) {
+    pathsCache.set(fastnode, _loadPaths(fastnode));
   }
-  return pathsCache.get(nitro);
+  return pathsCache.get(fastnode);
 }
 
-function _loadPaths(nitro: Nitro): TsconfigPaths | undefined {
-  const tsConfig = nitro.options.typescript.tsConfig;
+function _loadPaths(fastnode: Fastnode): TsconfigPaths | undefined {
+  const tsConfig = fastnode.options.typescript.tsConfig;
   const keys = Object.keys(tsConfig?.compilerOptions?.paths || {});
-  if (nitro.options.typescript.tsconfigPaths === false || keys.length === 0) {
+  if (fastnode.options.typescript.tsconfigPaths === false || keys.length === 0) {
     return;
   }
   let matcher: ReturnType<typeof createPathsMatcher>;
   try {
     matcher = createPathsMatcher({
-      path: join(nitro.options.rootDir, "tsconfig.json"),
+      path: join(fastnode.options.rootDir, "tsconfig.json"),
       config: tsConfig as Parameters<typeof createPathsMatcher>[0]["config"],
     });
   } catch (error) {
-    nitro.logger.warn(
+    fastnode.logger.warn(
       `Ignoring \`compilerOptions.paths\` of the project tsconfig: ${(error as Error).message}`
     );
     return;
@@ -146,7 +149,7 @@ const TYPES_RE = /\.d\.(?:[^/\\]+\.)?[cm]?ts$|[\\/]node_modules[\\/]@types[\\/]/
 
 // Absolute paths, virtual modules and URL schemes (`node:`, `virtual:`), e.g. for a `*` key.
 // Keys containing `:` (like `app:*`) are not supported.
-const SKIP_ID = String.raw`[/\\\0]|#nitro\/|[a-zA-Z][\w+.-]*:`;
+const SKIP_ID = String.raw`[/\\\0]|#fastnode\/|[a-zA-Z][\w+.-]*:`;
 
 function pathsRegExp(keys: string[]): RegExp {
   return new RegExp(`^(?:${keys.map(patternRegExp).join("|")})$`);

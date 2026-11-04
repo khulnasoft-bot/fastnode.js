@@ -1,12 +1,12 @@
 import { spawn } from "node:child_process";
 import { defineCommand } from "citty";
 
-const docsOrigin = "https://nitro.build";
+const docsOrigin = "https://fastnode.khulnasoft.com";
 
 export default defineCommand({
   meta: {
     name: "docs",
-    description: "Open Nitro documentation",
+    description: "Open Fastnode documentation",
   },
   args: {
     page: { type: "positional", required: false, description: "Page path to open" },

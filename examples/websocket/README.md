@@ -5,7 +5,7 @@ This example implements a simple chat room using WebSockets. Clients connect, se
 Create a WebSocket route using `defineWebSocketHandler`.
 
 ```ts [routes/_ws.ts]
-import { defineWebSocketHandler } from "nitro";
+import { defineWebSocketHandler } from "fastnode";
 
 export default defineWebSocketHandler({
   open(peer) {

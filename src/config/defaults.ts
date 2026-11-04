@@ -1,18 +1,18 @@
-import type { NitroConfig } from "nitro/types";
+import type { FastnodeConfig } from "fastnode/types";
 import { isDebug, isTest } from "std-env";
-import { version as nitroVersion } from "#nitro/meta";
+import { version as fastnodeVersion } from "#fastnode/meta";
 
-export const NitroDefaults: NitroConfig = {
+export const FastnodeDefaults: FastnodeConfig = {
   // General
   compatibilityDate: "latest",
   debug: isDebug,
   logLevel: isTest ? 1 : 3,
-  runtimeConfig: { app: {}, nitro: {} },
+  runtimeConfig: { app: {}, fastnode: {} },
 
   // Dirs
   serverDir: false,
   scanDirs: [],
-  buildDir: `node_modules/.nitro`,
+  buildDir: `node_modules/.fastnode`,
   output: {
     dir: "{{ rootDir }}/.output",
     serverDir: "{{ output.dir }}/server",
@@ -50,7 +50,7 @@ export const NitroDefaults: NitroConfig = {
   },
 
   // Routing
-  baseURL: process.env.NITRO_APP_BASE_URL || "/",
+  baseURL: process.env.FASTNODE_APP_BASE_URL || "/",
   handlers: [],
   devHandlers: [],
   errorHandler: undefined,
@@ -87,7 +87,7 @@ export const NitroDefaults: NitroConfig = {
 
   // Framework
   framework: {
-    name: "nitro",
-    version: nitroVersion,
+    name: "fastnode",
+    version: fastnodeVersion,
   },
 };

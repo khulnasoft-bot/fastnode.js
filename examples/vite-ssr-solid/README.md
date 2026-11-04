@@ -1,23 +1,23 @@
-Set up server-side rendering (SSR) with SolidJS, Vite, and Nitro. This setup uses `renderToStringAsync` for HTML generation and supports client hydration.
+Set up server-side rendering (SSR) with SolidJS, Vite, and Fastnode. This setup uses `renderToStringAsync` for HTML generation and supports client hydration.
 
 ## Overview
 
-1. Add the Nitro Vite plugin to your Vite config
+1. Add the Fastnode Vite plugin to your Vite config
 2. Configure client and server entry points
 3. Create a server entry that renders your app to HTML
 4. Create a client entry that hydrates the server-rendered HTML
 
 ## 1. Configure Vite
 
-Add the Nitro and SolidJS plugins to your Vite config. SolidJS requires explicit JSX configuration and both `ssr` and `client` environments:
+Add the Fastnode and SolidJS plugins to your Vite config. SolidJS requires explicit JSX configuration and both `ssr` and `client` environments:
 
 ```js [vite.config.mjs]
 import solid from "vite-plugin-solid";
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
 export default defineConfig({
-  plugins: [solid({ ssr: true }), nitro()],
+  plugins: [solid({ ssr: true }), fastnode()],
   esbuild: { jsx: "preserve", jsxImportSource: "solid-js" },
   environments: {
     ssr: {

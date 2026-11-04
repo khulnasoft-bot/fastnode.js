@@ -1,11 +1,11 @@
 {
   "type": "module",
   "scripts": {
-    "dev": "nitro dev",
-    "build": "nitro build"
+    "dev": "fastnode dev",
+    "build": "fastnode build"
   },
   "devDependencies": {
-    "nitro": "latest",
+    "fastnode": "latest",
     "rolldown": "latest"
   }
 }

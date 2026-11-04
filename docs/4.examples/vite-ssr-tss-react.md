@@ -6,7 +6,7 @@ icon: i-simple-icons-tanstack
 
 # SSR with TanStack Start
 
-> Full-stack React with TanStack Start in Nitro using Vite.
+> Full-stack React with TanStack Start in Fastnode using Vite.
 
 <!-- automd:ui-code-tree src="../../examples/vite-ssr-tss-react" default="server.ts" ignore="README.md,GUIDE.md" expandAll -->
 
@@ -24,7 +24,7 @@ icon: i-simple-icons-tanstack
     "@tanstack/react-router": "^1.170.46",
     "@tanstack/react-router-devtools": "^1.167.2",
     "@tanstack/react-start": "^1.169.4",
-    "nitro": "latest",
+    "fastnode": "latest",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "tailwind-merge": "^3.7.0",
@@ -55,7 +55,7 @@ export default createServerEntry({
 
 ```json [tsconfig.json]
 {
-  "extends": "nitro/tsconfig",
+  "extends": "fastnode/tsconfig",
   "compilerOptions": {
     "baseUrl": ".",
     "jsx": "react-jsx",
@@ -68,13 +68,13 @@ export default createServerEntry({
 
 ```js [vite.config.mjs]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
-  plugins: [tanstackStart(), viteReact(), tailwindcss(), nitro()],
+  plugins: [tanstackStart(), viteReact(), tailwindcss(), fastnode()],
   resolve: { tsconfigPaths: true },
   environments: {
     ssr: { build: { rollupOptions: { input: "./server.ts" } } },
@@ -291,28 +291,28 @@ function Home() {
 
 <!-- automd:file src="../../examples/vite-ssr-tss-react/README.md" -->
 
-Set up TanStack Start with Nitro for a full-stack React framework experience with server-side rendering, file-based routing, and integrated API routes.
+Set up TanStack Start with Fastnode for a full-stack React framework experience with server-side rendering, file-based routing, and integrated API routes.
 
 ## Overview
 
-1. Add the Nitro Vite plugin to your Vite config
+1. Add the Fastnode Vite plugin to your Vite config
 2. Create a server entry using TanStack Start's server handler
 3. Configure the router with default components
 4. Define routes and API endpoints using file-based routing
 
 ## 1. Configure Vite
 
-Add the Nitro, React, TanStack Start, and Tailwind plugins to your Vite config:
+Add the Fastnode, React, TanStack Start, and Tailwind plugins to your Vite config:
 
 ```js [vite.config.mjs]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
-  plugins: [tanstackStart(), viteReact(), tailwindcss(), nitro()],
+  plugins: [tanstackStart(), viteReact(), tailwindcss(), fastnode()],
   resolve: { tsconfigPaths: true },
   environments: {
     ssr: { build: { rollupOptions: { input: "./server.ts" } } },
@@ -336,7 +336,7 @@ export default createServerEntry({
 });
 ```
 
-TanStack Start handles SSR automatically. The `createServerEntry` wrapper integrates with Nitro's server entry format, and the `handler.fetch` processes all incoming requests.
+TanStack Start handles SSR automatically. The `createServerEntry` wrapper integrates with Fastnode's server entry format, and the `handler.fetch` processes all incoming requests.
 
 ## 3. Configure the Router
 
@@ -437,7 +437,7 @@ function Home() {
 
 ## API Routes
 
-TanStack Start supports API routes alongside page routes. Create files in `src/routes/api/` to define server endpoints that Nitro serves automatically.
+TanStack Start supports API routes alongside page routes. Create files in `src/routes/api/` to define server endpoints that Fastnode serves automatically.
 
 <!-- /automd -->
 

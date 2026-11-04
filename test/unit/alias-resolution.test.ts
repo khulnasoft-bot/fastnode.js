@@ -3,17 +3,17 @@ import { tmpdir } from "node:os";
 import { join, relative } from "pathe";
 import { describe, expect, it } from "vitest";
 import { loadOptions } from "../../src/config/loader.ts";
-import { resolveNitroPath } from "../../src/utils/fs.ts";
+import { resolveFastnodePath } from "../../src/utils/fs.ts";
 
-describe("resolveNitroPath aliases", () => {
+describe("resolveFastnodePath aliases", () => {
   it.each([
     ["general first", { "#api": "./api", "#api-admin": "./admin" }],
     ["specific first", { "#api-admin": "./admin", "#api": "./api" }],
   ])("uses the most specific alias with %s", (_name, alias) => {
     const options = { alias, rootDir: "/app/" } as any;
 
-    expect(resolveNitroPath("#api-admin/handler.ts", options)).toBe("/app/admin/handler.ts");
-    expect(resolveNitroPath("#api/handler.ts", options)).toBe("/app/api/handler.ts");
+    expect(resolveFastnodePath("#api-admin/handler.ts", options)).toBe("/app/admin/handler.ts");
+    expect(resolveFastnodePath("#api/handler.ts", options)).toBe("/app/api/handler.ts");
   });
 
   it.each([
@@ -22,7 +22,7 @@ describe("resolveNitroPath aliases", () => {
   ])("uses the most specific nested alias with %s", (_name, alias) => {
     const options = { alias, rootDir: "/app/" } as any;
 
-    expect(resolveNitroPath("#api/admin/handler.ts", options)).toBe("/app/admin/handler.ts");
+    expect(resolveFastnodePath("#api/admin/handler.ts", options)).toBe("/app/admin/handler.ts");
   });
 
   it.each([
@@ -31,20 +31,20 @@ describe("resolveNitroPath aliases", () => {
   ])("resolves aliases that point to other aliases with %s", (_name, alias) => {
     const options = { alias, rootDir: "/app/" } as any;
 
-    expect(resolveNitroPath("#a/handler.ts", options)).toBe("/app/dir/x/handler.ts");
+    expect(resolveFastnodePath("#a/handler.ts", options)).toBe("/app/dir/x/handler.ts");
   });
 
   it("only matches aliases at a path segment boundary", () => {
     const options = { alias: { "#api": "./api" }, rootDir: "/app/" } as any;
 
-    expect(resolveNitroPath("#api", options)).toBe("/app/api");
-    expect(resolveNitroPath("#apifoo/handler.ts", options)).toBe("#apifoo/handler.ts");
+    expect(resolveFastnodePath("#api", options)).toBe("/app/api");
+    expect(resolveFastnodePath("#apifoo/handler.ts", options)).toBe("#apifoo/handler.ts");
   });
 });
 
 describe("configured handler aliases", () => {
   it("resolves routes independently of alias insertion order", async () => {
-    const rootDir = await mkdtemp(join(tmpdir(), "nitro-alias-"));
+    const rootDir = await mkdtemp(join(tmpdir(), "fastnode-alias-"));
     const entries: [string, string][] = [
       ["#api", "./api"],
       ["#api-admin", "./admin"],

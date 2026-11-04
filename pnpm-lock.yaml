@@ -6,7 +6,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  nitro: workspace:*
+  fastnode: workspace:*
   cookie-es: ^3.1.1
   oxc-parser: link:./shims/oxc-parser
 
@@ -303,7 +303,7 @@ importers:
 
   examples/api-routes:
     devDependencies:
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       rolldown:
@@ -312,7 +312,7 @@ importers:
 
   examples/cached-handler:
     devDependencies:
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       rolldown:
@@ -321,7 +321,7 @@ importers:
 
   examples/custom-error-handler:
     devDependencies:
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       rolldown:
@@ -334,7 +334,7 @@ importers:
         specifier: ^0.4.2
         version: 0.4.2
     devDependencies:
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       rolldown:
@@ -346,7 +346,7 @@ importers:
       elysia:
         specifier: ^1.4.30
         version: 1.4.30(@sinclair/typebox@0.34.52)(exact-mirror@1.2.6)(file-type@22.3.0)(openapi-types@12.1.3)(typescript@7.0.2)
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       rolldown:
@@ -361,7 +361,7 @@ importers:
       express:
         specifier: ^5.3.0
         version: 5.3.0(supports-color@10.2.2)
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       rolldown:
@@ -373,7 +373,7 @@ importers:
       fastify:
         specifier: ^5.12.7
         version: 5.12.7
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       rolldown:
@@ -382,7 +382,7 @@ importers:
 
   examples/hello-world:
     devDependencies:
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       rolldown:
@@ -394,7 +394,7 @@ importers:
       hono:
         specifier: ^4.13.14
         version: 4.13.15
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       rolldown:
@@ -403,7 +403,7 @@ importers:
 
   examples/import-alias:
     devDependencies:
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       rolldown:
@@ -412,7 +412,7 @@ importers:
 
   examples/middleware:
     devDependencies:
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       rolldown:
@@ -424,7 +424,7 @@ importers:
       mono-jsx:
         specifier: latest
         version: 0.9.14
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       rolldown:
@@ -436,7 +436,7 @@ importers:
       nano-jsx:
         specifier: ^0.2.1
         version: 0.2.1
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       rolldown:
@@ -445,7 +445,7 @@ importers:
 
   examples/plugins:
     devDependencies:
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       rolldown:
@@ -454,7 +454,7 @@ importers:
 
   examples/renderer:
     devDependencies:
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       rolldown:
@@ -463,7 +463,7 @@ importers:
 
   examples/runtime-config:
     devDependencies:
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       rolldown:
@@ -472,7 +472,7 @@ importers:
 
   examples/server-fetch:
     devDependencies:
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       rolldown:
@@ -481,7 +481,7 @@ importers:
 
   examples/shiki:
     devDependencies:
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       shiki:
@@ -493,7 +493,7 @@ importers:
 
   examples/takumi:
     devDependencies:
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       takumi-js:
@@ -509,7 +509,7 @@ importers:
         specifier: ^2.0.0-beta.0
         version: 2.0.0-beta.0
     devDependencies:
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       rolldown:
@@ -518,16 +518,16 @@ importers:
 
   examples/virtual-routes:
     devDependencies:
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       rolldown:
         specifier: latest
         version: 1.2.16
 
-  examples/vite-nitro-plugin:
+  examples/vite-fastnode-plugin:
     devDependencies:
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       vite:
@@ -555,7 +555,7 @@ importers:
       '@vitejs/plugin-rsc':
         specifier: ^0.5.38
         version: 0.5.38(react-dom@19.3.1)(react@19.3.1)(vite@8.3.5)
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       rsc-html-stream:
@@ -570,7 +570,7 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.3.3
         version: 4.3.3(vite@8.3.5)
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       tailwindcss:
@@ -588,7 +588,7 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.3.3
         version: 4.3.3(vite@8.3.5)
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       preact:
@@ -615,7 +615,7 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^6.1.2
         version: 6.1.2(vite@8.3.5)
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       react:
@@ -664,7 +664,7 @@ importers:
       '@types/react-dom':
         specifier: ^19.3.0
         version: 19.3.0(@types/react@19.3.0)
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       tailwindcss:
@@ -679,7 +679,7 @@ importers:
 
   examples/vite-ssr-solid:
     devDependencies:
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       solid-js:
@@ -703,7 +703,7 @@ importers:
       '@solidjs/start':
         specifier: ^2.1.0
         version: 2.1.0(@solidjs/router@1.0.1)(crossws@0.4.17)(ocache@0.3.1)(solid-js@1.9.18)(supports-color@10.2.2)(vite@8.3.5)
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       solid-js:
@@ -733,7 +733,7 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^6.1.2
         version: 6.1.2(vite@8.3.5)
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       react:
@@ -757,7 +757,7 @@ importers:
       '@tanstack/react-start':
         specifier: ^1.169.4
         version: 1.169.4(@vitejs/plugin-rsc@0.5.38)(esbuild@0.28.2)(react-dom@19.3.1)(react@19.3.1)(rolldown@1.2.16)(rollup@4.67.3)(supports-color@10.2.2)(vite-plugin-solid@2.11.15)(vite@8.3.5)
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       react:
@@ -803,7 +803,7 @@ importers:
       '@vitejs/plugin-vue':
         specifier: ^6.0.10
         version: 6.0.10(vite@8.3.5)(vue@3.5.44)
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       unhead:
@@ -830,7 +830,7 @@ importers:
       '@trpc/server':
         specifier: ^11.19.0
         version: 11.22.1(typescript@7.0.2)
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       vite:
@@ -846,7 +846,7 @@ importers:
         specifier: ^2.0.0-beta.0
         version: 2.0.0-beta.0
     devDependencies:
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       vite:
@@ -858,7 +858,7 @@ importers:
 
   examples/websocket:
     devDependencies:
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       rolldown:
@@ -867,7 +867,7 @@ importers:
 
   playground:
     devDependencies:
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:..
       vite:
@@ -879,13 +879,13 @@ importers:
       mono-jsx:
         specifier: latest
         version: 0.9.14
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
 
   test/minimal:
     devDependencies:
-      nitro:
+      fastnode:
         specifier: workspace:*
         version: link:../..
       vite:

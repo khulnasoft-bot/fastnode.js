@@ -2,7 +2,7 @@ import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { rm, mkdir } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
-import { createNitro, build, prepare } from "nitro/builder";
+import { createFastnode, build, prepare } from "fastnode/builder";
 
 const fixtureDir = fileURLToPath(new URL("./side-effects-fixture", import.meta.url));
 const tmpDir = fileURLToPath(new URL("./side-effects-fixture/.tmp", import.meta.url));
@@ -16,15 +16,15 @@ describe("side-effects", () => {
         outDir = join(tmpDir, builder);
         await rm(outDir, { recursive: true, force: true });
         await mkdir(outDir, { recursive: true });
-        const nitro = await createNitro({
+        const fastnode = await createFastnode({
           rootDir: fixtureDir,
           output: { dir: outDir },
           // @ts-expect-error for testing
           __vitePkg__: builder,
           builder: builder === "vite" ? "vite" : builder,
         });
-        await prepare(nitro);
-        await build(nitro);
+        await prepare(fastnode);
+        await build(fastnode);
       });
 
       it("preserves side-effect imports", async () => {

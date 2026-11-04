@@ -6,18 +6,18 @@ import { joinURL } from "ufo";
 import { routeToRegExp } from "rou3";
 import { describe, expect, it, vi, beforeAll, afterAll } from "vitest";
 import { isBun } from "std-env";
-import { setupTest, testNitro, fixtureDir } from "../tests.ts";
+import { setupTest, testFastnode, fixtureDir } from "../tests.ts";
 import { toFetchHandler } from "srvx/node";
 
 const presetFixturesDir = resolve(import.meta.dirname, "fixtures");
 
 const VERCEL_REQUEST_CONTEXT = Symbol.for("@vercel/request-context");
 
-// NOTE: Always prefer extending the existing `nitro:preset:vercel:web` matrix
+// NOTE: Always prefer extending the existing `fastnode:preset:vercel:web` matrix
 // (its setup/build is shared across assertions) over adding new top-level
 // `describe` blocks, which trigger a separate build and slow down CI.
 
-describe("nitro:preset:vercel:web", async () => {
+describe("fastnode:preset:vercel:web", async () => {
   const TEST_HASH_SALT = "initial";
 
   // Example salt used to exercise `VERCEL_HASH_SALT` namespacing of immutable
@@ -75,7 +75,7 @@ describe("nitro:preset:vercel:web", async () => {
     process.env.VERCEL_HASH_SALT = prevHashSalt;
   }
 
-  testNitro(
+  testFastnode(
     ctx,
     async () => {
       const { fetch: fetchHandler } = await import(
@@ -108,7 +108,7 @@ describe("nitro:preset:vercel:web", async () => {
               },
             ],
             "framework": {
-              "name": "nitro",
+              "name": "fastnode",
               "version": "3.x",
             },
             "overrides": {
@@ -252,14 +252,14 @@ describe("nitro:preset:vercel:web", async () => {
               },
               {
                 "headers": {
-                  "Location": "https://nitro.build/$1",
+                  "Location": "https://fastnode.khulnasoft.com/$1",
                 },
                 "src": "^\\/rules\\/redirect\\/wildcard(?:\\/(?<_0>(?:[\\s\\S]*[^/])?\\/*?))??\\/?$",
                 "status": 307,
               },
               {
                 "headers": {
-                  "Location": "https://nitro.build/",
+                  "Location": "https://fastnode.khulnasoft.com/",
                 },
                 "src": "^\\/rules\\/redirect\\/obj\\/?$",
                 "status": 308,
@@ -612,10 +612,10 @@ describe("nitro:preset:vercel:web", async () => {
         const expectedDir = joinURL(
           "_vercel/immutable",
           TEST_HASH_SALT,
-          ctx.nitro!.options.framework.name || ""
+          ctx.fastnode!.options.framework.name || ""
         );
-        expect(ctx.nitro!.options.buildAssetsDir).toBe(expectedDir);
-        expect(expectedDir).toBe(`_vercel/immutable/${TEST_HASH_SALT}/nitro`);
+        expect(ctx.fastnode!.options.buildAssetsDir).toBe(expectedDir);
+        expect(expectedDir).toBe(`_vercel/immutable/${TEST_HASH_SALT}/fastnode`);
 
         const manifest = await fsp
           .readFile(resolve(ctx.outDir, "immutable.json"), "utf8")
@@ -917,7 +917,7 @@ describe("nitro:preset:vercel:web", async () => {
       });
 
       it("should preserve dependency symlink targets inside functionRules directories", async () => {
-        const dependencyPath = "node_modules/@fixture/nitro-lib";
+        const dependencyPath = "node_modules/@fixture/fastnode-lib";
         const serverTarget = await fsp.readlink(
           resolve(ctx.outDir, "functions/__server.func", dependencyPath)
         );
@@ -995,7 +995,7 @@ describe("nitro:preset:vercel:web", async () => {
   );
 });
 
-describe("nitro:preset:vercel:node", async () => {
+describe("fastnode:preset:vercel:node", async () => {
   const ctx = await setupTest("vercel", {
     outDirSuffix: "-node",
     config: {
@@ -1009,7 +1009,7 @@ describe("nitro:preset:vercel:node", async () => {
       vercel: { entryFormat: "node", schedules: "private" },
     },
   });
-  testNitro(
+  testFastnode(
     ctx,
     async () => {
       const nodeHandler = await import(
@@ -1063,7 +1063,7 @@ describe("nitro:preset:vercel:node", async () => {
           .readFile(resolve(ctx.outDir, "functions/_vercel/tasks.func/.vc-config.json"), "utf8")
           .then((r) => JSON.parse(r));
         expect(funcConfig.experimentalTriggers).toEqual([{ type: "schedule/v1beta" }]);
-        expect(funcConfig.environment).toMatchObject({ NITRO_VERCEL_SCHEDULES_FUNCTION: "1" });
+        expect(funcConfig.environment).toMatchObject({ FASTNODE_VERCEL_SCHEDULES_FUNCTION: "1" });
       });
 
       it("should not route public requests to the private schedules function", async () => {
@@ -1104,7 +1104,7 @@ describe("nitro:preset:vercel:node", async () => {
       });
 
       it("should run the task of a schedule dispatch in the private function", async () => {
-        vi.stubEnv("NITRO_VERCEL_SCHEDULES_FUNCTION", "1");
+        vi.stubEnv("FASTNODE_VERCEL_SCHEDULES_FUNCTION", "1");
         try {
           const res = await dispatch();
           expect(res.status).toBe(200);
@@ -1134,7 +1134,7 @@ describe("nitro:preset:vercel:node", async () => {
   );
 });
 
-describe("nitro:preset:vercel:bun", async () => {
+describe("fastnode:preset:vercel:bun", async () => {
   const ctx = await setupTest("vercel", {
     outDirSuffix: "-bun",
     config: {
@@ -1164,7 +1164,7 @@ describe("nitro:preset:vercel:bun", async () => {
   });
 });
 
-describe.skip("nitro:preset:vercel:bun-verceljson", async () => {
+describe.skip("fastnode:preset:vercel:bun-verceljson", async () => {
   const vercelJsonPath = join(fixtureDir, "vercel.json");
 
   const ctx = await setupTest("vercel", {

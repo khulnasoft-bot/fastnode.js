@@ -4,13 +4,13 @@ import { defu } from "defu";
 import mime from "mime";
 import { writeFile } from "../_utils/fs.ts";
 import type {
-  Nitro,
+  Fastnode,
   NormalizedRouteRules,
   PrerenderRoute,
   ProxyRuleOptions,
   PublicAssetDir,
   RedirectRuleOptions,
-} from "nitro/types";
+} from "fastnode/types";
 import { basename, dirname, relative, resolve } from "pathe";
 import { readPackageJSON } from "pkg-types";
 import {
@@ -75,16 +75,16 @@ const SURROUNDING_SLASH_RE = /^\/+|\/+$/g;
 const DEFAULT_PUBLIC_ASSET_MAX_AGE = 31_536_000; // 1 year
 
 function getSystemNodeVersion() {
-  const systemNodeVersion = Number.parseInt(process.versions.node.split(".")[0]);
+  const systemNodeVersion = Number.parseInt(process.versions.node.split(".")[0]!);
 
   return Number.isNaN(systemNodeVersion) ? 22 : systemNodeVersion;
 }
 
-export async function generateFunctionFiles(nitro: Nitro) {
-  const o11Routes = getObservabilityRoutes(nitro);
+export async function generateFunctionFiles(fastnode: Fastnode) {
+  const o11Routes = getObservabilityRoutes(fastnode);
 
-  const buildConfigPath = resolve(nitro.options.output.dir, "config.json");
-  const buildConfig = generateBuildConfig(nitro, o11Routes);
+  const buildConfigPath = resolve(fastnode.options.output.dir, "config.json");
+  const buildConfig = generateBuildConfig(fastnode, o11Routes);
   await writeFile(buildConfigPath, JSON.stringify(buildConfig, null, 2));
 
   const baseFunctionConfig: VercelServerlessFunctionConfig = {
@@ -92,38 +92,38 @@ export async function generateFunctionFiles(nitro: Nitro) {
     launcherType: "Nodejs",
     shouldAddHelpers: false,
     supportsResponseStreaming: true,
-    ...(nitro.options.sourcemap ? { shouldAddSourcemapSupport: true } : {}),
-    ...nitro.options.vercel?.functions,
+    ...(fastnode.options.sourcemap ? { shouldAddSourcemapSupport: true } : {}),
+    ...fastnode.options.vercel?.functions,
   };
 
   if (
     Array.isArray(baseFunctionConfig.experimentalTriggers) &&
     baseFunctionConfig.experimentalTriggers.length > 0
   ) {
-    nitro.logger.warn(
+    fastnode.logger.warn(
       "`experimentalTriggers` on the base `vercel.functions` config applies to the catch-all function and is likely not what you want. " +
         "Routes with queue triggers are not accessible on the web. " +
         "Use `vercel.functionRules` to attach triggers to specific routes instead."
     );
   }
 
-  const functionConfigPath = resolve(nitro.options.output.serverDir, ".vc-config.json");
+  const functionConfigPath = resolve(fastnode.options.output.serverDir, ".vc-config.json");
   await writeFile(functionConfigPath, JSON.stringify(baseFunctionConfig, null, 2));
 
-  const scheduleFunction = getVercelScheduleFunction(nitro);
-  const functionRules = getFunctionRules(nitro);
+  const scheduleFunction = getVercelScheduleFunction(fastnode);
+  const functionRules = getFunctionRules(fastnode);
   const hasRouteFunctionConfig = functionRules && Object.keys(functionRules).length > 0;
   const routeFuncRouter = hasRouteFunctionConfig ? createPatternRouter(functionRules) : undefined;
 
   // Write ISR functions
   const isrFuncDirs = new Set<string>();
-  for (const [key, value] of Object.entries(nitro.options.routeRules)) {
+  for (const [key, value] of Object.entries(fastnode.options.routeRules)) {
     if (!value.isr) {
       continue;
     }
 
     const funcPrefix = resolve(
-      nitro.options.output.serverDir,
+      fastnode.options.output.serverDir,
       "..",
       normalizeRouteDest(key) + ISR_SUFFIX
     );
@@ -132,18 +132,18 @@ export async function generateFunctionFiles(nitro: Nitro) {
     const matchData = routeFuncRouter && matchPattern(routeFuncRouter, key).at(-1);
     if (matchData) {
       isrFuncDirs.add(
-        resolve(nitro.options.output.serverDir, "..", normalizeRouteDest(key) + ".func")
+        resolve(fastnode.options.output.serverDir, "..", normalizeRouteDest(key) + ".func")
       );
       await createFunctionDirWithCustomConfig(
         funcPrefix + ".func",
-        nitro.options.output.serverDir,
+        fastnode.options.output.serverDir,
         baseFunctionConfig,
         matchData,
         normalizeRouteDest(key) + ISR_SUFFIX
       );
     } else {
       await fsp.symlink(
-        "./" + relative(dirname(funcPrefix), nitro.options.output.serverDir),
+        "./" + relative(dirname(funcPrefix), fastnode.options.output.serverDir),
         funcPrefix + ".func",
         "junction"
       );
@@ -152,7 +152,7 @@ export async function generateFunctionFiles(nitro: Nitro) {
     await writePrerenderConfig(
       funcPrefix + ".prerender-config.json",
       value.isr,
-      nitro.options.vercel?.config?.bypassToken
+      fastnode.options.vercel?.config?.bypassToken
     );
   }
 
@@ -161,7 +161,7 @@ export async function generateFunctionFiles(nitro: Nitro) {
   if (hasRouteFunctionConfig) {
     for (const [pattern, overrides] of Object.entries(functionRules!)) {
       const funcDir = resolve(
-        nitro.options.output.serverDir,
+        fastnode.options.output.serverDir,
         "..",
         normalizeRouteDest(pattern) + ".func"
       );
@@ -171,7 +171,7 @@ export async function generateFunctionFiles(nitro: Nitro) {
       }
       await createFunctionDirWithCustomConfig(
         funcDir,
-        nitro.options.output.serverDir,
+        fastnode.options.output.serverDir,
         baseFunctionConfig,
         overrides,
         normalizeRouteDest(pattern)
@@ -183,14 +183,14 @@ export async function generateFunctionFiles(nitro: Nitro) {
   // Write the private scheduled tasks function, without a route
   if (scheduleFunction) {
     const funcDir = resolve(
-      nitro.options.output.serverDir,
+      fastnode.options.output.serverDir,
       "..",
       scheduleFunction.functionPath + ".func"
     );
     await fsp.mkdir(dirname(funcDir), { recursive: true });
     await createFunctionDirWithCustomConfig(
       funcDir,
-      nitro.options.output.serverDir,
+      fastnode.options.output.serverDir,
       baseFunctionConfig,
       scheduleFunction.overrides,
       scheduleFunction.functionPath
@@ -202,7 +202,7 @@ export async function generateFunctionFiles(nitro: Nitro) {
     return;
   }
   for (const route of o11Routes) {
-    const funcPrefix = resolve(nitro.options.output.serverDir, "..", route.dest);
+    const funcPrefix = resolve(fastnode.options.output.serverDir, "..", route.dest);
     const funcDir = funcPrefix + ".func";
 
     // Skip if already created by functionRules
@@ -214,7 +214,7 @@ export async function generateFunctionFiles(nitro: Nitro) {
     if (matchData) {
       await createFunctionDirWithCustomConfig(
         funcDir,
-        nitro.options.output.serverDir,
+        fastnode.options.output.serverDir,
         baseFunctionConfig,
         matchData,
         route.dest
@@ -222,7 +222,7 @@ export async function generateFunctionFiles(nitro: Nitro) {
     } else {
       await fsp.mkdir(dirname(funcPrefix), { recursive: true });
       await fsp.symlink(
-        "./" + relative(dirname(funcPrefix), nitro.options.output.serverDir),
+        "./" + relative(dirname(funcPrefix), fastnode.options.output.serverDir),
         funcDir,
         "junction"
       );
@@ -230,19 +230,19 @@ export async function generateFunctionFiles(nitro: Nitro) {
   }
 }
 
-export async function generateStaticFiles(nitro: Nitro) {
-  const buildConfigPath = resolve(nitro.options.output.dir, "config.json");
-  const buildConfig = generateBuildConfig(nitro);
+export async function generateStaticFiles(fastnode: Fastnode) {
+  const buildConfigPath = resolve(fastnode.options.output.dir, "config.json");
+  const buildConfig = generateBuildConfig(fastnode);
   await writeFile(buildConfigPath, JSON.stringify(buildConfig, null, 2));
 }
 
-function generateBuildConfig(nitro: Nitro, o11Routes?: ObservabilityRoute[]) {
-  const rules = sortRoutes(Object.keys(nitro.options.routeRules)).map(
-    (path) => [path, nitro.options.routeRules[path]] as [string, NormalizedRouteRules]
+function generateBuildConfig(fastnode: Fastnode, o11Routes?: ObservabilityRoute[]) {
+  const rules = sortRoutes(Object.keys(fastnode.options.routeRules)).map(
+    (path) => [path, fastnode.options.routeRules[path]] as [string, NormalizedRouteRules]
   );
 
   // Route rule keys and handler routes are relative to the baseURL, as at runtime
-  const routeSrc = (route: string) => routeToRegExp(joinURL(nitro.options.baseURL, route));
+  const routeSrc = (route: string) => routeToRegExp(joinURL(fastnode.options.baseURL, route));
 
   // Determine which proxy rules can be offloaded to Vercel CDN rewrites
   const cdnProxyPaths = new Set(
@@ -273,18 +273,18 @@ function generateBuildConfig(nitro: Nitro, o11Routes?: ObservabilityRoute[]) {
     }
   }
 
-  const publicAssetRoutes = getPublicAssetRoutes(nitro.options.publicAssets, {
-    baseURL: nitro.options.baseURL,
-    routeRules: nitro.options.routeRules,
+  const publicAssetRoutes = getPublicAssetRoutes(fastnode.options.publicAssets, {
+    baseURL: fastnode.options.baseURL,
+    routeRules: fastnode.options.routeRules,
   });
 
-  const config = defu(nitro.options.vercel?.config, {
+  const config = defu(fastnode.options.vercel?.config, {
     version: 3,
     framework: {
-      name: nitro.options.framework.name,
-      version: nitro.options.framework.version,
+      name: fastnode.options.framework.name,
+      version: fastnode.options.framework.version,
     },
-    overrides: getPrerenderOverrides(nitro._prerenderedRoutes),
+    overrides: getPrerenderOverrides(fastnode._prerenderedRoutes),
     routes: [
       // Header-only rules (least specific first, so more specific headers override on `continue`)
       ...rules
@@ -303,8 +303,8 @@ function generateBuildConfig(nitro: Nitro, o11Routes?: ObservabilityRoute[]) {
           };
         }),
       // CORS headers of public asset dirs, which the server function does not serve
-      ...getPublicAssetCorsHeaders(nitro).map(({ base, headers }) => ({
-        src: joinURL(escapeRegExp(joinURL(nitro.options.baseURL, base)), "(.*)"),
+      ...getPublicAssetCorsHeaders(fastnode).map(({ base, headers }) => ({
+        src: joinURL(escapeRegExp(joinURL(fastnode.options.baseURL, base)), "(.*)"),
         headers,
         continue: true,
       })),
@@ -347,7 +347,7 @@ function generateBuildConfig(nitro: Nitro, o11Routes?: ObservabilityRoute[]) {
           : [];
       }),
       // Skew protection
-      ...(nitro.options.vercel?.skewProtection && nitro.options.manifest?.deploymentId
+      ...(fastnode.options.vercel?.skewProtection && fastnode.options.manifest?.deploymentId
         ? [
             {
               src: "/.*",
@@ -359,7 +359,7 @@ function generateBuildConfig(nitro: Nitro, o11Routes?: ObservabilityRoute[]) {
                 },
               ],
               headers: {
-                "Set-Cookie": `__vdpl=${nitro.options.manifest.deploymentId}; Path=${nitro.options.baseURL}; SameSite=Lax; Secure; HttpOnly`,
+                "Set-Cookie": `__vdpl=${fastnode.options.manifest.deploymentId}; Path=${fastnode.options.baseURL}; SameSite=Lax; Secure; HttpOnly`,
               },
               continue: true,
             },
@@ -391,25 +391,25 @@ function generateBuildConfig(nitro: Nitro, o11Routes?: ObservabilityRoute[]) {
   } as VercelBuildConfigV3);
 
   // Schedules from scheduledTasks
-  if (getVercelSchedulesMode(nitro.options)) {
-    if (!nitro.options.static) {
-      const schedules = getVercelBuildOutputSchedules(nitro);
+  if (getVercelSchedulesMode(fastnode.options)) {
+    if (!fastnode.options.static) {
+      const schedules = getVercelBuildOutputSchedules(fastnode);
       if (Object.keys(schedules).length > 0) {
         config.schedules = { ...schedules, ...config.schedules };
       }
-    } else if (Object.keys(nitro.options.scheduledTasks || {}).length > 0) {
-      nitro.logger.warn(
+    } else if (Object.keys(fastnode.options.scheduledTasks || {}).length > 0) {
+      fastnode.logger.warn(
         "Scheduled tasks are not supported by the `vercel-static` preset. Use the `vercel` preset to run them with Vercel Schedules."
       );
     }
   }
   // Cron jobs from scheduledTasks
   else if (
-    nitro.options.experimental.tasks &&
-    Object.keys(nitro.options.scheduledTasks || {}).length > 0
+    fastnode.options.experimental.tasks &&
+    Object.keys(fastnode.options.scheduledTasks || {}).length > 0
   ) {
-    const cronPath = nitro.options.vercel!.cronHandlerRoute || "/_vercel/cron";
-    const cronEntries = Object.keys(nitro.options.scheduledTasks).map((schedule) => ({
+    const cronPath = fastnode.options.vercel!.cronHandlerRoute || "/_vercel/cron";
+    const cronEntries = Object.keys(fastnode.options.scheduledTasks).map((schedule) => ({
       path: cronPath,
       schedule,
     }));
@@ -417,11 +417,11 @@ function generateBuildConfig(nitro: Nitro, o11Routes?: ObservabilityRoute[]) {
   }
 
   // Early return if we are building a static site
-  if (nitro.options.static) {
+  if (fastnode.options.static) {
     return config;
   }
 
-  const functionRules = getFunctionRules(nitro);
+  const functionRules = getFunctionRules(fastnode);
   config.routes!.push(
     // ISR rules
     ...rules
@@ -456,7 +456,7 @@ function generateBuildConfig(nitro: Nitro, o11Routes?: ObservabilityRoute[]) {
     })),
     // If we are using an ISR function as a fallback
     // then we do not need to output the below fallback route as well
-    ...(nitro.options.routeRules["/**"]?.isr
+    ...(fastnode.options.routeRules["/**"]?.isr
       ? []
       : [
           {
@@ -565,17 +565,18 @@ export interface VercelConfig {
   bunVersion?: string;
 }
 
-export async function resolveVercelRuntime(nitro: Nitro) {
-  // 1. Respect explicit runtime from nitro config
-  let runtime: VercelServerlessFunctionConfig["runtime"] = nitro.options.vercel?.functions?.runtime;
+export async function resolveVercelRuntime(fastnode: Fastnode) {
+  // 1. Respect explicit runtime from fastnode config
+  let runtime: VercelServerlessFunctionConfig["runtime"] =
+    fastnode.options.vercel?.functions?.runtime;
 
   if (runtime) {
     // Already specified
     return runtime;
   }
 
-  const engines = (await readPackageJSON(nitro.options.rootDir).catch(() => undefined))?.engines;
-  const vercelConfig = await readVercelConfig(nitro.options.rootDir);
+  const engines = (await readPackageJSON(fastnode.options.rootDir).catch(() => undefined))?.engines;
+  const vercelConfig = await readVercelConfig(fastnode.options.rootDir);
 
   // 2. engines in package.json, 3. bunVersion in vercel.json, 4. runtime used to build.
   // Same precedence as Vercel: with both engines set, bun also needs bunVersion.
@@ -589,7 +590,7 @@ export async function resolveVercelRuntime(nitro: Nitro) {
     });
   } else {
     if (engines?.node && (engines.bun || vercelConfig.bunVersion)) {
-      nitro.logger.warn(
+      fastnode.logger.warn(
         "Using Node.js because `engines.node` is set in `package.json`. To use Bun, set both `engines.bun` in `package.json` and `bunVersion` in `vercel.json`."
       );
     }
@@ -597,7 +598,7 @@ export async function resolveVercelRuntime(nitro: Nitro) {
     // Newest supported Node.js version allowed by engines.node
     let usedNodeVersion = engines?.node ? await getEnginesNodeVersion(engines.node) : undefined;
     if (engines?.node && !usedNodeVersion) {
-      nitro.logger.warn(
+      fastnode.logger.warn(
         `\`engines.node\` (\`${engines.node}\`) in \`package.json\` does not match a supported Vercel Node.js version (${SUPPORTED_NODE_VERSIONS.join(", ")}). Using the Node.js version of the build instead.`
       );
     }
@@ -612,10 +613,10 @@ export async function resolveVercelRuntime(nitro: Nitro) {
     runtime = `nodejs${usedNodeVersion}.x`;
   }
 
-  // Synchronize back to nitro config
-  nitro.options.vercel ??= {} as any;
-  nitro.options.vercel!.functions ??= {} as any;
-  nitro.options.vercel!.functions!.runtime = runtime;
+  // Synchronize back to fastnode config
+  fastnode.options.vercel ??= {} as any;
+  fastnode.options.vercel!.functions ??= {} as any;
+  fastnode.options.vercel!.functions!.runtime = runtime;
 
   return runtime;
 }
@@ -661,27 +662,27 @@ type ObservabilityRoute = {
   dest: string; // function name
 };
 
-export function getObservabilityRoutes(nitro: Nitro): ObservabilityRoute[] {
+export function getObservabilityRoutes(fastnode: Fastnode): ObservabilityRoute[] {
   // Vercel resolves functions and static files from a single path to output
   // map that functions are added to last, so a function at the path of a
   // prerendered file hides that file and serves the route with SSR on every
   // request (#4242).
   const prerenderedPaths = new Set(
-    (nitro._prerenderedRoutes || [])
+    (fastnode._prerenderedRoutes || [])
       .filter((route) => route.fileName)
       .map((route) => route.route.replace(SURROUNDING_SLASH_RE, ""))
   );
 
   // ISR routes are served by their ISR function, so they need neither an
   // observability function nor a `config.json` route (#3563, #4447).
-  const routeRulesRouter = createPatternRouter(nitro.options.routeRules);
+  const routeRulesRouter = createPatternRouter(fastnode.options.routeRules);
   const hasISR = (route: string) =>
     (defu({}, ...matchPattern(routeRulesRouter, route).reverse()) as NormalizedRouteRules).isr;
 
   const routePatterns = [
     ...new Set([
-      ...(nitro.options.ssrRoutes || []),
-      ...[...nitro.scannedHandlers, ...nitro.options.handlers]
+      ...(fastnode.options.ssrRoutes || []),
+      ...[...fastnode.scannedHandlers, ...fastnode.options.handlers]
         .filter((h) => !h.middleware && h.route)
         .map((h) => h.route!),
     ]),
@@ -689,7 +690,7 @@ export function getObservabilityRoutes(nitro: Nitro): ObservabilityRoute[] {
     (route) =>
       !prerenderedPaths.has(route.replace(SURROUNDING_SLASH_RE, "")) &&
       !hasISR(route) &&
-      !isPrivateScheduleRoute(nitro, route)
+      !isPrivateScheduleRoute(fastnode, route)
   );
 
   return sortRoutes(routePatterns).map((route) => ({
@@ -702,17 +703,17 @@ export function getObservabilityRoutes(nitro: Nitro): ObservabilityRoute[] {
  * `vercel.functionRules`, without the rule for the private scheduled tasks function, which is
  * written separately and must not get a public route.
  */
-function getFunctionRules(nitro: Nitro) {
-  const functionRules = nitro.options.vercel?.functionRules;
-  if (!functionRules || !getVercelScheduleFunction(nitro)) {
+function getFunctionRules(fastnode: Fastnode) {
+  const functionRules = fastnode.options.vercel?.functionRules;
+  if (!functionRules || !getVercelScheduleFunction(fastnode)) {
     return functionRules;
   }
   const { [SCHEDULE_HANDLER_ROUTE]: _scheduleRule, ...rest } = functionRules;
   return rest;
 }
 
-function isPrivateScheduleRoute(nitro: Nitro, route: string) {
-  return route === SCHEDULE_HANDLER_ROUTE && !!getVercelScheduleFunction(nitro);
+function isPrivateScheduleRoute(fastnode: Fastnode, route: string) {
+  return route === SCHEDULE_HANDLER_ROUTE && !!getVercelScheduleFunction(fastnode);
 }
 
 // Output is a destination pathname to function name

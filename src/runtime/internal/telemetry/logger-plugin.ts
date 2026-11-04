@@ -1,5 +1,5 @@
-import { definePlugin } from "nitro";
-import type { NitroApp, NitroAppPlugin } from "nitro/types";
+import { definePlugin } from "fastnode";
+import type { FastnodeApp, FastnodeAppPlugin } from "fastnode/types";
 import type { IAnyValue, IKeyValue, SpanInfo } from "./types.ts";
 import { Span } from "./span.ts";
 import { subscribeTracedChannels } from "./subscribe.ts";
@@ -23,7 +23,7 @@ interface RequestTrace {
  * Built-in telemetry sink that renders each request's tracing-channel spans as a
  * console timeline (waterfall), enabled via `experimental.tracingLogger`. A
  * dependency-free, platform-agnostic alternative to a vendor sink (e.g. the
- * Vercel exporter) — useful for local development and seeing what Nitro spends
+ * Vercel exporter) — useful for local development and seeing what Fastnode spends
  * time on per request.
  *
  * Spans are grouped per request via async context: a collector is seeded on the
@@ -32,7 +32,7 @@ interface RequestTrace {
  * request's collector, isolated from other in-flight requests. The timeline is
  * flushed on the `response` hook.
  */
-const plugin: NitroAppPlugin = definePlugin((nitroApp: NitroApp) => {
+const plugin: FastnodeAppPlugin = definePlugin((fastnodeApp: FastnodeApp) => {
   const proc = globalThis.process;
   const diagnostics = proc?.getBuiltinModule?.("node:diagnostics_channel");
   const asyncHooks = proc?.getBuiltinModule?.("node:async_hooks");
@@ -40,7 +40,7 @@ const plugin: NitroAppPlugin = definePlugin((nitroApp: NitroApp) => {
   // Without async context (or the request hooks) there's no reliable way to
   // group spans per request — storage operations carry no request reference —
   // so fall back to a flat line per completed span.
-  if (!diagnostics?.subscribe || !asyncHooks?.AsyncLocalStorage || !nitroApp?.hooks) {
+  if (!diagnostics?.subscribe || !asyncHooks?.AsyncLocalStorage || !fastnodeApp?.hooks) {
     subscribeTracedChannels(logFlat);
     return;
   }
@@ -50,7 +50,7 @@ const plugin: NitroAppPlugin = definePlugin((nitroApp: NitroApp) => {
   // Seed a per-request collector. `enterWith` binds it to the request's async
   // context, so the traced operations below (and their `asyncEnd` continuations)
   // observe the same collector until the response is sent.
-  nitroApp.hooks.hook("request", (event) => {
+  fastnodeApp.hooks.hook("request", (event) => {
     als.enterWith({
       start: BigInt(Span.nowUnixNano()),
       method: event.req.method,
@@ -73,7 +73,7 @@ const plugin: NitroAppPlugin = definePlugin((nitroApp: NitroApp) => {
     });
   });
 
-  nitroApp.hooks.hook("response", () => {
+  fastnodeApp.hooks.hook("response", () => {
     const trace = als.getStore();
     if (trace) {
       console.log(renderTimeline(trace, BigInt(Span.nowUnixNano())));
@@ -163,8 +163,8 @@ function renderTimeline(trace: RequestTrace, end: bigint): string {
     const share = Number(span.end - span.start) / Number(total);
 
     const marker = failed ? MARKER_FAILED : MARKER_OK;
-    const label = renderLabel(prefixes[i], marker, span.name, accent, paint, dim);
-    const bar = renderBar(span, t0, total, track, accent, paint, dim);
+    const label = renderLabel(prefixes[i]!, marker, span.name, accent!, paint, dim);
+    const bar = renderBar(span, t0, total, track, accent!, paint, dim);
     const duration = paint(ms(span.end - span.start).padStart(9), heat(share, 0.25, 0.6));
     const base = ` ${label} ${bar} ${duration}`;
     const basePlainLen = LABEL_WIDTH + track + 12;
@@ -244,14 +244,14 @@ function treePrefixes(spans: CollectedSpan[]): string[] {
   const parent: number[] = [];
   const stack: number[] = [];
   for (let i = 0; i < spans.length; i++) {
-    while (stack.length && spans[stack[stack.length - 1]].end < spans[i].end) stack.pop();
-    parent[i] = stack.length ? stack[stack.length - 1] : -1;
+    while (stack.length && spans[stack[stack.length - 1]!]!.end < spans[i]!.end) stack.pop();
+    parent[i] = stack.length ? stack[stack.length - 1]! : -1;
     stack.push(i);
   }
   const isLast = spans.map((_, i) => !spans.some((__, j) => j > i && parent[j] === parent[i]));
   return spans.map((_, i) => {
     const chain: number[] = [];
-    for (let p = parent[i]; p !== -1; p = parent[p]) chain.unshift(p);
+    for (let p = parent[i]!; p !== -1; p = parent[p]!) chain.unshift(p);
     const bars = chain.map((a) => (isLast[a] ? "  " : "│ ")).join("");
     return bars + (isLast[i] ? "└─" : "├─");
   });

@@ -4,7 +4,7 @@ import type { ViteDevServer } from "vite";
 import { afterEach, describe, expect, test } from "vitest";
 
 const { createServer } = (await import(
-  process.env.NITRO_VITE_PKG || "vite"
+  process.env.FASTNODE_VITE_PKG || "vite"
 )) as typeof import("vite");
 
 // #4638: the env runner announces the registered environments to the dev worker when it becomes
@@ -72,7 +72,7 @@ function watchWorker(manager: RunnerManager) {
   let onInvoke: (() => void) | undefined;
   const sendMessage = manager.sendMessage;
   manager.sendMessage = (message: any) => {
-    if (message?.event === "nitro:vite-env") announced.add(message.data.name);
+    if (message?.event === "fastnode:vite-env") announced.add(message.data.name);
     sendMessage.call(manager, message);
   };
   manager.onMessage((message: any) => {

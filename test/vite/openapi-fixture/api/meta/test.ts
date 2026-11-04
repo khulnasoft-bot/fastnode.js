@@ -1,4 +1,4 @@
-import { defineRouteMeta } from "nitro";
+import { defineRouteMeta } from "fastnode";
 
 defineRouteMeta({
   openAPI: {

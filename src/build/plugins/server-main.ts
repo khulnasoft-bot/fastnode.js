@@ -1,16 +1,17 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import type { Plugin } from "rollup";
 
-export function serverMain(nitro: Nitro): Plugin {
+export function serverMain(fastnode: Fastnode): Plugin {
   return {
-    name: "nitro:server-main",
+    name: "fastnode:server-main",
     renderChunk(code, chunk) {
       if (chunk.isEntry) {
         return {
-          code: `globalThis.__nitro_main__ = import.meta.url; ${code}`,
+          code: `globalThis.__fastnode_main__ = import.meta.url; ${code}`,
           map: null,
         };
       }
+      return undefined;
     },
   };
 }

@@ -1,5 +1,5 @@
-import type { NitroServerEntry } from "nitro/types";
+import type { FastnodeServerEntry } from "fastnode/types";
 
-export function defineServerEntry(entry: NitroServerEntry): NitroServerEntry {
+export function defineServerEntry(entry: FastnodeServerEntry): FastnodeServerEntry {
   return entry;
 }

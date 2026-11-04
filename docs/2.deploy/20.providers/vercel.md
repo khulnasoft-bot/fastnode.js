@@ -1,6 +1,6 @@
 # Vercel
 
-> Deploy Nitro apps to Vercel.
+> Deploy Fastnode apps to Vercel.
 
 **Preset:** `vercel`
 
@@ -23,20 +23,20 @@ Learn more in [the Vercel documentation](https://vercel.com/docs).
 
 ### Deploy with Git
 
-Vercel supports Nitro with zero configuration. [Deploy Nitro to Vercel now](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fvercel%2Ftree%2Fmain%2Fexamples%2Fnitro).
+Vercel supports Fastnode with zero configuration. [Deploy Fastnode to Vercel now](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fvercel%2Ftree%2Fmain%2Fexamples%2Ffastnode).
 
 ## API routes
 
-Nitro's top-level `/api` directory isn't compatible with Vercel. Use the `routes/api/` directory instead.
+Fastnode's top-level `/api` directory isn't compatible with Vercel. Use the `routes/api/` directory instead.
 
 ## Runtime
 
 :read-more{title="Vercel" to="https://vercel.com/docs/functions/runtimes/node-js/node-js-versions"}
 
-Nitro checks these sources, in order, to pick the runtime of the server function:
+Fastnode checks these sources, in order, to pick the runtime of the server function:
 
-1. `vercel.functions.runtime` in your Nitro config.
-2. `engines` in `package.json`. `engines.node` selects the newest supported Node.js version that matches the range, and `engines.bun` selects Bun. When both are set, Bun is only used if `vercel.json` also sets `bunVersion`. If no supported version matches `engines.node`, Nitro logs a warning and uses the build's Node.js major version, clamped as in step 4, even when building with Bun.
+1. `vercel.functions.runtime` in your Fastnode config.
+2. `engines` in `package.json`. `engines.node` selects the newest supported Node.js version that matches the range, and `engines.bun` selects Bun. When both are set, Bun is only used if `vercel.json` also sets `bunVersion`. If no supported version matches `engines.node`, Fastnode logs a warning and uses the build's Node.js major version, clamped as in step 4, even when building with Bun.
 3. `bunVersion` in `vercel.json`.
 4. The runtime running the build: Bun when building with Bun, otherwise the build's Node.js major version, clamped to the versions Vercel supports.
 
@@ -56,10 +56,10 @@ Steps 2 and 3 follow the same precedence as Vercel.
 
 :read-more{title="Vercel" to="https://vercel.com/docs/functions/runtimes/bun"}
 
-You can use [Bun](https://bun.com) instead of Node.js by specifying the runtime using the `vercel.functions` key inside `nitro.config`:
+You can use [Bun](https://bun.com) instead of Node.js by specifying the runtime using the `vercel.functions` key inside `fastnode.config`:
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   vercel: {
@@ -70,7 +70,7 @@ export default defineConfig({
 })
 ```
 
-Alternatively, Nitro also detects Bun automatically if you specify `engines.bun` in your `package.json` or a `bunVersion` property in your `vercel.json`:
+Alternatively, Fastnode also detects Bun automatically if you specify `engines.bun` in your `package.json` or a `bunVersion` property in your `vercel.json`:
 
 ```json [vercel.json]
 {
@@ -81,7 +81,7 @@ Alternatively, Nitro also detects Bun automatically if you specify `engines.bun`
 
 If your `package.json` also sets `engines.node`, Node.js is used unless both `engines.bun` and `bunVersion` are set (see [Runtime](#runtime)).
 
-Nitro uses `engines.bun` before `bunVersion` to select the Bun version. Ranges that require Bun 1.4, such as `1.4.x`, `^1.4.0`, and `>=1.4`, select `bun1.4.x`. Ranges that also allow older minor versions, such as `1.x` or `>=1`, keep `bun1.x`, following Vercel's explicit opt-in for minor versions. Invalid or unsupported ranges fail the build.
+Fastnode uses `engines.bun` before `bunVersion` to select the Bun version. Ranges that require Bun 1.4, such as `1.4.x`, `^1.4.0`, and `>=1.4`, select `bun1.4.x`. Ranges that also allow older minor versions, such as `1.x` or `>=1`, keep `bun1.x`, following Vercel's explicit opt-in for minor versions. Invalid or unsupported ranges fail the build.
 
 ## Per-route function configuration
 
@@ -93,8 +93,8 @@ Array properties (e.g., `regions`) from route config replace the base config arr
 
 This is useful when certain routes need different resource limits, regions, or features like [Vercel Queues triggers](https://vercel.com/docs/queues).
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   vercel: {
@@ -118,10 +118,10 @@ Route patterns support wildcards via [rou3](https://github.com/h3js/rou3) matchi
 
 ## Proxy route rules
 
-Nitro automatically optimizes `proxy` route rules on Vercel by generating [CDN-level rewrites](https://vercel.com/docs/rewrites) at build time. This means matching requests are proxied at the edge without invoking a serverless function, reducing latency and cost.
+Fastnode automatically optimizes `proxy` route rules on Vercel by generating [CDN-level rewrites](https://vercel.com/docs/rewrites) at build time. This means matching requests are proxied at the edge without invoking a serverless function, reducing latency and cost.
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   routeRules: {
@@ -142,7 +142,7 @@ A proxy rule is offloaded to a Vercel CDN rewrite when **all** of the following 
 
 ### Fallback to runtime proxy
 
-When the proxy rule uses any of the following `ProxyOptions`, Nitro keeps it as a runtime proxy handled by the serverless function:
+When the proxy rule uses any of the following `ProxyOptions`, Fastnode keeps it as a runtime proxy handled by the serverless function:
 
 - `headers`: custom headers on the outgoing request to the upstream
 - `forwardHeaders` / `filterHeaders`: header filtering
@@ -158,10 +158,10 @@ Response headers defined on the route rule via the `headers` option are still ap
 
 :read-more{title="Vercel Cron Jobs" to="https://vercel.com/docs/cron-jobs"}
 
-Nitro automatically converts your [`scheduledTasks`](/docs/tasks#scheduled-tasks) configuration into [Vercel Cron Jobs](https://vercel.com/docs/cron-jobs) at build time. Define your schedules in your Nitro config and deploy. No manual `vercel.json` cron configuration is required.
+Fastnode automatically converts your [`scheduledTasks`](/docs/tasks#scheduled-tasks) configuration into [Vercel Cron Jobs](https://vercel.com/docs/cron-jobs) at build time. Define your schedules in your Fastnode config and deploy. No manual `vercel.json` cron configuration is required.
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   experimental: {
@@ -180,7 +180,7 @@ export default defineConfig({
 
 :read-more{title="Securing cron jobs" to="https://vercel.com/docs/cron-jobs/manage-cron-jobs#securing-cron-jobs"}
 
-To prevent unauthorized access to the cron handler, set a `CRON_SECRET` environment variable in your Vercel project settings. When `CRON_SECRET` is set, Nitro validates the `Authorization` header on every cron invocation and rejects mismatches with `401`.
+To prevent unauthorized access to the cron handler, set a `CRON_SECRET` environment variable in your Vercel project settings. When `CRON_SECRET` is set, Fastnode validates the `Authorization` header on every cron invocation and rejects mismatches with `401`.
 
 ::warning
 `CRON_SECRET` is **not** set by default. Matching [Vercel's own behaviour](https://vercel.com/docs/cron-jobs/manage-cron-jobs#securing-cron-jobs), the cron endpoint (`/_vercel/cron`, configurable via [`vercel.cronHandlerRoute`](#other-preset-options)) performs no authentication when the variable is missing. Anyone who knows the route can then pick a schedule with the `x-vercel-cron-schedule` header and run the tasks registered for it on demand. Always set `CRON_SECRET` when using `scheduledTasks` on Vercel.
@@ -198,10 +198,10 @@ Vercel Schedules is in beta and must be enabled for your Vercel team.
 Vercel Schedules support is currently only available in the [nightly channel](/docs/nightly).
 ::
 
-You can run your `scheduledTasks` with [Vercel Schedules](https://vercel.com/docs/schedules) instead of Cron Jobs. Your tasks and `scheduledTasks` config stay the same. Enable it in your Nitro config, or with the `NITRO_VERCEL_SCHEDULES=private` environment variable:
+You can run your `scheduledTasks` with [Vercel Schedules](https://vercel.com/docs/schedules) instead of Cron Jobs. Your tasks and `scheduledTasks` config stay the same. Enable it in your Fastnode config, or with the `FASTNODE_VERCEL_SCHEDULES=private` environment variable:
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   vercel: {
@@ -223,23 +223,23 @@ Compared to Cron Jobs:
 
 #### Local development
 
-Under `vercel dev`, the local Schedules broker runs your scheduled tasks instead of the in-process scheduler, and `vercel schedules invoke <name> --local` runs one on demand. This requires `nitro dev` to use the Vercel preset, so set `preset: "vercel"` in your Nitro config (or `NITRO_PRESET=vercel`). Otherwise, and with plain `nitro dev`, scheduled tasks keep running in-process.
+Under `vercel dev`, the local Schedules broker runs your scheduled tasks instead of the in-process scheduler, and `vercel schedules invoke <name> --local` runs one on demand. This requires `fastnode dev` to use the Vercel preset, so set `preset: "vercel"` in your Fastnode config (or `FASTNODE_PRESET=vercel`). Otherwise, and with plain `fastnode dev`, scheduled tasks keep running in-process.
 
 ::note
-Like `/_nitro/tasks`, the routes that `vercel dev` uses to discover and run your scheduled tasks only accept local requests.
+Like `/_fastnode/tasks`, the routes that `vercel dev` uses to discover and run your scheduled tasks only accept local requests.
 ::
 
 ## Queues
 
 :read-more{title="Vercel Queues" to="https://vercel.com/docs/queues"}
 
-Nitro integrates with [Vercel Queues](https://vercel.com/docs/queues) to process messages asynchronously. Define your queue topics in the Nitro config and handle incoming messages with the `vercel:queue` runtime hook.
+Fastnode integrates with [Vercel Queues](https://vercel.com/docs/queues) to process messages asynchronously. Define your queue topics in the Fastnode config and handle incoming messages with the `vercel:queue` runtime hook.
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
-  // Standalone Nitro scans `serverDir` for routes and plugins
+  // Standalone Fastnode scans `serverDir` for routes and plugins
   serverDir: "./server",
   vercel: {
     queues: {
@@ -255,13 +255,13 @@ export default defineConfig({
 
 ### Handling messages
 
-Use the `vercel:queue` hook in a [Nitro plugin](/docs/plugins) to process incoming queue messages:
+Use the `vercel:queue` hook in a [Fastnode plugin](/docs/plugins) to process incoming queue messages:
 
 ```ts [server/plugins/queues.ts]
-import { definePlugin } from "nitro";
+import { definePlugin } from "fastnode";
 
-export default definePlugin((nitroApp) => {
-  nitroApp.hooks.hook("vercel:queue", ({ message, metadata, send }) => {
+export default definePlugin((fastnodeApp) => {
+  fastnodeApp.hooks.hook("vercel:queue", ({ message, metadata, send }) => {
     console.log(`[${metadata.topicName}] Message ${metadata.messageId}:`, message);
   });
 });
@@ -269,14 +269,14 @@ export default definePlugin((nitroApp) => {
 
 ### Running tasks from queue messages
 
-You can use queue messages to trigger [Nitro tasks](/docs/tasks):
+You can use queue messages to trigger [Fastnode tasks](/docs/tasks):
 
 ```ts [server/plugins/queues.ts]
-import { definePlugin } from "nitro";
-import { runTask } from "nitro/task";
+import { definePlugin } from "fastnode";
+import { runTask } from "fastnode/task";
 
-export default definePlugin((nitroApp) => {
-  nitroApp.hooks.hook("vercel:queue", async ({ message, metadata }) => {
+export default definePlugin((fastnodeApp) => {
+  fastnodeApp.hooks.hook("vercel:queue", async ({ message, metadata }) => {
     if (metadata.topicName === "orders") {
       await runTask("orders:fulfill", { payload: message });
     }
@@ -289,7 +289,7 @@ export default definePlugin((nitroApp) => {
 Use the `@vercel/queue` package directly to send messages to a topic:
 
 ```ts [server/routes/api/orders.post.ts]
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 import { send } from "@vercel/queue";
 
 export default defineHandler(async (event) => {
@@ -301,20 +301,20 @@ export default defineHandler(async (event) => {
 
 ### Local development
 
-Queues work in `nitro dev`: `send()` delivers messages straight to your `vercel:queue` hook, so you can iterate without deploying. Pull your Vercel environment first with `vercel link` and `vercel env pull` so the SDK can authenticate.
+Queues work in `fastnode dev`: `send()` delivers messages straight to your `vercel:queue` hook, so you can iterate without deploying. Pull your Vercel environment first with `vercel link` and `vercel env pull` so the SDK can authenticate.
 
 If your hook throws, the message is retried locally. Retries honor `retryAfterSeconds` from each trigger when set.
 
 ## Custom build output configuration
 
-You can provide additional [build output configuration](https://vercel.com/docs/build-output-api/v3) using the `vercel.config` key inside `nitro.config`. It will be merged with the built-in auto-generated config.
+You can provide additional [build output configuration](https://vercel.com/docs/build-output-api/v3) using the `vercel.config` key inside `fastnode.config`. It will be merged with the built-in auto-generated config.
 
 ## Public asset caching
 
 Public asset directories that do not fall through (the default for any non-root `baseURL`) are served by Vercel's CDN straight from the filesystem, with a `Cache-Control` header built from the directory's `maxAge`. Directories without an explicit `maxAge` are cached for one year, which is a Vercel-specific default kept for backwards compatibility.
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   publicAssets: [
@@ -327,11 +327,11 @@ export default defineConfig({
 })
 ```
 
-A request under such a base that does not match a file returns `404` with `Cache-Control: no-store` instead of reaching the server function. This mirrors the Nitro runtime, which also responds `404` for a missing asset under a non-fallthrough base, and it keeps dynamic content from being served — and then cached for the lifetime of the `max-age` — under an asset URL.
+A request under such a base that does not match a file returns `404` with `Cache-Control: no-store` instead of reaching the server function. This mirrors the Fastnode runtime, which also responds `404` for a missing asset under a non-fallthrough base, and it keeps dynamic content from being served — and then cached for the lifetime of the `max-age` — under an asset URL.
 
 Set `maxAge: 0` to opt out of the one-year default. No `Cache-Control` header is then generated for the base:
 
-```ts [nitro.config.ts]
+```ts [fastnode.config.ts]
 export default defineConfig({
   publicAssets: [
     {
@@ -345,7 +345,7 @@ export default defineConfig({
 
 A `cache-control` route rule for the base takes precedence over both, so a directory can be served with a custom header instead:
 
-```ts [nitro.config.ts]
+```ts [fastnode.config.ts]
 export default defineConfig({
   routeRules: {
     "/build/**": { headers: { "cache-control": "no-cache" } },
@@ -365,10 +365,10 @@ Falling-through directories are unaffected, including the top-level `public/` di
 
 Client build assets (such as JS and CSS chunks) can be emitted as **immutable static files**. These are served from the reserved `/_vercel/immutable/` path so they are shared across deployments and keep resolving even after a newer deployment no longer references them, improving cross-deployment caching.
 
-This feature is opt-in. Enable it with the `vercel.immutableStaticFiles` option or by setting the `NITRO_VERCEL_IMMUTABLE_STATIC_FILES_ENABLED` environment variable.
+This feature is opt-in. Enable it with the `vercel.immutableStaticFiles` option or by setting the `FASTNODE_VERCEL_IMMUTABLE_STATIC_FILES_ENABLED` environment variable.
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   vercel: {
@@ -377,30 +377,30 @@ export default defineConfig({
 })
 ```
 
-When enabled, Nitro emits content-addressed build assets under `/_vercel/immutable/`.
+When enabled, Fastnode emits content-addressed build assets under `/_vercel/immutable/`.
 
 ::note
 The [`VERCEL_HASH_SALT`](https://vercel.com/docs/environment-variables/system-environment-variables) system environment variable is factored into the generated asset paths, providing a way to rotate them.
 ::
 
 ::warning
-Immutable static files must be served from the reserved `/_vercel/immutable/` path, so they are not supported when using a non-root `baseURL`. In that case Nitro skips the immutable output and warns during the build.
+Immutable static files must be served from the reserved `/_vercel/immutable/` path, so they are not supported when using a non-root `baseURL`. In that case Fastnode skips the immutable output and warns during the build.
 ::
 
 ::note
-This works out of the box with the **Nitro + Vite** integration: Nitro's Vercel preset sets `buildAssetsDir` config and the Vite plugin automatically applies it as the `assetsDir` for the client and server-rendered builds, so all generated asset URLs point under `/_vercel/immutable/`.
+This works out of the box with the **Fastnode + Vite** integration: Fastnode's Vercel preset sets `buildAssetsDir` config and the Vite plugin automatically applies it as the `assetsDir` for the client and server-rendered builds, so all generated asset URLs point under `/_vercel/immutable/`.
 
-Client build setups and frameworks must apply `nitro.options.buildAssetsDir` themselves. Use it as the client bundler's asset output directory (base) so generated asset URLs are emitted under that path. Without this, assets are still emitted at their default location and the immutable manifest will not match.
+Client build setups and frameworks must apply `fastnode.options.buildAssetsDir` themselves. Use it as the client bundler's asset output directory (base) so generated asset URLs are emitted under that path. Without this, assets are still emitted at their default location and the immutable manifest will not match.
 ::
 
 ## Other preset options
 
-Additional options are available under the `vercel` key in your Nitro config:
+Additional options are available under the `vercel` key in your Fastnode config:
 
 - `entryFormat`: Handler format for Vercel Functions. `"web"` (default) or `"node"`. The `node` format enables compatibility with Node.js specific APIs (e.g., `req.runtime.node`).
-- `skewProtection`: Set to `false` to disable the Nitro [skew protection](https://vercel.com/docs/skew-protection) integration (enabled by default when skew protection is enabled in the Vercel dashboard).
+- `skewProtection`: Set to `false` to disable the Fastnode [skew protection](https://vercel.com/docs/skew-protection) integration (enabled by default when skew protection is enabled in the Vercel dashboard).
 - `cronHandlerRoute`: Route path for the Vercel cron handler endpoint used with `scheduledTasks` (default: `"/_vercel/cron"`).
-- `schedules` (experimental): Run `scheduledTasks` with [Vercel Schedules](#vercel-schedules) instead of Cron Jobs, `"private"` or `"public"` (default: the `NITRO_VERCEL_SCHEDULES` environment variable).
+- `schedules` (experimental): Run `scheduledTasks` with [Vercel Schedules](#vercel-schedules) instead of Cron Jobs, `"private"` or `"public"` (default: the `FASTNODE_VERCEL_SCHEDULES` environment variable).
 
 ## On-demand incremental static regeneration (ISR)
 
@@ -417,8 +417,8 @@ To revalidate a page on demand:
 
 2. Update your configuration:
 
-    ```ts [nitro.config.ts]
-    import { defineConfig } from "nitro";
+    ```ts [fastnode.config.ts]
+    import { defineConfig } from "fastnode";
 
     export default defineConfig({
       vercel: {
@@ -433,7 +433,7 @@ To revalidate a page on demand:
 
 ### Fine-grained ISR config via route rules
 
-By default, query params affect cache keys but are not passed to the route handler. When `allowQuery` lists params, Nitro also enables `passQuery` so the handler sees them.
+By default, query params affect cache keys but are not passed to the route handler. When `allowQuery` lists params, Fastnode also enables `passQuery` so the handler sees them.
 
 You can pass an options object to the `isr` route rule to configure caching behavior:
 
@@ -446,8 +446,8 @@ You can pass an options object to the `isr` route rule to configure caching beha
 - `passQuery`: When `true`, the query string is present on the `request` argument passed to the invoked function. The `allowQuery` filter still applies. Defaults to `true` when `allowQuery` is a non-empty list, so the listed params reach the handler. Set it to `false` to opt out.
 - `exposeErrBody`: When `true`, expose the response body regardless of status code, including error status codes (default: `false`).
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   routeRules: {

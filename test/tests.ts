@@ -10,18 +10,18 @@ import {
   build,
   copyPublicAssets,
   createDevServer,
-  createNitro,
+  createFastnode,
   prepare,
   prerender,
-} from "nitro/builder";
-import type { Nitro, NitroConfig } from "nitro/types";
+} from "fastnode/builder";
+import type { Fastnode, FastnodeConfig } from "fastnode/types";
 import { join, resolve } from "pathe";
 import { isBun, isWindows } from "std-env";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 export interface Context {
   preset: string;
-  nitro?: Nitro;
+  fastnode?: Fastnode;
   rootDir: string;
   outDir: string;
   fetch: (url: string, opts?: RequestInit) => Promise<any>;
@@ -34,7 +34,7 @@ export interface Context {
   // [key: string]: unknown;
 }
 
-// https://github.com/nitrojs/nitro/pull/1240
+// https://github.com/khulnasoft/fastnode/pull/1240
 export const describeIf = (condition: boolean, title: string, factory: () => any) =>
   condition
     ? describe(title, factory)
@@ -51,13 +51,13 @@ export const getPresetTmpDir = (preset: string) => {
     return fileURLToPath(new URL(`.tmp/${preset}`, import.meta.url) as any /* remove me */);
   }
 
-  return resolve(process.env.NITRO_TEST_TMP_DIR || join(tmpdir(), "nitro-tests"), preset);
+  return resolve(process.env.FASTNODE_TEST_TMP_DIR || join(tmpdir(), "fastnode-tests"), preset);
 };
 
 export async function setupTest(
   preset: string,
   opts: {
-    config?: NitroConfig;
+    config?: FastnodeConfig;
     compatibilityDate?: DateString;
     outDirSuffix?: string;
   } = {}
@@ -71,7 +71,7 @@ export async function setupTest(
 
   const ctx: Context = {
     preset,
-    isDev: preset === "nitro-dev",
+    isDev: preset === "fastnode-dev",
     isWorker: [
       "cloudflare-worker",
       "cloudflare-module",
@@ -83,11 +83,11 @@ export async function setupTest(
     rootDir: fixtureDir,
     outDir: resolve(fixtureDir, presetTmpDir, ".output"),
     env: {
-      NITRO_HELLO: "world",
+      FASTNODE_HELLO: "world",
       CUSTOM_HELLO_THERE: "general",
       SECRET: "secret",
       APP_DOMAIN: "test.com",
-      NITRO_DYNAMIC: "from-env",
+      FASTNODE_DYNAMIC: "from-env",
     },
     fetch: (url, opts) =>
       fetch(new URL(url, ctx.server!.url), {
@@ -106,25 +106,25 @@ export async function setupTest(
     dev: ctx.isDev,
     rootDir: ctx.rootDir,
     runtimeConfig: {
-      nitro: {
+      fastnode: {
         envPrefix: "CUSTOM_",
       },
       hello: "",
       helloThere: "",
     },
-    buildDir: resolve(fixtureDir, presetTmpDir, ".nitro"),
+    buildDir: resolve(fixtureDir, presetTmpDir, ".fastnode"),
     serveStatic: !ctx.isDev && !ctx.isWorker,
     output: {
       dir: ctx.outDir,
     },
   });
-  const nitro = (ctx.nitro = await createNitro(config, {
+  const fastnode = (ctx.fastnode = await createFastnode(config, {
     compatibilityDate: opts.compatibilityDate || formatDate(new Date()),
   }));
 
   // Isolate the default sqlite database per preset build (defaults to `<cwd>/.data/db.sqlite`),
   // otherwise parallel test files race on the same file ("database is locked").
-  const defaultDatabase = nitro.options.database?.default;
+  const defaultDatabase = fastnode.options.database?.default;
   if (defaultDatabase?.connector === "sqlite" && !defaultDatabase.options?.path) {
     defaultDatabase.options = {
       ...defaultDatabase.options,
@@ -134,32 +134,32 @@ export async function setupTest(
 
   if (ctx.isDev) {
     // Setup development server
-    const devServer = createDevServer(ctx.nitro);
+    const devServer = createDevServer(ctx.fastnode);
     const server = await devServer.listen({ port: 0 });
     ctx.server = {
       url: server.url!,
       close: () => server.close(),
     };
-    await prepare(ctx.nitro);
+    await prepare(ctx.fastnode);
     const ready = new Promise<void>((resolve) => {
-      ctx.nitro!.hooks.hook("dev:reload", () => resolve());
+      ctx.fastnode!.hooks.hook("dev:reload", () => resolve());
     });
-    await build(ctx.nitro);
+    await build(ctx.fastnode);
     await ready;
   } else {
     // Production build
-    await prepare(nitro);
-    await copyPublicAssets(nitro);
-    await prerender(nitro);
-    await build(nitro);
+    await prepare(fastnode);
+    await copyPublicAssets(fastnode);
+    await prerender(fastnode);
+    await build(fastnode);
   }
 
   afterAll(async () => {
     if (ctx.server) {
       await ctx.server.close();
     }
-    if (ctx.nitro) {
-      await ctx.nitro.close();
+    if (ctx.fastnode) {
+      await ctx.fastnode.close();
     }
   });
 
@@ -193,7 +193,7 @@ type TestHandlerResult = {
 };
 type TestHandler = (options: any) => Promise<TestHandlerResult | Response>;
 
-export function testNitro(
+export function testFastnode(
   ctx: Context,
   getHandler: () => TestHandler | Promise<TestHandler>,
   additionalTests?: (
@@ -273,9 +273,9 @@ export function testNitro(
     expect(JSON.parse(headers["x-fast-response"] as string)).toEqual({
       // srvx `FastResponse` is the native `Response` outside of Node.js
       fast:
-        ctx.nitro!.options.node &&
+        ctx.fastnode!.options.node &&
         !["bun", "deno-server", "standard"].includes(ctx.preset) &&
-        !ctx.nitro!.options.exportConditions?.includes("bun"),
+        !ctx.fastnode!.options.exportConditions?.includes("bun"),
       statics: true,
       subclass: true,
     });
@@ -283,7 +283,7 @@ export function testNitro(
 
   // On Bun, the dev worker closes the socket and the dev proxy responds with 500 instead of 413
   // https://github.com/unjs/env-runner/issues/97
-  it.runIf(["bun", "deno-server", "nitro-dev"].includes(ctx.preset) && !(ctx.isDev && isBun))(
+  it.runIf(["bun", "deno-server", "fastnode-dev"].includes(ctx.preset) && !(ctx.isDev && isBun))(
     "Server entry options are passed to srvx",
     async () => {
       const small = await callHandler({
@@ -343,7 +343,7 @@ export function testNitro(
     const { data: helloData } = await callHandler({ url: "/api/hello" });
     expect(helloData).to.toMatchObject({ message: "Hello API" });
 
-    if (ctx.nitro?.options.serveStatic) {
+    if (ctx.fastnode?.options.serveStatic) {
       // /api/hey is expected to be prerendered
       const { data: heyData } = await callHandler({ url: "/api/hey" });
       expect(heyData).to.have.string("Hey API");
@@ -421,13 +421,13 @@ export function testNitro(
 
     const obj = await callHandler({ url: "/rules/redirect/obj" });
     expect(obj.status).toBe(308);
-    expect(obj.headers.location).toBe("https://nitro.build/");
+    expect(obj.headers.location).toBe("https://fastnode.khulnasoft.com/");
 
     const wildcard = await callHandler({
       url: "/rules/redirect/wildcard/nuxt",
     });
     expect(wildcard.status).toBe(307);
-    expect(wildcard.headers.location).toBe("https://nitro.build/nuxt");
+    expect(wildcard.headers.location).toBe("https://fastnode.khulnasoft.com/nuxt");
 
     // Regression test for GHSA-9phm-9p8f-hw5m: a leading `//` after the
     // wildcard prefix must not be forwarded as a protocol-relative URL.
@@ -450,7 +450,7 @@ export function testNitro(
 
   it.skipIf(
     // TODO: srvx reverse-compat bug with streaming?
-    ctx.preset === "vercel" && ctx.nitro?.options.vercel?.entryFormat === "node"
+    ctx.preset === "vercel" && ctx.fastnode?.options.vercel?.entryFormat === "node"
   )("render JSX", async () => {
     const { data } = await callHandler({ url: "/jsx" });
     expect(data).toMatch(/<h1 class="test".*>Hello JSX!<\/h1>/);
@@ -461,7 +461,7 @@ export function testNitro(
     expect(data).toMatchObject({ window: false });
   });
 
-  it.runIf(ctx.nitro?.options.serveStatic)("handles custom Vary header", async () => {
+  it.runIf(ctx.fastnode?.options.serveStatic)("handles custom Vary header", async () => {
     let headers = (
       await callHandler({
         url: "/foo.css",
@@ -568,19 +568,19 @@ export function testNitro(
 
   it.skipIf(
     // TODO!
-    ctx.preset === "vercel" && ctx.nitro?.options.vercel?.entryFormat === "node" && isWindows
+    ctx.preset === "vercel" && ctx.fastnode?.options.vercel?.entryFormat === "node" && isWindows
   )("handles custom server assets", async () => {
     const { data: html, status: htmlStatus } = await callHandler({
       url: "/file?filename=index.html",
     });
     expect(htmlStatus).toBe(200);
-    expect(html).toContain("<h1>nitro is amazing!</h1>");
+    expect(html).toContain("<h1>fastnode is amazing!</h1>");
 
     const { data: txtFile, status: txtStatus } = await callHandler({
       url: "/file?filename=test.txt",
     });
     expect(txtStatus).toBe(200);
-    expect(txtFile).toContain("this is an asset from a text file from nitro");
+    expect(txtFile).toContain("this is an asset from a text file from fastnode");
 
     const { data: mdFile, status: mdStatus } = await callHandler({
       url: "/assets/md",
@@ -595,13 +595,13 @@ export function testNitro(
       const { data, status } = await callHandler({ url: "/asset-url" });
       expect(status).toBe(200);
       expect(data.file).toMatch(/^test-.+\.txt$/);
-      expect(data.text).toContain("this is an asset from a text file from nitro");
+      expect(data.text).toContain("this is an asset from a text file from fastnode");
       expect(data.same).toBe(true);
       expect(data.source).toBe('new URL("../files/test.txt", import.meta.url)');
     }
   );
 
-  if (ctx.nitro!.options.serveStatic) {
+  if (ctx.fastnode!.options.serveStatic) {
     it("serve static asset /favicon.ico", async () => {
       const { status, headers } = await callHandler({ url: "/favicon.ico" });
       expect(status).toBe(200);
@@ -651,15 +651,15 @@ export function testNitro(
   it.skipIf(ctx.preset === "deno-server")("resolve module version conflicts", async () => {
     const { data } = await callHandler({ url: "/modules" });
     expect(data).toMatchObject({
-      depA: "@fixture/nitro-lib@1.0.0+@fixture/nested-lib@1.0.0",
-      depB: "@fixture/nitro-lib@2.0.1+@fixture/nested-lib@2.0.1",
-      depLib: "@fixture/nitro-lib@2.0.0+@fixture/nested-lib@2.0.0",
-      subpathLib: "@fixture/nitro-lib@2.0.0",
-      extraUtils: "@fixture/nitro-utils/extra",
-      cjsRequirer: "@fixture/nitro-native-mock",
-      bundledDep: "@fixture/nitro-lib@3.0.0",
-      cjsNestedRequirer: "@fixture/nitro-lib@4.0.0",
-      cjsShadowedRequirer: "@fixture/nitro-lib@5.0.0",
+      depA: "@fixture/fastnode-lib@1.0.0+@fixture/nested-lib@1.0.0",
+      depB: "@fixture/fastnode-lib@2.0.1+@fixture/nested-lib@2.0.1",
+      depLib: "@fixture/fastnode-lib@2.0.0+@fixture/nested-lib@2.0.0",
+      subpathLib: "@fixture/fastnode-lib@2.0.0",
+      extraUtils: "@fixture/fastnode-utils/extra",
+      cjsRequirer: "@fixture/fastnode-native-mock",
+      bundledDep: "@fixture/fastnode-lib@3.0.0",
+      cjsNestedRequirer: "@fixture/fastnode-lib@4.0.0",
+      cjsShadowedRequirer: "@fixture/fastnode-lib@5.0.0",
     });
   });
 
@@ -670,7 +670,7 @@ export function testNitro(
 
   it("externalizes a traced package's root export by its bare name", async () => {
     const { data } = await callHandler({ url: "/traced-root-export" });
-    expect(data).toBe("@fixture/nitro-root-export");
+    expect(data).toBe("@fixture/fastnode-root-export");
   });
 
   it("useKV (with base)", { retry: 5 }, async () => {
@@ -722,7 +722,7 @@ export function testNitro(
       },
     });
     expect(data.url).toBe("/api/echo?foo=bar");
-    if (!(ctx.preset === "vercel" && ctx.nitro?.options.vercel?.entryFormat === "node")) {
+    if (!(ctx.preset === "vercel" && ctx.fastnode?.options.vercel?.entryFormat === "node")) {
       // TODO: Investigate why headers are missing in this case
       expect(data.headers["x-test"]).toBe("foobar");
     }
@@ -760,7 +760,7 @@ export function testNitro(
     const { data } = await callHandler({
       url: "/stream",
     });
-    expect(data).toBe("nitroisawesome");
+    expect(data).toBe("fastnodeisawesome");
   });
 
   it("config", async () => {
@@ -792,7 +792,7 @@ export function testNitro(
       envName: ctx.isDev ? "development" : "production",
       preset: ctx.preset,
       prerender: false,
-      nitro: true,
+      fastnode: true,
       server: true,
       client: false,
       baseURL: "/",
@@ -842,11 +842,11 @@ export function testNitro(
     });
 
     it.skipIf(
-      !ctx.nitro!.options.node ||
+      !ctx.fastnode!.options.node ||
         // TODO: Investigate
         ctx.preset === "bun" ||
         ctx.preset === "deno-server" ||
-        ctx.preset === "nitro-dev"
+        ctx.preset === "fastnode-dev"
     )("sourcemap works", async () => {
       const { data } = await callHandler({ url: "/errors/stack" });
       expect(data.stack).toMatch("test/fixture/server/routes/errors/stack.ts");
@@ -949,7 +949,7 @@ export function testNitro(
   });
 
   describe("async context", () => {
-    it.skipIf(!ctx.nitro!.options.node)("works", async () => {
+    it.skipIf(!ctx.fastnode!.options.node)("works", async () => {
       const { data } = await callHandler({ url: "/context?foo" });
       expect(data).toMatchObject({
         context: {
@@ -969,7 +969,7 @@ export function testNitro(
   });
 
   describe("cache", () => {
-    it.skipIf(isWindows && ctx.preset === "nitro-dev")(
+    it.skipIf(isWindows && ctx.preset === "fastnode-dev")(
       "should setItem before returning response the first time",
       async () => {
         const {
@@ -1045,7 +1045,7 @@ export function testNitro(
 
   describe.skipIf(
     isWindows ||
-      !ctx.nitro!.options.node ||
+      !ctx.fastnode!.options.node ||
       ctx.isLambda ||
       ctx.isWorker ||
       ["bun", "deno-server", "netlify", "netlify-legacy"].includes(ctx.preset)
@@ -1084,7 +1084,7 @@ export function testNitro(
   });
 
   it("import attributes (bytes and text)", async () => {
-    const textAsset = "this is an asset from a text file from nitro";
+    const textAsset = "this is an asset from a text file from fastnode";
     const { data } = await callHandler({ url: "/import-attributes" });
     expect(data).toMatchObject({
       bin: {
@@ -1124,7 +1124,7 @@ export function testNitro(
       if (
         ctx.preset.includes("cloudflare") &&
         key.startsWith("globals:") &&
-        ctx.nitro!.options.builder === "rolldown"
+        ctx.fastnode!.options.builder === "rolldown"
       ) {
         continue;
       }

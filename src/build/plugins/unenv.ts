@@ -1,4 +1,4 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import type { Plugin } from "rollup";
 import type { BuildEnv } from "../env.ts";
 import { deps } from "../../utils/_deps.ts";
@@ -13,19 +13,19 @@ export function isUnenvId(id: string | undefined): boolean {
 /**
  * Resolves `unenv` polyfills (and the modules aliased to them) on demand.
  *
- * `unenv` is not a dependency of Nitro: it is resolved from the project and
+ * `unenv` is not a dependency of Fastnode: it is resolved from the project and
  * only installed once a build actually bundles one of its polyfills.
  */
-export function unenv(nitro: Nitro, env: BuildEnv): Plugin {
+export function unenv(fastnode: Fastnode, env: BuildEnv): Plugin {
   const aliases = new Map(Object.entries(env.alias).filter(([, to]) => isUnenvId(to)));
 
   // Not memoized: `ensureDep` shares concurrent installs, and a later call recovers after a failure
   const ensureUnenv = async (id: string) => {
     const opts = {
       id: "unenv" as const,
-      dir: nitro.options.rootDir,
-      deps: nitro.options.deps,
-      reason: `Node.js compatibility (\`${id}\` import with the \`${nitro.options.preset}\` preset)`,
+      dir: fastnode.options.rootDir,
+      deps: fastnode.options.deps,
+      reason: `Node.js compatibility (\`${id}\` import with the \`${fastnode.options.preset}\` preset)`,
     };
     if (!(await ensureDep(opts))) {
       throw missingDepError(opts);
@@ -33,7 +33,7 @@ export function unenv(nitro: Nitro, env: BuildEnv): Plugin {
   };
 
   return {
-    name: "nitro:unenv",
+    name: "fastnode:unenv",
     async buildStart() {
       // Polyfills are always bundled: install before modules are loaded rather than mid-build
       const required = env.polyfills.find((id) => isUnenvId(id)) || aliases.has("node:process");
@@ -62,8 +62,8 @@ export function unenv(nitro: Nitro, env: BuildEnv): Plugin {
         }
         await ensureUnenv(id);
         const path = resolveDep(target || id, {
-          dir: nitro.options.rootDir,
-          deps: nitro.options.deps,
+          dir: fastnode.options.rootDir,
+          deps: fastnode.options.deps,
         });
         if (!path) {
           throw new Error(

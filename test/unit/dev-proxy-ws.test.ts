@@ -1,8 +1,8 @@
 import { createServer, request, type Server } from "node:http";
 import type { AddressInfo, Socket } from "node:net";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { NitroDevApp } from "../../src/dev/app.ts";
+import { FastnodeDevApp } from "../../src/dev/app.ts";
 
 const sockets = new Set<Socket>();
 
@@ -65,7 +65,7 @@ describe("dev server devProxy websocket upgrades", () => {
 
   beforeAll(async () => {
     const targetPort = await listen(target);
-    const app = new NitroDevApp({
+    const app = new FastnodeDevApp({
       logger: console,
       options: {
         baseURL: "/",
@@ -77,7 +77,7 @@ describe("dev server devProxy websocket upgrades", () => {
           "/proxy/http": { target: `http://127.0.0.1:${targetPort}` },
         },
       },
-    } as unknown as Nitro);
+    } as unknown as Fastnode);
     devServer = createServer(async (req, res) => {
       const response = await app.fetch(new Request(`http://127.0.0.1${req.url}`));
       res.end(await response.text());

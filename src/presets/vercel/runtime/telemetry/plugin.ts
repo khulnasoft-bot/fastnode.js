@@ -1,11 +1,11 @@
-import { definePlugin } from "nitro";
+import { definePlugin } from "fastnode";
 import type {
   IExportTraceServiceRequest,
   SpanContext,
   SpanInfo,
-} from "#nitro/runtime/telemetry/types";
-import { Span } from "#nitro/runtime/telemetry/span";
-import { subscribeTracedChannels } from "#nitro/runtime/telemetry/subscribe";
+} from "#fastnode/runtime/telemetry/types";
+import { Span } from "#fastnode/runtime/telemetry/span";
+import { subscribeTracedChannels } from "#fastnode/runtime/telemetry/subscribe";
 
 /**
  * The Vercel runtime telemetry sink, `reportSpans` is fire-and-forget; the
@@ -27,7 +27,7 @@ interface RequestContextReader {
 
 const REQUEST_CONTEXT_SYMBOL = Symbol.for("@vercel/request-context");
 
-const SCOPE_NAME = "@nitro/vercel-tracing";
+const SCOPE_NAME = "@fastnode/vercel-tracing";
 
 // Completed spans buffered per request (keyed by trace id) and flushed once at
 // freeze time via `waitUntil`, so one IPC message carries the whole request
@@ -35,10 +35,10 @@ const SCOPE_NAME = "@nitro/vercel-tracing";
 const pendingSpans = new Map<string, Span[]>();
 
 /**
- * Exports Nitro tracing-channel events to the Vercel runtime as OpenTelemetry
+ * Exports Fastnode tracing-channel events to the Vercel runtime as OpenTelemetry
  * spans, without an OpenTelemetry SDK.
  *
- * Subscribes to the tracing channels instrumented by Nitro (h3, srvx,
+ * Subscribes to the tracing channels instrumented by Fastnode (h3, srvx,
  * unstorage, …) and reports a full OTLP span per completed operation, buffered
  * per request and flushed once via the Vercel runtime.
  *

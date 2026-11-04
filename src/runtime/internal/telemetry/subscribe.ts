@@ -67,8 +67,8 @@ export function subscribeTracedChannels<S = unknown>(
       const entry: Pending = { start: Span.nowUnixNano(), info: undefined, state: undefined };
       if (onStart) {
         try {
-          entry.info = describe(name, message);
-          entry.state = onStart(entry.info);
+          entry.info = describe?.(name, message);
+          entry.state = onStart(entry.info!);
         } catch {
           // Malformed payload, or a sink failure (e.g. the platform refused to
           // open a span) — no state; the completion callback still fires.
@@ -89,7 +89,7 @@ export function subscribeTracedChannels<S = unknown>(
       // the completion and can release their span.
       let info: SpanInfo | undefined;
       try {
-        info = describe(name, message);
+        info = describe?.(name, message);
       } catch {}
       info ??= entry.info;
       if (info === undefined) return;

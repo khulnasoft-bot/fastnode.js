@@ -6,14 +6,14 @@ const { findRouteRules } = vi.hoisted(() => ({
   findRouteRules: vi.fn(() => []),
 }));
 
-vi.mock("#nitro/virtual/routing", () => ({ findRouteRules }));
-vi.mock("#nitro/virtual/app", () => ({
-  createNitroApp: () => ({}),
-  initNitroPlugins: () => {},
+vi.mock("#fastnode/virtual/routing", () => ({ findRouteRules }));
+vi.mock("#fastnode/virtual/app", () => ({
+  createFastnodeApp: () => ({}),
+  initFastnodePlugins: () => {},
 }));
 
 const { createMethodNotAllowedMatcher, createRouteRulesMiddleware, createRoutedMiddleware } =
-  await import("../../src/runtime/internal/app.ts");
+  await import("../../src/runtime/internal/middleware.ts");
 
 describe("runtime middleware wrappers", () => {
   it("are opted out of h3 tracing", () => {

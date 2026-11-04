@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { basename, dirname, join } from "pathe";
-import { pkgDir } from "#nitro/meta";
+import { pkgDir } from "#fastnode/meta";
 import { projectTemplates, sharedFiles } from "./_templates.ts";
 
 export { projectTemplates };
@@ -19,9 +19,9 @@ export interface CreateProjectResult {
 }
 
 /**
- * Create a new Nitro project in `dir` from a template built into Nitro.
+ * Create a new Fastnode project in `dir` from a template built into Fastnode.
  *
- * The `nitro` dependency is pinned to the running Nitro version.
+ * The `fastnode` dependency is pinned to the running Fastnode version.
  */
 export async function createProject(
   dir: string,
@@ -42,7 +42,7 @@ export async function createProject(
     private: true,
     type: "module",
     scripts: template.scripts,
-    dependencies: { nitro: await nitroDependency() },
+    dependencies: { fastnode: await fastnodeDependency() },
     devDependencies: sortKeys({
       "@types/node": "latest",
       typescript: "latest",
@@ -70,9 +70,9 @@ export async function isEmptyDir(dir: string): Promise<boolean> {
   return !existsSync(dir) || (await readdir(dir)).every((entry) => entry === ".git");
 }
 
-async function nitroDependency(): Promise<string> {
+async function fastnodeDependency(): Promise<string> {
   const { name, version } = JSON.parse(await readFile(join(pkgDir, "package.json"), "utf8"));
-  return name === "nitro" ? `^${version}` : `npm:${name}@${version}`;
+  return name === "fastnode" ? `^${version}` : `npm:${name}@${version}`;
 }
 
 function packageName(dir: string): string {
@@ -80,7 +80,7 @@ function packageName(dir: string): string {
     basename(dir)
       .toLowerCase()
       .replace(/[^\w.~-]+/g, "-")
-      .replace(/^[._-]+/, "") || "nitro-app"
+      .replace(/^[._-]+/, "") || "fastnode-app"
   );
 }
 

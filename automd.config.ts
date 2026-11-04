@@ -15,7 +15,7 @@ const DEFAULT_IGNORE = [
   ".DS_Store",
   ".nuxt",
   ".output",
-  ".nitro",
+  ".fastnode",
   "dist",
   "coverage",
   ".cache",

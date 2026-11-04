@@ -1,6 +1,6 @@
 # Azure
 
-> Deploy Nitro apps to Azure Static Web Apps.
+> Deploy Fastnode apps to Azure Static Web Apps.
 
 ## Azure Static Web Apps
 
@@ -12,16 +12,16 @@
 Integration with this provider is possible with [zero configuration](/deploy#zero-config-providers).
 ::
 
-[Azure Static Web Apps](https://azure.microsoft.com/en-us/products/app-service/static) are designed to be deployed continuously in a [GitHub Actions workflow](https://docs.microsoft.com/en-us/azure/static-web-apps/github-actions-workflow). Nitro detects this deployment environment and enables the `azure_swa` preset automatically.
+[Azure Static Web Apps](https://azure.microsoft.com/en-us/products/app-service/static) are designed to be deployed continuously in a [GitHub Actions workflow](https://docs.microsoft.com/en-us/azure/static-web-apps/github-actions-workflow). Fastnode detects this deployment environment and enables the `azure_swa` preset automatically.
 
-The server is deployed as a managed Azure Function using the [Node.js v4 programming model](https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference-node?pivots=nodejs-model-v4). It requires `@azure/functions` v4 in your project dependencies (Nitro offers to install it when missing). The package is traced into the build output, so it does not need to be installed again during deployment.
+The server is deployed as a managed Azure Function using the [Node.js v4 programming model](https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference-node?pivots=nodejs-model-v4). It requires `@azure/functions` v4 in your project dependencies (Fastnode offers to install it when missing). The package is traced into the build output, so it does not need to be installed again during deployment.
 
 :pm-install{name="@azure/functions@^4"}
 
 To keep using the legacy [v3 programming model](https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference-node?pivots=nodejs-model-v3) (`function.json`), which does not require `@azure/functions`, set the `azure.functionsVersion` option:
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   azure: {
@@ -35,7 +35,7 @@ export default defineConfig({
 To test locally, install [Azure Functions Core Tools](https://docs.microsoft.com/en-us/azure/azure-functions/functions-run-local), then build and start a local preview environment:
 
 ```bash
-NITRO_PRESET=azure_swa npm run build
+FASTNODE_PRESET=azure_swa npm run build
 npx @azure/static-web-apps-cli start .output/public --api-location .output/server
 ```
 
@@ -43,9 +43,9 @@ npx @azure/static-web-apps-cli start .output/public --api-location .output/serve
 
 Azure Static Web Apps are [configured](https://learn.microsoft.com/en-us/azure/static-web-apps/configuration) using the `staticwebapp.config.json` file.
 
-Nitro automatically generates this configuration file whenever the application is built with the `azure_swa` preset.
+Fastnode automatically generates this configuration file whenever the application is built with the `azure_swa` preset.
 
-Nitro sets the following properties automatically:
+Fastnode sets the following properties automatically:
 
 | Property | Criteria | Default |
 | --- | --- | --- |
@@ -55,7 +55,7 @@ Nitro sets the following properties automatically:
 
 ### Custom configuration
 
-You can alter the Nitro-generated configuration using the `azure.config` option.
+You can alter the Fastnode-generated configuration using the `azure.config` option.
 
 Custom routes are added and matched first. In case of a conflict (two objects with the same route property), custom routes override generated ones.
 
@@ -81,7 +81,7 @@ output_location: '.output/public'
 ###### End of Repository/Build Configurations ######
 ```
 
-That's it! Now Azure Static Web Apps will automatically deploy your Nitro-powered application on push.
+That's it! Now Azure Static Web Apps will automatically deploy your Fastnode-powered application on push.
 
 If you are using `runtimeConfig`, you will likely want to configure the corresponding [environment variables on Azure](https://docs.microsoft.com/en-us/azure/static-web-apps/application-settings).
 

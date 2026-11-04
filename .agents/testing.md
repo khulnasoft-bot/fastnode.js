@@ -1,12 +1,12 @@
-# Nitro Testing Guide
+# Fastnode Testing Guide
 
 ## Test Structure
 
 ```
 test/
 ├── tests.ts            # Main test definitions (shared across presets)
-├── fixture/            # Test fixture Nitro app
-│   ├── nitro.config.ts
+├── fixture/            # Test fixture Fastnode app
+│   ├── fastnode.config.ts
 │   ├── routes/         # Test route handlers
 │   ├── api/            # Test API handlers
 │   ├── middleware/      # Test middleware
@@ -25,7 +25,7 @@ test/
 
 1. `test/tests.ts` defines shared test cases using vitest
 2. Each `test/presets/<name>.test.ts` imports shared tests and runs them against a specific preset
-3. The test fixture in `test/fixture/` is a full Nitro app used as the test target
+3. The test fixture in `test/fixture/` is a full Fastnode app used as the test target
 4. Preset tests build the fixture with the preset, then run HTTP assertions
 
 ## Adding Regression Tests

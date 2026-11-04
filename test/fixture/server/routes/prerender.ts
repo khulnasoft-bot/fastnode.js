@@ -1,4 +1,4 @@
-import { defineHandler } from "nitro/h3";
+import { defineHandler } from "fastnode/h3";
 
 export default defineHandler((event) => {
   const links = [
@@ -13,8 +13,8 @@ export default defineHandler((event) => {
     event.url.href.includes("?") ? "/api/param/hidden" : "/prerender?withQuery",
   ];
 
-  event.res.headers.append("x-nitro-prerender", "/api/param/prerender1, /api/param/prerender2");
-  event.res.headers.append("x-nitro-prerender", "/api/param/prerender3");
+  event.res.headers.append("x-fastnode-prerender", "/api/param/prerender1, /api/param/prerender2");
+  event.res.headers.append("x-fastnode-prerender", "/api/param/prerender3");
 
   event.res.headers.set("content-type", "text/html");
   return /* html */ `<!DOCTYPE html><html>

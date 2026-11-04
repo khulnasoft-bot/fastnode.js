@@ -1,8 +1,8 @@
 import { HTTPError, defineHandler } from "h3";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import { isLocalDevRequest } from "./_request.ts";
 
-export function createVFSHandler(nitro: Nitro) {
+export function createVFSHandler(fastnode: Fastnode) {
   return defineHandler(async (event) => {
     if (!isLocalDevRequest(event)) {
       throw new HTTPError({ statusText: "Forbidden IP", status: 403 });
@@ -13,16 +13,16 @@ export function createVFSHandler(nitro: Nitro) {
       url.endsWith(".json") || event.req.headers.get("accept")?.includes("application/json");
     const id = decodeURIComponent(url.replace(/^(\.json)?\/?/, "") || "");
 
-    if (id && !nitro.vfs.has(id)) {
+    if (id && !fastnode.vfs.has(id)) {
       throw new HTTPError({ message: "File not found", status: 404 });
     }
 
-    const content = id ? await nitro.vfs.get(id)?.render() : undefined;
+    const content = id ? await fastnode.vfs.get(id)?.render() : undefined;
 
     if (isJson) {
       return {
-        rootDir: nitro.options.rootDir,
-        entries: [...nitro.vfs.keys()].map((id) => ({
+        rootDir: fastnode.options.rootDir,
+        entries: [...fastnode.vfs.keys()].map((id) => ({
           id,
           path: "/_vfs.json/" + encodeURIComponent(id),
         })),
@@ -35,13 +35,13 @@ export function createVFSHandler(nitro: Nitro) {
       };
     }
 
-    const directories: Record<string, any> = { [nitro.options.rootDir]: {} };
-    const fpaths = [...nitro.vfs.keys()];
+    const directories: Record<string, any> = { [fastnode.options.rootDir]: {} };
+    const fpaths = [...fastnode.vfs.keys()];
 
     for (const item of fpaths) {
-      const segments = item.replace(nitro.options.rootDir, "").split("/").filter(Boolean);
-      let currentDir = item.startsWith(nitro.options.rootDir)
-        ? directories[nitro.options.rootDir]
+      const segments = item.replace(fastnode.options.rootDir, "").split("/").filter(Boolean);
+      let currentDir = item.startsWith(fastnode.options.rootDir)
+        ? directories[fastnode.options.rootDir]
         : directories;
 
       for (const segment of segments) {
@@ -86,9 +86,10 @@ export function createVFSHandler(nitro: Nitro) {
         })
         .join("");
 
-    const rootDirectory = directories[nitro.options.rootDir];
-    delete directories[nitro.options.rootDir];
-    const items = generateHTML(rootDirectory, [nitro.options.rootDir]) + generateHTML(directories);
+    const rootDirectory = directories[fastnode.options.rootDir];
+    delete directories[fastnode.options.rootDir];
+    const items =
+      generateHTML(rootDirectory, [fastnode.options.rootDir]) + generateHTML(directories);
 
     const files = `
       <div class="h-full overflow-auto border-r border-gray:10">

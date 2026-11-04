@@ -7,7 +7,7 @@ linkWorkspacePackages: "deep"
 minimumReleaseAge: 1440
 
 overrides:
-  "nitro": "workspace:*"
+  "fastnode": "workspace:*"
   "cookie-es": "^3.1.1"
   "oxc-parser": "link:./shims/oxc-parser"
   # "vite": "^7"

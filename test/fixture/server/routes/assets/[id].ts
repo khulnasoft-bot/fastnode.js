@@ -1,5 +1,5 @@
-import { defineHandler, HTTPError } from "nitro/h3";
-import { useKV } from "nitro/kv";
+import { defineHandler, HTTPError } from "fastnode/h3";
+import { useKV } from "fastnode/kv";
 
 export default defineHandler(async (event) => {
   const serverAssets = useKV("assets/server");

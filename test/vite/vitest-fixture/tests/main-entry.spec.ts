@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { serverFetch } from "nitro";
+import { serverFetch } from "fastnode";
 
 test("serverFetch from the main entry", async () => {
   const res = await serverFetch("/hello");

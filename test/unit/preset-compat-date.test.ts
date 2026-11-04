@@ -4,7 +4,7 @@ import { join } from "pathe";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { loadOptions } from "../../src/config/loader.ts";
 
-vi.mock("nitro/meta", () => ({
+vi.mock("fastnode/meta", () => ({
   version: "0.0.0-test",
   runtimeDir: "/tmp",
   presetsDir: "/tmp",
@@ -22,7 +22,7 @@ afterEach(async () => {
 
 describe("cloudflare-dev preset ignores compatibilityDate", () => {
   it("uses cloudflare-dev in development with an old compatibilityDate", async () => {
-    const rootDir = await realpath(await mkdtemp(join(tmpdir(), "nitro-compat-date-")));
+    const rootDir = await realpath(await mkdtemp(join(tmpdir(), "fastnode-compat-date-")));
     tempDirs.push(rootDir);
     const options = await loadOptions({
       rootDir,

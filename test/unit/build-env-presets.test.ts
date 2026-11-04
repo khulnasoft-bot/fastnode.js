@@ -1,33 +1,33 @@
 import { describe, expect, it } from "vitest";
 import { fileURLToPath } from "node:url";
-import type { Nitro, NitroConfig } from "nitro/types";
-import { createNitro } from "../../src/builder.ts";
+import type { Fastnode, FastnodeConfig } from "fastnode/types";
+import { createFastnode } from "../../src/builder.ts";
 import { resolveBuildEnv } from "../../src/build/env.ts";
 
 const rootDir = fileURLToPath(new URL("../fixture", import.meta.url));
 
-async function setup(config: NitroConfig, setupNitro?: (nitro: Nitro) => void) {
-  const nitro = await createNitro({
+async function setup(config: FastnodeConfig, setupFastnode?: (fastnode: Fastnode) => void) {
+  const fastnode = await createFastnode({
     rootDir,
     compatibilityDate: "2025-01-01",
     logLevel: 0,
     ...config,
   });
-  setupNitro?.(nitro);
-  await nitro.hooks.callHook("build:before", nitro);
-  const env = await resolveBuildEnv(nitro);
-  await nitro.close();
-  return { nitro, env };
+  setupFastnode?.(fastnode);
+  await fastnode.hooks.callHook("build:before", fastnode);
+  const env = await resolveBuildEnv(fastnode);
+  await fastnode.close();
+  return { fastnode, env };
 }
 
 describe("build env precedence with presets", () => {
   it.each(["netlify-edge"])(
     "%s does not expose builtin aliases to path resolution",
     async (preset) => {
-      const { nitro, env } = await setup({ preset, plugins: ["utils/plugin.ts", "events.ts"] });
-      expect(nitro.options.plugins).toContain(`${rootDir}/utils/plugin.ts`);
-      expect(nitro.options.plugins).toContain(`${rootDir}/events.ts`);
-      expect(nitro.options.alias.events).toBeUndefined();
+      const { fastnode, env } = await setup({ preset, plugins: ["utils/plugin.ts", "events.ts"] });
+      expect(fastnode.options.plugins).toContain(`${rootDir}/utils/plugin.ts`);
+      expect(fastnode.options.plugins).toContain(`${rootDir}/events.ts`);
+      expect(fastnode.options.alias.events).toBeUndefined();
       expect(env.alias.events).toBe("node:events");
       expect(env.external).toContain("node:fs");
       expect(env.external.filter((id) => id.startsWith("node:node:"))).toEqual([]);
@@ -44,9 +44,9 @@ describe("build env precedence with presets", () => {
   });
 
   it("legacy presets pushed from hooks override preset entries", async () => {
-    const { env } = await setup({ preset: "cloudflare-module" }, (nitro) => {
-      nitro.hooks.hook("build:before", () => {
-        nitro.options.unenv.push({
+    const { env } = await setup({ preset: "cloudflare-module" }, (fastnode) => {
+      fastnode.hooks.hook("build:before", () => {
+        fastnode.options.unenv.push({
           alias: { "node:fs": "/hook/fs" },
           inject: { Buffer: "/hook/buffer" },
         });

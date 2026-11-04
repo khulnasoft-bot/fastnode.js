@@ -1,8 +1,8 @@
-import "#nitro/virtual/polyfills";
-import { useNitroApp } from "nitro/app";
+import "#fastnode/virtual/polyfills";
+import { useFastnodeApp } from "fastnode/app";
 
-const nitroApp = useNitroApp();
+const fastnodeApp = useFastnodeApp();
 
 export default {
-  fetch: nitroApp.fetch,
+  fetch: fastnodeApp.fetch,
 };

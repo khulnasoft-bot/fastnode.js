@@ -1,5 +1,5 @@
 {
-  "extends": "nitro/tsconfig",
+  "extends": "fastnode/tsconfig",
   "include": ["**/*", "**/.server/**/*", "**/.client/**/*", ".react-router/types/**/*"],
   "compilerOptions": {
     "types": ["node", "vite/client"],

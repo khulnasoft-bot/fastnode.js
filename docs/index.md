@@ -1,18 +1,18 @@
 ---
 seo:
   title: Build Full-Stack Servers
-  description: Nitro builds production-ready servers that run anywhere. Write API routes, then deploy the same codebase to Node.js, Bun, Deno, or serverless, with zero configuration.
+  description: Fastnode builds production-ready servers that run anywhere. Write API routes, then deploy the same codebase to Node.js, Bun, Deno, or serverless, with zero configuration.
 ---
 
 ::page-hero
 
-<!-- :hero-command{command="create-nitro-app"} -->
+<!-- :hero-command{command="create-fastnode-app"} -->
 
 #title
 Build [Servers]{.text-brand}
 
 #description
-Nitro builds production-ready servers that run anywhere.
+Fastnode builds production-ready servers that run anywhere.
 
 Write API routes, then deploy the same codebase to Node.js, Bun, Deno, or serverless, with zero configuration.
 
@@ -88,7 +88,7 @@ link-label: Server entry docs
 Bring your own framework
 
 #description
-Any framework that speaks the Web `fetch(request): Response` interface can be your server entry export it from `server.ts` and it runs for every request before routes are matched. Node-style `(req, res)` frameworks work too: name the file `server.node.ts` and Nitro adapts it.
+Any framework that speaks the Web `fetch(request): Response` interface can be your server entry export it from `server.ts` and it runs for every request before routes are matched. Node-style `(req, res)` frameworks work too: name the file `server.node.ts` and Fastnode adapts it.
 
 #visual
   :::tabs
@@ -135,7 +135,7 @@ Any framework that speaks the Web `fetch(request): Response` interface can be yo
     const app = Express();
 
     app.use("/", (_req, res) => {
-      res.send("Hello from Express with Nitro!");
+      res.send("Hello from Express with Fastnode!");
     });
 
     export default app;
@@ -158,7 +158,7 @@ points:
 One codebase, every platform
 
 #description
-The same server builds for Node.js, Deno, Bun, edge workers and serverless functions. Nitro emits the output format each host expects, so moving between them requires no code changes!
+The same server builds for Node.js, Deno, Bun, edge workers and serverless functions. Fastnode emits the output format each host expects, so moving between them requires no code changes!
 
 #visual
   :::deploy-grid
@@ -214,7 +214,7 @@ link-label: Build your first server
 Small enough to read
 
 #description
-A production build of a minimal Nitro server is three files with nothing to install alongside them. Dependencies are bundled and tree-shaken, so what you deploy is the code you wrote plus the little that runs it.
+A production build of a minimal Fastnode server is three files with nothing to install alongside them. Dependencies are bundled and tree-shaken, so what you deploy is the code you wrote plus the little that runs it.
 
 #visual
   :::bar-chart
@@ -249,15 +249,15 @@ points:
 Caching that follows your storage
 
 #description
-Wrap a handler or any async function and Nitro caches its result on the same storage layer your app already uses memory in development, then Redis, Cloudflare KV, a Vercel Blob store or the filesystem in production. Same code, different backend.
+Wrap a handler or any async function and Fastnode caches its result on the same storage layer your app already uses memory in development, then Redis, Cloudflare KV, a Vercel Blob store or the filesystem in production. Same code, different backend.
 
 #visual
   ```ts [routes/stars.ts]
-  import { defineCachedHandler } from "nitro/cache";
+  import { defineCachedHandler } from "fastnode/cache";
 
   export default defineCachedHandler(
     async () => {
-      const res = await fetch("https://api.github.com/repos/nitrojs/nitro");
+      const res = await fetch("https://api.github.com/repos/khulnasoft/fastnode");
       const { stargazers_count } = await res.json();
       return { stars: stargazers_count };
     },
@@ -270,7 +270,7 @@ Wrap a handler or any async function and Nitro caches its result on the same sto
 ---
 eyebrow: Included
 title: Everything a server needs
-description: The pieces most apps reach for ship with Nitro, and every one of them behaves the same on every deployment target.
+description: The pieces most apps reach for ship with Fastnode, and every one of them behaves the same on every deployment target.
 features:
   - title: KV Storage
     description: One key-value API over the filesystem, Redis, Cloudflare KV and more.
@@ -314,7 +314,7 @@ features:
 ---
 ::
 
-::call-to-action{command="nitro@latest create"}
+::call-to-action{command="fastnode@latest create"}
 #title
 Start with one command
 

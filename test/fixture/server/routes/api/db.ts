@@ -1,4 +1,4 @@
-import { useDatabase } from "nitro/database";
+import { useDatabase } from "fastnode/database";
 
 export default async () => {
   const db = useDatabase();

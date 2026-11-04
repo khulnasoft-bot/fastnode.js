@@ -1,6 +1,6 @@
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  plugins: [nitro()],
+  plugins: [fastnode()],
 });

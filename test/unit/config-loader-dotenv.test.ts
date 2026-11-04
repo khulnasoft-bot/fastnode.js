@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "pathe";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("#nitro/meta", () => ({
+vi.mock("#fastnode/meta", () => ({
   version: "0.0.0-test",
   runtimeDir: "/tmp",
   presetsDir: "/tmp",
@@ -11,8 +11,8 @@ vi.mock("#nitro/meta", () => ({
   runtimeDependencies: [],
 }));
 
-// https://github.com/nitrojs/nitro/issues/4580
-const ENV_KEY = "NITRO_TEST_APP_URL";
+// https://github.com/khulnasoft/fastnode/issues/4580
+const ENV_KEY = "FASTNODE_TEST_APP_URL";
 const tempDirs: string[] = [];
 
 afterEach(async () => {
@@ -25,13 +25,13 @@ afterEach(async () => {
 describe("config loader dotenv", () => {
   it("loads .env variables for route rules during build (non-dev)", async () => {
     delete process.env[ENV_KEY];
-    const rootDir = await mkdtemp(join(tmpdir(), "nitro-config-dotenv-"));
+    const rootDir = await mkdtemp(join(tmpdir(), "fastnode-config-dotenv-"));
     tempDirs.push(rootDir);
 
     await writeFile(join(rootDir, ".env"), `${ENV_KEY}=https://example.com\n`);
     await writeFile(
-      join(rootDir, "nitro.config.ts"),
-      `export default defineNitroConfig({
+      join(rootDir, "fastnode.config.ts"),
+      `export default defineFastnodeConfig({
   preset: 'node-server',
   routeRules: {
     '/api/**': { headers: { 'x-app-url': process.env[${JSON.stringify(ENV_KEY)}] } }

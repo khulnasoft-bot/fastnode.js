@@ -1,4 +1,4 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import type { Plugin } from "rollup";
 import type * as ESTree from "oxbox";
 import { readFileSync, statSync } from "node:fs";
@@ -11,7 +11,7 @@ import { RESOLVED_RE as RAW_RE } from "./raw.ts";
 // Packages built with emscripten or wasm-bindgen locate their runtime files relative to their
 // own module (`new URL("./file.wasm", import.meta.url)`). Once bundled, these URLs point next to
 // the output chunk, so the referenced files are emitted as assets and the URLs rewritten to them.
-// https://github.com/nitrojs/nitro/issues/4930
+// https://github.com/khulnasoft/fastnode/issues/4930
 
 // Evaluated by the bundler before calling into JS, so only modules holding a reference are parsed
 const NEW_URL_RE = /\bnew\s+URL\s*\([\s\S]*?import\.meta\.url\b/;
@@ -26,13 +26,16 @@ const SCRIPT_RE = /\.[cm]?[jt]sx?$/;
 const NON_RELATIVE_RE = /^(?:[a-z][\d+.a-z-]*:|[#/?\\])/i;
 
 export async function assetUrls(
-  nitro: Nitro,
+  fastnode: Fastnode,
   opts: {
     /** Remove the other assets of the bundle (Vite emits CSS, `?url` imports, ... of server code) */
     dropOtherAssets?: boolean;
   } = {}
 ): Promise<Plugin> {
-  const oxc = await importOXC({ dir: nitro.options.rootDir, paths: nitro.options.deps?.paths });
+  const oxc = await importOXC({
+    dir: fastnode.options.rootDir,
+    paths: fastnode.options.deps?.paths,
+  });
 
   // `pglite` references its 10 MB wasm file several times: read and emit each file once per build
   let referenceIds = new Map<string, string>();
@@ -42,7 +45,7 @@ export async function assetUrls(
   const fileNames = new Set<string>();
 
   return {
-    name: "nitro:asset-urls",
+    name: "fastnode:asset-urls",
     buildStart() {
       referenceIds = new Map();
     },
@@ -58,6 +61,7 @@ export async function assetUrls(
           fileNames.add(fileName);
           return JSON.stringify(/^\.\.?\//.test(relativePath) ? relativePath : `./${relativePath}`);
         }
+        return undefined;
       },
     },
     generateBundle: opts.dropOtherAssets
@@ -155,6 +159,7 @@ function assetReference(node: ESTree.Node): { node: ESTree.Node; url: string } |
     const url = arg.quasis[0]?.value.cooked;
     return url ? { node: arg, url } : undefined;
   }
+  return undefined;
 }
 
 function resolveAssetPath(url: string, importer: string): string | undefined {

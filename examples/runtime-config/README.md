@@ -2,10 +2,10 @@ Runtime config lets you define configuration values that can be overridden by en
 
 ## Define Config Schema
 
-Declare your runtime config with default values in `nitro.config.ts`:
+Declare your runtime config with default values in `fastnode.config.ts`:
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   serverDir: "./",
@@ -20,8 +20,8 @@ export default defineConfig({
 Use `useRuntimeConfig` to access configuration values in your handlers:
 
 ```ts [server.ts]
-import { defineHandler } from "nitro";
-import { useRuntimeConfig } from "nitro/runtime-config";
+import { defineHandler } from "fastnode";
+import { useRuntimeConfig } from "fastnode/runtime-config";
 
 export default defineHandler((event) => {
   const runtimeConfig = useRuntimeConfig();
@@ -31,9 +31,9 @@ export default defineHandler((event) => {
 
 ## Environment Variables
 
-Override config values via environment variables prefixed with `NITRO_`:
+Override config values via environment variables prefixed with `FASTNODE_`:
 
 ```sh [.env]
 # NEVER COMMIT SENSITIVE DATA. THIS IS ONLY FOR DEMO PURPOSES.
-NITRO_API_KEY=secret-api-key
+FASTNODE_API_KEY=secret-api-key
 ```

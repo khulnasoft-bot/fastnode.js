@@ -11,7 +11,7 @@ const { importEntry, evaluatedModules } = vi.hoisted(() => ({
 }));
 
 // `vite` is resolved from the app: the generated entry injects the module runner (see
-// `src/build/vite/_dev-worker.ts`).
+// `src/build/builders/vite/_dev-worker.ts`).
 const moduleRunner = {
   ESModulesEvaluator: class {},
   ModuleRunner: class {
@@ -47,8 +47,8 @@ async function createWorker() {
   worker.setModuleRunner(moduleRunner);
   worker.ipc.onMessage({
     type: "custom",
-    event: "nitro:vite-env",
-    data: { name: "nitro", entry: "/entry.mjs" },
+    event: "fastnode:vite-env",
+    data: { name: "fastnode", entry: "/entry.mjs" },
   });
   await vi.waitFor(() => expect(importEntry).toHaveBeenCalledTimes(1));
   // The initial load is not scoped to a file and drops the (empty) graph.
@@ -64,7 +64,7 @@ describe("Vite dev worker reloads", () => {
     vi.restoreAllMocks();
     vi.resetAllMocks();
     vi.resetModules();
-    delete (globalThis as any).__nitro_vite_envs__;
+    delete (globalThis as any).__fastnode_vite_envs__;
   });
 
   test("waits for an in-flight reload before fetching", async () => {
@@ -147,7 +147,7 @@ describe("Vite dev worker reloads", () => {
     importEntry.mockResolvedValueOnce(entry("ssr-v1"));
     worker.ipc.onMessage({
       type: "custom",
-      event: "nitro:vite-env",
+      event: "fastnode:vite-env",
       data: { name: "ssr", entry: "/ssr.mjs" },
     });
     await vi.waitFor(() => expect(importEntry).toHaveBeenCalledTimes(2));
@@ -175,7 +175,7 @@ describe("Vite dev worker reloads", () => {
     );
 
     importEntry.mockResolvedValueOnce(entry("v2"));
-    worker.ipc.onMessage({ type: "full-reload", viteEnv: "nitro", triggeredBy: "/dep.ts" });
+    worker.ipc.onMessage({ type: "full-reload", viteEnv: "fastnode", triggeredBy: "/dep.ts" });
     await vi.waitFor(() => expect(importEntry).toHaveBeenCalledTimes(2));
 
     expect(evaluatedModules.clear).not.toHaveBeenCalled();
@@ -187,7 +187,7 @@ describe("Vite dev worker reloads", () => {
     const worker = await createWorker();
 
     importEntry.mockResolvedValueOnce(entry("v2"));
-    worker.ipc.onMessage({ type: "full-reload", viteEnv: "nitro" });
+    worker.ipc.onMessage({ type: "full-reload", viteEnv: "fastnode" });
     await vi.waitFor(() => expect(importEntry).toHaveBeenCalledTimes(2));
 
     expect(evaluatedModules.clear).toHaveBeenCalledOnce();
@@ -204,9 +204,9 @@ describe("Vite dev worker reloads", () => {
     const inFlight = deferred<ReturnType<typeof entry>>();
     importEntry.mockReturnValueOnce(inFlight.promise).mockResolvedValueOnce(entry("v3"));
 
-    worker.ipc.onMessage({ type: "full-reload", viteEnv: "nitro", triggeredBy: "/a.ts" });
+    worker.ipc.onMessage({ type: "full-reload", viteEnv: "fastnode", triggeredBy: "/a.ts" });
     await vi.waitFor(() => expect(importEntry).toHaveBeenCalledTimes(2));
-    worker.ipc.onMessage({ type: "full-reload", viteEnv: "nitro", triggeredBy: "/b.ts" });
+    worker.ipc.onMessage({ type: "full-reload", viteEnv: "fastnode", triggeredBy: "/b.ts" });
     inFlight.resolve(entry("v2"));
 
     await vi.waitFor(() => expect(importEntry).toHaveBeenCalledTimes(3));
@@ -298,8 +298,8 @@ describe("Vite dev worker reloads", () => {
     const response = worker.fetch(new Request("http://localhost"));
     worker.ipc.onMessage({
       type: "custom",
-      event: "nitro:vite-env",
-      data: { name: "nitro", entry: "/entry.mjs" },
+      event: "fastnode:vite-env",
+      data: { name: "fastnode", entry: "/entry.mjs" },
     });
 
     const res = await response;

@@ -7,7 +7,7 @@ describe("config: buildAssetsDir", () => {
     ["/assets/", "assets"],
     ["//_vercel//immutable//", "_vercel/immutable"],
     ["./assets", "assets"],
-    ["_vercel/immutable/../../etc/nitro", "_vercel/immutable/etc/nitro"],
+    ["_vercel/immutable/../../etc/fastnode", "_vercel/immutable/etc/fastnode"],
   ])("normalizes %j to %j", async (input, expected) => {
     const options = await loadOptions({ buildAssetsDir: input });
     expect(options.buildAssetsDir).toBe(expected);

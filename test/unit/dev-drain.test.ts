@@ -1,4 +1,4 @@
-import type { Nitro, NitroConfig } from "nitro/types";
+import type { Fastnode, FastnodeConfig } from "fastnode/types";
 import { createHooks } from "hookable";
 import { serve } from "crossws/server";
 import { describe, expect, it, vi } from "vitest";
@@ -23,11 +23,11 @@ const { createDevServer } = await import("../../src/dev/server.ts");
 describe("dev server drain", () => {
   it("closes the previous worker on reload by default", async () => {
     runners.length = 0;
-    const { nitro, devServer } = createServer();
-    await nitro.hooks.callHook("dev:reload");
+    const { fastnode, devServer } = createServer();
+    await fastnode.hooks.callHook("dev:reload");
     const res = await devServer.fetch(new Request("http://localhost/"));
 
-    await nitro.hooks.callHook("dev:reload");
+    await fastnode.hooks.callHook("dev:reload");
     await devServer.fetch(new Request("http://localhost/"));
 
     expect(runners).toHaveLength(2);
@@ -39,11 +39,11 @@ describe("dev server drain", () => {
 
   it("lets the previous worker finish in-flight responses with `devServer.drain`", async () => {
     runners.length = 0;
-    const { nitro, devServer } = createServer({ drain: true });
-    await nitro.hooks.callHook("dev:reload");
+    const { fastnode, devServer } = createServer({ drain: true });
+    await fastnode.hooks.callHook("dev:reload");
     const res = await devServer.fetch(new Request("http://localhost/"));
 
-    await nitro.hooks.callHook("dev:reload");
+    await fastnode.hooks.callHook("dev:reload");
     const next = await devServer.fetch(new Request("http://localhost/"));
     expect(next.headers.get("x-runner")).toBe("1");
 
@@ -61,11 +61,11 @@ describe("dev server drain", () => {
 
   it("shuts down draining workers gracefully on close", async () => {
     runners.length = 0;
-    const { nitro, devServer } = createServer({ drain: true });
-    await nitro.hooks.callHook("dev:reload");
+    const { fastnode, devServer } = createServer({ drain: true });
+    await fastnode.hooks.callHook("dev:reload");
     await devServer.fetch(new Request("http://localhost/"));
 
-    await nitro.hooks.callHook("dev:reload");
+    await fastnode.hooks.callHook("dev:reload");
     await devServer.fetch(new Request("http://localhost/"));
     await devServer.close();
 
@@ -90,8 +90,8 @@ describe("dev server drain", () => {
     await upstream.ready();
     FakeRunner.port = Number(new URL(upstream.url!).port);
 
-    const { nitro, devServer } = createServer({ drain: true });
-    await nitro.hooks.callHook("dev:reload");
+    const { fastnode, devServer } = createServer({ drain: true });
+    await fastnode.hooks.callHook("dev:reload");
     const front = serve({
       port: 0,
       hostname: "127.0.0.1",
@@ -106,7 +106,7 @@ describe("dev server drain", () => {
     ws.addEventListener("open", () => ws.send("hi"));
     expect(await echo).toBe("echo:hi");
 
-    await nitro.hooks.callHook("dev:reload");
+    await fastnode.hooks.callHook("dev:reload");
     await (await devServer.fetch(new Request("http://localhost/"))).body?.cancel();
     expect(runners).toHaveLength(2);
     expect(runners[0]!.shutdowns).toBe(0);
@@ -118,13 +118,13 @@ describe("dev server drain", () => {
   });
 });
 
-function createServer(devServer: NitroConfig["devServer"] = {}) {
-  const nitro = {
+function createServer(devServer: FastnodeConfig["devServer"] = {}) {
+  const fastnode = {
     logger: { info() {}, warn() {}, error() {} },
     hooks: createHooks(),
     options: {
       rootDir: "/app/",
-      buildDir: "/app/.nitro/",
+      buildDir: "/app/.fastnode/",
       baseURL: "/",
       output: { dir: "/app/.output", serverDir: "server" },
       devServer: { watch: [], devtoolsJson: false, runner: "node-worker", ...devServer },
@@ -132,8 +132,8 @@ function createServer(devServer: NitroConfig["devServer"] = {}) {
       publicAssets: [],
       devProxy: {},
     },
-  } as unknown as Nitro;
-  return { nitro, devServer: createDevServer(nitro) };
+  } as unknown as Fastnode;
+  return { fastnode, devServer: createDevServer(fastnode) };
 }
 
 class FakeRunner {

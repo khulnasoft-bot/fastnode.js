@@ -1,8 +1,8 @@
-import { defineNitroPreset } from "../_utils/preset.ts";
+import { defineFastnodePreset } from "../_utils/preset.ts";
 import { writeEdgeOneConfig } from "./utils.ts";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 
-const edgeone = defineNitroPreset(
+const edgeone = defineFastnodePreset(
   {
     extends: "node-server",
     entry: "./edgeone/runtime/edgeone",
@@ -18,8 +18,8 @@ const edgeone = defineNitroPreset(
       },
     },
     hooks: {
-      async compiled(nitro: Nitro) {
-        await writeEdgeOneConfig(nitro);
+      async compiled(fastnode: Fastnode) {
+        await writeEdgeOneConfig(fastnode);
       },
     },
   },

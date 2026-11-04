@@ -8,11 +8,11 @@ import type { ViteDevServer } from "vite";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
 const { createServer } = (await import(
-  process.env.NITRO_VITE_PKG || "vite"
+  process.env.FASTNODE_VITE_PKG || "vite"
 )) as typeof import("vite");
 
-// #4586: stopping the Vite dev server must run the Nitro `close` hooks, both the build-time
-// ones (`nitro({ hooks })`) and the runtime ones registered by server plugins in the dev worker.
+// #4586: stopping the Vite dev server must run the Fastnode `close` hooks, both the build-time
+// ones (`fastnode({ hooks })`) and the runtime ones registered by server plugins in the dev worker.
 describe("vite: close hooks", { concurrent: false }, () => {
   let server: ViteDevServer;
   let serverURL: string;
@@ -23,10 +23,10 @@ describe("vite: close hooks", { concurrent: false }, () => {
   const originalCwd = process.cwd();
 
   beforeAll(async () => {
-    tmpDir = mkdtempSync(join(tmpdir(), "nitro-close-hook-"));
+    tmpDir = mkdtempSync(join(tmpdir(), "fastnode-close-hook-"));
     logFile = join(tmpDir, "close.log");
     writeFileSync(logFile, "");
-    process.env.NITRO_TEST_CLOSE_LOG = logFile;
+    process.env.FASTNODE_TEST_CLOSE_LOG = logFile;
     process.chdir(rootDir);
     server = await createServer({ root: rootDir, logLevel: "warn" });
     await server.listen("0" as unknown as number);
@@ -37,7 +37,7 @@ describe("vite: close hooks", { concurrent: false }, () => {
   afterAll(async () => {
     await server?.close().catch(() => {});
     process.chdir(originalCwd);
-    delete process.env.NITRO_TEST_CLOSE_LOG;
+    delete process.env.FASTNODE_TEST_CLOSE_LOG;
     rmSync(tmpDir, { recursive: true, force: true });
   });
 
@@ -53,7 +53,7 @@ describe("vite: close hooks", { concurrent: false }, () => {
   }, 30_000);
 
   // Vite only installs a `SIGTERM` handler, so the `SIGINT` of a Ctrl+C has to be handled by
-  // Nitro itself — this runs a real dev server in a child process and signals it.
+  // Fastnode itself — this runs a real dev server in a child process and signals it.
   test.skipIf(isWindows)(
     "runs close hooks on SIGINT",
     async () => {
@@ -63,7 +63,7 @@ describe("vite: close hooks", { concurrent: false }, () => {
       writeFileSync(
         script,
         [
-          `import { createServer } from ${JSON.stringify(import.meta.resolve(process.env.NITRO_VITE_PKG || "vite"))};`,
+          `import { createServer } from ${JSON.stringify(import.meta.resolve(process.env.FASTNODE_VITE_PKG || "vite"))};`,
           `const server = await createServer({ root: ${JSON.stringify(rootDir)}, logLevel: "warn" });`,
           `await server.listen(0);`,
           `console.log("ready:" + server.httpServer.address().port);`,
@@ -72,7 +72,7 @@ describe("vite: close hooks", { concurrent: false }, () => {
 
       const child = execa(process.execPath, [script], {
         cwd: rootDir,
-        env: { ...process.env, NITRO_TEST_CLOSE_LOG: sigintLog },
+        env: { ...process.env, FASTNODE_TEST_CLOSE_LOG: sigintLog },
         reject: false,
       });
 

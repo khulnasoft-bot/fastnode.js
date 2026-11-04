@@ -20,7 +20,7 @@ export type ExternalsOptions = {
   trace: false | Omit<ExternalsTraceOptions, "rootDir" | "exportConditions" | "traceOptions">;
 };
 
-const PLUGIN_NAME = "nitro:externals";
+const PLUGIN_NAME = "fastnode:externals";
 
 export function externals(opts: ExternalsOptions): Plugin {
   const resolved = opts.trace ? resolveTraceDeps(opts.include) : undefined;
@@ -352,9 +352,9 @@ export function resolveTraceDeps(
 
 // ---- Internal utils ----
 
-const TRACED_ID_PREFIX = "nitro:traced/";
+const TRACED_ID_PREFIX = "fastnode:traced/";
 
-const TRACED_ID_RE = /(?<=["'`])nitro:traced\/\d+\/[^"'`]+(?=["'`])/g;
+const TRACED_ID_RE = /(?<=["'`])fastnode:traced\/\d+\/[^"'`]+(?=["'`])/g;
 
 // `require()` in bundled CommonJS goes through Rolldown's shared `__require`
 // helper (`createRequire(import.meta.url)`), so relative ids resolve from the
@@ -454,6 +454,7 @@ function toImport(id: string): string | undefined {
   } else if (IMPORT_RE.test(id)) {
     return id;
   }
+  return undefined;
 }
 
 function guessSubpath(path: string, conditions: string[]): string | undefined {
@@ -476,7 +477,7 @@ function guessSubpath(path: string, conditions: string[]): string | undefined {
       return e.subpath === "./" ? normalize(name) : join(name, e.subpath);
     }
     if (e.fsPath.includes("*")) {
-      const fsPathRe = new RegExp(
+      const fsPathRe: RegExp = new RegExp(
         "^" + escapeRegExp(e.fsPath).replace(String.raw`\*`, "(.+?)") + "$"
       );
       if (fsPathRe.test(subpath)) {
@@ -487,6 +488,7 @@ function guessSubpath(path: string, conditions: string[]): string | undefined {
       }
     }
   }
+  return undefined;
 }
 
 function getPkgJSON(dir: string): PackageJson | undefined {
@@ -501,6 +503,7 @@ function getPkgJSON(dir: string): PackageJson | undefined {
   } catch {
     /* ignore */
   }
+  return undefined;
 }
 
 // Based on mlly

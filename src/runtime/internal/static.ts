@@ -1,8 +1,8 @@
 import { HTTPError, defineHandler } from "h3";
 import type { EventHandler, HTTPMethod } from "h3";
-import type { PublicAsset } from "nitro/types";
+import type { PublicAsset } from "fastnode/types";
 import { decodePath, joinURL, withLeadingSlash, withoutTrailingSlash } from "ufo";
-import { getAsset, hasAsset, isPublicAssetURL, readAsset } from "#nitro/virtual/public-assets";
+import { getAsset, hasAsset, isPublicAssetURL, readAsset } from "#fastnode/virtual/public-assets";
 
 const METHODS = new Set(["HEAD", "GET"] as HTTPMethod[]);
 
@@ -34,10 +34,10 @@ export default defineHandler((event) => {
         const [name, ...parameters] = entry.split(";");
         const quality = parameters
           .map((parameter) => parameter.trim().split("="))
-          .find(([key]) => key.toLowerCase() === "q")?.[1];
+          .find(([key]) => key!.toLowerCase() === "q")?.[1];
         const weight = quality === undefined ? 1 : Number.parseFloat(quality);
         return {
-          ext: EncodingMap[name.trim().toLowerCase() as keyof typeof EncodingMap],
+          ext: EncodingMap[name!.trim().toLowerCase() as keyof typeof EncodingMap],
           // An unparsable weight is an invalid parameter, not a rejection
           weight: Number.isNaN(weight) ? 1 : weight,
         };

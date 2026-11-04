@@ -6,7 +6,7 @@ import { createFetchRequest, parseFetchArgs } from "../../src/cli/commands/fetch
 
 const request = (args: string[]) => createFetchRequest(parseFetchArgs(args));
 
-describe("nitro fetch arguments", () => {
+describe("fastnode fetch arguments", () => {
   it("resolves paths and URLs", async () => {
     expect((await request([])).url).toBe("http://localhost/");
     expect((await request(["api/hello?x=1"])).url).toBe("http://localhost/api/hello?x=1");
@@ -45,7 +45,7 @@ describe("nitro fetch arguments", () => {
   });
 
   it("reads `@file` data", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "nitro-fetch-"));
+    const dir = await mkdtemp(join(tmpdir(), "fastnode-fetch-"));
     try {
       await writeFile(join(dir, "body.txt"), "a\nb\n");
       expect(await (await request(["-d", `@${dir}/body.txt`])).text()).toBe("ab");

@@ -1,9 +1,9 @@
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 import preact from "@preact/preset-vite";
 
 export default defineConfig({
-  plugins: [nitro(), preact()],
+  plugins: [fastnode(), preact()],
   environments: {
     client: {
       build: {

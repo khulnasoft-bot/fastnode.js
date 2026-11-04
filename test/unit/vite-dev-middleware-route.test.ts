@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { matchesMiddlewareRoute } from "../../src/build/vite/dev.ts";
+import { matchesMiddlewareRoute } from "../../src/build/builders/vite/dev.ts";
 
 describe("vite dev: matchesMiddlewareRoute", () => {
   it("matches mounted routes on a path boundary", () => {

@@ -5,7 +5,7 @@ export type Invalid<Message extends string> = Message & { readonly [invalidValue
 
 type LibOptionName = "lib" | `${string}Lib`;
 
-type LibOption = null | Invalid<"Library imports are not JSON-serializable; nitro injects them for installed driver dependencies (set `null` to opt out)">;
+type LibOption = null | Invalid<"Library imports are not JSON-serializable; fastnode injects them for installed driver dependencies (set `null` to opt out)">;
 
 type JsonPrimitive = string | number | boolean | null | undefined;
 
@@ -40,7 +40,7 @@ export type Serializable<T, Depth extends number = 6> = [Depth] extends [never]
   : T extends JsonPrimitive
     ? T
     : T extends NonSerializable
-      ? Invalid<"nitro serializes options with JSON.stringify; this value would not survive">
+      ? Invalid<"fastnode serializes options with JSON.stringify; this value would not survive">
       : T extends readonly (infer U)[]
         ? Array<Serializable<U, Prev[Depth]>>
         : T extends object

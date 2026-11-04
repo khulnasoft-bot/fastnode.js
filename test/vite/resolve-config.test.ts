@@ -9,7 +9,7 @@ describe("vite: resolve config", () => {
     const result = await execa(
       "node",
       [fileURLToPath(new URL("./resolve-config-fixture/resolve.mjs", import.meta.url))],
-      { timeout: 20_000, reject: false, env: { NITRO_VITE_PKG: process.env.NITRO_VITE_PKG } }
+      { timeout: 20_000, reject: false, env: { FASTNODE_VITE_PKG: process.env.FASTNODE_VITE_PKG } }
     );
     expect(result.timedOut).toBe(false);
     expect(result.exitCode).toBe(0);

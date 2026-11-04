@@ -5,18 +5,18 @@ import consola from "consola";
 import {
   build,
   copyPublicAssets,
-  createNitro,
+  createFastnode,
   deploy,
   getBuildInfo,
   prepare,
   prerender,
-} from "nitro/builder";
+} from "fastnode/builder";
 import { buildArgs } from "./build.ts";
 
 export default defineCommand({
   meta: {
     name: "deploy",
-    description: "Build and deploy nitro project for production",
+    description: "Build and deploy fastnode project for production",
   },
   args: {
     ...buildArgs,
@@ -54,7 +54,7 @@ export default defineCommand({
       outputDir = lastBuild.outputDir;
     }
 
-    const nitro = await createNitro(
+    const fastnode = await createFastnode(
       {
         rootDir,
         dev: false,
@@ -73,20 +73,20 @@ export default defineCommand({
 
     try {
       if (!args.prebuilt) {
-        await prepare(nitro);
+        await prepare(fastnode);
         // The vite builder copies public assets and prerenders after building the client
-        if (nitro.options.builder !== "vite") {
-          await copyPublicAssets(nitro);
-          await prerender(nitro);
+        if (fastnode.options.builder !== "vite") {
+          await copyPublicAssets(fastnode);
+          await prerender(fastnode);
         }
-        await build(nitro);
+        await build(fastnode);
       }
-      await deploy(nitro, { args: extraArgs });
+      await deploy(fastnode, { args: extraArgs });
     } catch (error) {
       consola.error(error);
       process.exitCode = 1;
     } finally {
-      await nitro.close();
+      await fastnode.close();
     }
   },
 });

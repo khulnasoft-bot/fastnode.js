@@ -1,57 +1,57 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import type { Server } from "srvx";
 import {
   build,
   createDevServer,
-  createNitro,
+  createFastnode,
   loadOptions,
   prepare,
   prerender,
   startPreview,
-} from "nitro/builder";
+} from "fastnode/builder";
 import { existsSync } from "node:fs";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
-import { pkgDir } from "#nitro/meta";
+import { pkgDir } from "#fastnode/meta";
 import { getRandomPort } from "get-port-please";
 import { join } from "pathe";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { unbundledPlugins } from "../../src/build/unbundled/plugins.ts";
-import { startUnbundledServer } from "../../src/build/unbundled/serve.ts";
+import { unbundledPlugins } from "../../src/build/builders/unbundled/plugins.ts";
+import { startUnbundledServer } from "../../src/build/builders/unbundled/serve.ts";
 
 const rootDir = fileURLToPath(new URL("fixture", import.meta.url));
 
 describe("builder: false", () => {
   describe("dev", () => {
-    let nitro: Nitro;
+    let fastnode: Fastnode;
     let server: Server;
     let reloads = 0;
 
     beforeAll(async () => {
-      nitro = await createNitro({ rootDir, dev: true });
-      const devServer = createDevServer(nitro);
+      fastnode = await createFastnode({ rootDir, dev: true });
+      const devServer = createDevServer(fastnode);
       server = devServer.listen({ port: 0 });
       await server.ready();
       const ready = new Promise<void>((resolve) => {
-        nitro.hooks.hookOnce("dev:reload", () => resolve());
+        fastnode.hooks.hookOnce("dev:reload", () => resolve());
       });
-      await build(nitro);
+      await build(fastnode);
       await ready;
-      nitro.hooks.hook("dev:reload", () => {
+      fastnode.hooks.hook("dev:reload", () => {
         reloads++;
       });
     });
 
     afterAll(async () => {
-      await nitro?.close();
+      await fastnode?.close();
       await rm(join(rootDir, ".data"), { recursive: true, force: true });
       await rm(join(rootDir, "lib/_tmp.ts"), { force: true });
     });
 
     it("runs TypeScript sources with extensionless imports", async () => {
       const res = await fetch(new URL("/", server.url));
-      expect(await res.text()).toBe("Hello, nitro!");
+      expect(await res.text()).toBe("Hello, fastnode!");
     });
 
     it("serves virtual modules (routing, runtime config)", async () => {
@@ -103,7 +103,7 @@ describe("builder: false", () => {
   });
 
   it("warns about `buildPlugins` hooks env-runner does not support", async () => {
-    const nitro = await createNitro({
+    const fastnode = await createFastnode({
       rootDir,
       buildPlugins: [
         {
@@ -114,21 +114,21 @@ describe("builder: false", () => {
         },
       ],
     });
-    const warn = vi.spyOn(nitro.logger, "warn").mockImplementation(() => {});
-    await unbundledPlugins(nitro);
+    const warn = vi.spyOn(fastnode.logger, "warn").mockImplementation(() => {});
+    await unbundledPlugins(fastnode);
     expect(warn).toHaveBeenCalledWith(
       "Build plugin `fixture:unsupported` uses hooks not supported with `builder: false`, they are ignored: `buildStart`."
     );
-    await nitro.close();
+    await fastnode.close();
   });
 
   it("rewrites aliased static imports for the bun runner", async () => {
-    const nitro = await createNitro({
+    const fastnode = await createFastnode({
       rootDir,
       alias: { $lib: "./lib" },
       devServer: { runner: "bun-process" },
     });
-    const plugin = (await unbundledPlugins(nitro)).find((p) => p.name === "nitro:alias");
+    const plugin = (await unbundledPlugins(fastnode)).find((p) => p.name === "fastnode:alias");
     const { handler } = plugin!.transform as { handler: (...args: any[]) => any };
     const code = [
       `import a from "~lib/a";`,
@@ -142,12 +142,14 @@ describe("builder: false", () => {
         "const c = import(`~lib/${name}`);",
       ].join("\n")
     );
-    await nitro.close();
+    await fastnode.close();
   });
 
   it("resolves optional runtime dependencies of the runtime from the project", async () => {
-    const nitro = await createNitro({ rootDir });
-    const plugin = (await unbundledPlugins(nitro)).find((p) => p.name === "nitro:runtime-deps");
+    const fastnode = await createFastnode({ rootDir });
+    const plugin = (await unbundledPlugins(fastnode)).find(
+      (p) => p.name === "fastnode:runtime-deps"
+    );
     const { handler } = plugin!.resolveId as { handler: (...args: any[]) => Promise<unknown> };
     const resolve = vi.fn(async () => ({ id: "/resolved", external: false }));
 
@@ -156,52 +158,52 @@ describe("builder: false", () => {
     expect(await handler.call({ resolve }, "unstorage", userImporter)).toBeUndefined();
     expect(resolve).not.toHaveBeenCalled();
 
-    // Imported by the Nitro runtime: resolved from the project
+    // Imported by the Fastnode runtime: resolved from the project
     const runtimeImporter = join(pkgDir, "dist/runtime/internal/kv.mjs");
     expect(await handler.call({ resolve }, "unstorage/tracing", runtimeImporter)).toEqual({
       id: "/resolved",
       external: false,
     });
-    expect(resolve).toHaveBeenCalledWith("unstorage/tracing", join(nitro.options.rootDir, "_"));
-    await nitro.close();
+    expect(resolve).toHaveBeenCalledWith("unstorage/tracing", join(fastnode.options.rootDir, "_"));
+    await fastnode.close();
   });
 
-  it("maps `NITRO_BUILDER=false` to `builder: false`", async () => {
-    const original = process.env.NITRO_BUILDER;
-    process.env.NITRO_BUILDER = "false";
+  it("maps `FASTNODE_BUILDER=false` to `builder: false`", async () => {
+    const original = process.env.FASTNODE_BUILDER;
+    process.env.FASTNODE_BUILDER = "false";
     try {
       const options = await loadOptions({ rootDir: join(rootDir, "../..", "fixture") });
       expect(options.builder).toBe(false);
     } finally {
       if (original === undefined) {
-        delete process.env.NITRO_BUILDER;
+        delete process.env.FASTNODE_BUILDER;
       } else {
-        process.env.NITRO_BUILDER = original;
+        process.env.FASTNODE_BUILDER = original;
       }
     }
   });
 
   it("does not support production builds (before cleaning the output)", async () => {
-    const nitro = await createNitro({ rootDir });
-    await mkdir(nitro.options.output.dir, { recursive: true });
-    await expect(prepare(nitro)).rejects.toThrow("not supported with `builder: false`");
-    await expect(build(nitro)).rejects.toThrow("not supported with `builder: false`");
-    expect(existsSync(nitro.options.output.dir)).toBe(true);
-    await rm(nitro.options.output.dir, { recursive: true, force: true });
-    await nitro.close();
+    const fastnode = await createFastnode({ rootDir });
+    await mkdir(fastnode.options.output.dir, { recursive: true });
+    await expect(prepare(fastnode)).rejects.toThrow("not supported with `builder: false`");
+    await expect(build(fastnode)).rejects.toThrow("not supported with `builder: false`");
+    expect(existsSync(fastnode.options.output.dir)).toBe(true);
+    await rm(fastnode.options.output.dir, { recursive: true, force: true });
+    await fastnode.close();
   });
 
   it("previews only the build output", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "nitro-unbundled-"));
-    await writeFile(join(dir, "nitro.config.mjs"), `export default { builder: false };`);
+    const dir = await mkdtemp(join(tmpdir(), "fastnode-unbundled-"));
+    await writeFile(join(dir, "fastnode.config.mjs"), `export default { builder: false };`);
     await expect(startPreview({ rootDir: dir })).rejects.toThrow("Make sure to build first");
     await rm(dir, { recursive: true, force: true });
   });
 
-  it("serves the sources from a public listener (`nitro serve`)", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "nitro-unbundled-"));
+  it("serves the sources from a public listener (`fastnode serve`)", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "fastnode-unbundled-"));
     await writeFile(
-      join(dir, "nitro.config.mjs"),
+      join(dir, "fastnode.config.mjs"),
       `export default { builder: "rollup", serverDir: "./", baseURL: "/app/", ignore: ["**/docs.html", "**/secret"] };`
     );
     await mkdir(join(dir, "routes"));
@@ -239,10 +241,10 @@ describe("builder: false", () => {
     }
   });
 
-  it("does not serve ignored public files at the root base (`nitro serve`)", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "nitro-unbundled-"));
+  it("does not serve ignored public files at the root base (`fastnode serve`)", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "fastnode-unbundled-"));
     await writeFile(
-      join(dir, "nitro.config.mjs"),
+      join(dir, "fastnode.config.mjs"),
       `export default { serverDir: "./", ignore: ["**/docs.html", "**/secret", "**/note.txt"] };`
     );
     await mkdir(join(dir, "routes"));
@@ -273,36 +275,36 @@ describe("builder: false", () => {
     }
   });
 
-  it("listens on `NITRO_PORT` from `.env` (`nitro serve`)", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "nitro-unbundled-"));
+  it("listens on `FASTNODE_PORT` from `.env` (`fastnode serve`)", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "fastnode-unbundled-"));
     const envPort = await getRandomPort("127.0.0.1");
-    await writeFile(join(dir, "nitro.config.mjs"), `export default { serverDir: "./" };`);
-    await writeFile(join(dir, ".env"), `NITRO_PORT=${envPort}`);
+    await writeFile(join(dir, "fastnode.config.mjs"), `export default { serverDir: "./" };`);
+    await writeFile(join(dir, ".env"), `FASTNODE_PORT=${envPort}`);
     await mkdir(join(dir, "routes"));
     await writeFile(join(dir, "routes/index.ts"), `export default () => "Served!";`);
     const server = await startUnbundledServer({ rootDir: dir, listen: { hostname: "127.0.0.1" } });
     try {
       expect(server.runner.address?.port).toBe(envPort);
     } finally {
-      delete process.env.NITRO_PORT;
+      delete process.env.FASTNODE_PORT;
       await server.close();
       await rm(dir, { recursive: true, force: true });
     }
   });
 
-  it("runs the build hooks of modules (`nitro serve`)", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "nitro-unbundled-"));
+  it("runs the build hooks of modules (`fastnode serve`)", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "fastnode-unbundled-"));
     await writeFile(
-      join(dir, "nitro.config.mjs"),
+      join(dir, "fastnode.config.mjs"),
       /* js */ `
 import { writeFileSync } from "node:fs";
 export default {
   modules: [{
-    setup(nitro) {
-      nitro.hooks.hook("build:before", () => {
-        nitro.options.handlers.push({ route: "/from-module", handler: nitro.options.rootDir + "/module-handler.ts" });
+    setup(fastnode) {
+      fastnode.hooks.hook("build:before", () => {
+        fastnode.options.handlers.push({ route: "/from-module", handler: fastnode.options.rootDir + "/module-handler.ts" });
       });
-      nitro.hooks.hook("compiled", () => writeFileSync(nitro.options.rootDir + "/compiled.txt", "yes"));
+      fastnode.hooks.hook("compiled", () => writeFileSync(fastnode.options.rootDir + "/compiled.txt", "yes"));
     },
   }],
 };`
@@ -324,16 +326,16 @@ export default {
   });
 
   it("prerenders the sources without a build", async () => {
-    const outputDir = await mkdtemp(join(tmpdir(), "nitro-unbundled-prerender-"));
-    const nitro = await createNitro({
+    const outputDir = await mkdtemp(join(tmpdir(), "fastnode-unbundled-prerender-"));
+    const fastnode = await createFastnode({
       rootDir,
       output: { dir: outputDir },
       prerender: { routes: ["/", "/api/7", "/features"] },
     });
     try {
-      await prerender(nitro);
-      const publicDir = nitro.options.output.publicDir;
-      expect(await readFile(join(publicDir, "index"), "utf8")).toBe("Hello, nitro!");
+      await prerender(fastnode);
+      const publicDir = fastnode.options.output.publicDir;
+      expect(await readFile(join(publicDir, "index"), "utf8")).toBe("Hello, fastnode!");
       expect(JSON.parse(await readFile(join(publicDir, "api/7"), "utf8"))).toEqual({
         id: "7",
         hasRuntimeConfig: true,
@@ -345,14 +347,14 @@ export default {
         wasm: 5,
       });
     } finally {
-      await nitro.close();
+      await fastnode.close();
       await rm(outputDir, { recursive: true, force: true });
     }
   });
 
   it("prerenders filenames containing `..` but not `..` segments", async () => {
-    const outputDir = await mkdtemp(join(tmpdir(), "nitro-unbundled-prerender-"));
-    const nitro = await createNitro({
+    const outputDir = await mkdtemp(join(tmpdir(), "fastnode-unbundled-prerender-"));
+    const fastnode = await createFastnode({
       rootDir,
       output: { dir: outputDir },
       prerender: {
@@ -360,15 +362,15 @@ export default {
       },
     });
     try {
-      await prerender(nitro);
-      const publicDir = nitro.options.output.publicDir;
+      await prerender(fastnode);
+      const publicDir = fastnode.options.output.publicDir;
       expect(JSON.parse(await readFile(join(publicDir, "api/hello..png"), "utf8"))).toMatchObject({
         id: "hello..png",
       });
       expect(existsSync(join(publicDir, "api/8"))).toBe(false);
       expect(existsSync(join(publicDir, "api/9"))).toBe(false);
     } finally {
-      await nitro.close();
+      await fastnode.close();
       await rm(outputDir, { recursive: true, force: true });
     }
   });

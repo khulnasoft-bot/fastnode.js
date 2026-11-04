@@ -1,6 +1,6 @@
 # Upsun
 
-> Deploy Nitro apps to Upsun
+> Deploy Fastnode apps to Upsun
 
 **Preset:** `upsun`
 
@@ -30,7 +30,7 @@ Then in the repository create a `.upsun/config.yaml` file:
 
 ```yaml [.upsun/config.yaml]
 applications:
-  nitro:
+  fastnode:
     type: nodejs:24
     dependencies:
       nodejs:
@@ -41,7 +41,7 @@ applications:
       build: |
         set -eux
         pnpm install
-        NITRO_PRESET=upsun pnpm build
+        FASTNODE_PRESET=upsun pnpm build
     web:
       commands:
         start: "node .output/server/index.mjs"
@@ -59,7 +59,7 @@ routes:
   # Primary domain
   "https://{default}/":
     type: upstream
-    upstream: "nitro:http"
+    upstream: "fastnode:http"
     cache:
       enabled: true
       cookies: ["*"]
@@ -69,7 +69,7 @@ routes:
 
 :read-more{title="Complete list of all available configuration properties" to="https://docs.upsun.com/get-started/here/configure/nodejs.html"}
 
-:read-more{title="Nitro storage layer" to="/docs/storage"}
+:read-more{title="Fastnode storage layer" to="/docs/storage"}
 
 ## Deployment
 
@@ -88,16 +88,16 @@ upsun deploy
 The Upsun pipeline then builds and deploys the project:
 
 ```bash
-Building application 'nitro' (runtime type: nodejs:24)
+Building application 'fastnode' (runtime type: nodejs:24)
   Executing build hook...
     W: + pnpm install
     W: + pnpm build
-    [info] [nitro] Building Nitro Server (preset: `upsun`)
-    [success] [nitro] Nitro Server built
+    [info] [fastnode] Building Fastnode Server (preset: `upsun`)
+    [success] [fastnode] Fastnode Server built
 
 Redeploying environment main
   Environment routes
-    https://example.org/ is served by application `nitro`
+    https://example.org/ is served by application `fastnode`
 ```
 
 For any support, please reach out to [the Upsun team on Discord](https://discord.com/invite/upsun).

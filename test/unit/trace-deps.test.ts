@@ -54,7 +54,7 @@ describe("resolveTraceDeps", () => {
     const result = resolveTraceDeps(["my-pkg", /my-.*-pkg/], defaults);
     expect(result.traceInclude).toEqual(["my-pkg"]);
     // Builtins are never force-traced wholesale — they would drag build-time
-    // tooling (rolldown/rollup/vite, declared by nitro) into the output.
+    // tooling (rolldown/rollup/vite, declared by fastnode) into the output.
     expect(result.traceInclude).not.toContain("sharp");
     expect(result.traceInclude).not.toContain("canvas");
     // RegExp entries cannot be resolved by name and must be excluded
@@ -163,32 +163,32 @@ describe("resolveTraceDeps", () => {
 describe("collectPackageRoots", () => {
   it("extracts the package root from bundled module ids", () => {
     const roots = collectPackageRoots([
-      "/app/node_modules/nitropage/dist/server.mjs",
+      "/app/node_modules/fastnodepage/dist/server.mjs",
       "/app/node_modules/@scope/pkg/lib/index.js",
     ]);
-    expect(roots).toEqual(["/app/node_modules/nitropage", "/app/node_modules/@scope/pkg"]);
+    expect(roots).toEqual(["/app/node_modules/fastnodepage", "/app/node_modules/@scope/pkg"]);
   });
 
   it("resolves pnpm nested roots (deepest node_modules wins)", () => {
     const roots = collectPackageRoots([
-      "/app/node_modules/.pnpm/nitropage@1.0.0/node_modules/nitropage/dist/index.mjs",
+      "/app/node_modules/.pnpm/fastnodepage@1.0.0/node_modules/fastnodepage/dist/index.mjs",
     ]);
     // The real pnpm location — so `traceInclude` names it declares resolve from here.
-    expect(roots).toEqual(["/app/node_modules/.pnpm/nitropage@1.0.0/node_modules/nitropage"]);
+    expect(roots).toEqual(["/app/node_modules/.pnpm/fastnodepage@1.0.0/node_modules/fastnodepage"]);
   });
 
   it("deduplicates roots across many files of the same package", () => {
     const roots = collectPackageRoots([
-      "/app/node_modules/nitropage/dist/a.mjs",
-      "/app/node_modules/nitropage/dist/b.mjs",
-      "/app/node_modules/nitropage/package.json",
+      "/app/node_modules/fastnodepage/dist/a.mjs",
+      "/app/node_modules/fastnodepage/dist/b.mjs",
+      "/app/node_modules/fastnodepage/package.json",
     ]);
-    expect(roots).toEqual(["/app/node_modules/nitropage"]);
+    expect(roots).toEqual(["/app/node_modules/fastnodepage"]);
   });
 
   it("ignores non-node_modules and virtual ids", () => {
     expect(
-      collectPackageRoots(["/app/src/index.ts", "\0virtual:nitro", "#internal/nitro"])
+      collectPackageRoots(["/app/src/index.ts", "\0virtual:fastnode", "#internal/fastnode"])
     ).toBeUndefined();
   });
 
@@ -202,7 +202,7 @@ describe("collectDirectDepRoots", () => {
   // the repo `.gitignore` would drop) is always present.
   let appDir: string;
   beforeAll(() => {
-    appDir = mkdtempSync(join(tmpdir(), "nitro-direct-deps-"));
+    appDir = mkdtempSync(join(tmpdir(), "fastnode-direct-deps-"));
     writeFileSync(
       join(appDir, "package.json"),
       JSON.stringify({
@@ -235,7 +235,7 @@ describe("collectDirectDepRoots", () => {
   });
 
   it("returns an empty array when rootDir has no package.json", () => {
-    const emptyDir = mkdtempSync(join(tmpdir(), "nitro-empty-"));
+    const emptyDir = mkdtempSync(join(tmpdir(), "fastnode-empty-"));
     try {
       expect(collectDirectDepRoots(emptyDir, ["node"])).toEqual([]);
     } finally {
@@ -253,16 +253,16 @@ describe("externals resolveId (unresolvable native deps)", () => {
     trace: {},
   });
   // Resolution always fails, mimicking a native dep imported from a generated
-  // entry (e.g. `.nitro/vite/services/ssr`) outside its declaring package scope.
+  // entry (e.g. `.fastnode/vite/services/ssr`) outside its declaring package scope.
   const handler = (plugin.resolveId as any).handler.bind({ resolve: async () => null });
 
   it("externalizes an include-matched native dep by name when unresolvable", async () => {
-    const result = await handler("sharp", "/app/.nitro/services/ssr/index.js", {});
+    const result = await handler("sharp", "/app/.fastnode/services/ssr/index.js", {});
     expect(result).toMatchObject({ external: true, id: "sharp" });
   });
 
   it("does not externalize an unresolvable dep that is not in the include set", async () => {
-    const result = await handler("left-pad", "/app/.nitro/services/ssr/index.js", {});
+    const result = await handler("left-pad", "/app/.fastnode/services/ssr/index.js", {});
     expect(result).toBeNull();
   });
 });
@@ -278,7 +278,7 @@ describe("externals buildEnd (forced trace includes)", () => {
     });
     const handler = (plugin.resolveId as any).handler.bind({ resolve: async () => null });
     // Subpath import of a builtin native dep, unresolvable (pnpm nested).
-    await handler("sharp/wasm", "/app/.nitro/services/ssr/index.js", {});
+    await handler("sharp/wasm", "/app/.fastnode/services/ssr/index.js", {});
     await (plugin.buildEnd as any).handler.call({});
     const { traceNodeModules } = await import("nf3");
     // Trace must run for observed imports even when nothing else was traced.

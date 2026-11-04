@@ -1,6 +1,6 @@
 # Standard
 
-> Run Nitro apps on any runtime with a web-standard entry.
+> Run Fastnode apps on any runtime with a web-standard entry.
 
 **Preset:** `standard`
 
@@ -8,7 +8,7 @@ The `standard` preset produces a portable, runtime-agnostic build with a web-sta
 
 ```bash
 # Build with the standard preset
-NITRO_PRESET=standard npm run build
+FASTNODE_PRESET=standard npm run build
 ```
 
 The generated entry looks like this:

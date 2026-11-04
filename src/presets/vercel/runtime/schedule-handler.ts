@@ -1,5 +1,5 @@
-import { defineHandler, HTTPError } from "nitro/h3";
-import { runTask } from "#nitro/runtime/task";
+import { defineHandler, HTTPError } from "fastnode/h3";
+import { runTask } from "#fastnode/runtime/task";
 
 // https://vercel.com/docs/schedules
 export const SCHEDULE_EVENT_TYPE = "com.vercel.schedule.v1beta";

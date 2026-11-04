@@ -4,7 +4,7 @@ import mime from "mime";
 import type { Plugin } from "rollup";
 import { chain } from "../../utils/sync.ts";
 
-const HELPER_ID = "virtual:nitro-raw-helpers";
+const HELPER_ID = "virtual:fastnode-raw-helpers";
 
 // `raw:` infers the module type from the file mime, `bytes:` always yields a
 // Uint8Array and `text:` always a string (import attributes ignore the file type)
@@ -14,7 +14,7 @@ const PREFIX_RE = new RegExp(`^(${TYPES.join("|")}):`);
 
 // Modules under this prefix hold file contents, not source code, so other transforms must skip them.
 // The `\0` keeps vite dev from checking file access on them (denied for ids with `:`, e.g. `.svg`).
-export const RESOLVED_PREFIX = "\0virtual:nitro:";
+export const RESOLVED_PREFIX = "\0virtual:fastnode:";
 export const RESOLVED_RE = new RegExp(`^${RESOLVED_PREFIX}(${TYPES.join("|")}):`);
 
 // Resolved ids are JavaScript modules. Without this, plugins matching the original
@@ -23,7 +23,7 @@ const RESOLVED_SUFFIX = ".js";
 
 export function raw(): Plugin {
   return {
-    name: "nitro:raw",
+    name: "fastnode:raw",
     resolveId: {
       order: "pre",
       filter: {
@@ -65,7 +65,7 @@ export function raw(): Plugin {
           return; // In case the builder does not support filters
         }
         const { path, binary } = parsed;
-        // Virtual modules (`nitro.vfs`, other plugins) have no file to read: inline
+        // Virtual modules (`fastnode.vfs`, other plugins) have no file to read: inline
         // their rendered source instead. `transform` decodes as latin1, so re-encode.
         if (!isAbsolute(path)) {
           return this.load({ id: path }).then(({ code }) => {

@@ -1,4 +1,4 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import type { WranglerConfig, CloudflarePagesRoutes } from "./types.ts";
 import { existsSync } from "node:fs";
 import { readFile, rename } from "node:fs/promises";
@@ -21,12 +21,12 @@ import { getPublicAssetCorsHeaders } from "../_utils/cors.ts";
 import { hasHeaders, routeToSplat, skipUnsupportedRoute, sortRoutes } from "../_utils/routes.ts";
 import { extendEnv } from "../../build/env.ts";
 
-// https://github.com/nitrojs/nitro/issues/4527
+// https://github.com/khulnasoft/fastnode/issues/4527
 const NODEJS_COMPAT_SUPPORTED_FROM_DATE = "2024-09-23";
 const NODEJS_COMPAT_DEFAULT_ON_DATE = "2026-08-04";
 
-export async function writeCFRoutes(nitro: Nitro) {
-  const _cfPagesConfig = nitro.options.cloudflare?.pages || {};
+export async function writeCFRoutes(fastnode: Fastnode) {
+  const _cfPagesConfig = fastnode.options.cloudflare?.pages || {};
   const routes: CloudflarePagesRoutes = {
     version: _cfPagesConfig.routes?.version || 1,
     include: _cfPagesConfig.routes?.include || ["/*"],
@@ -35,7 +35,7 @@ export async function writeCFRoutes(nitro: Nitro) {
 
   const writeRoutes = () =>
     writeFile(
-      resolve(nitro.options.output.dir, "_routes.json"),
+      resolve(fastnode.options.output.dir, "_routes.json"),
       JSON.stringify(routes, undefined, 2),
       true
     );
@@ -46,7 +46,7 @@ export async function writeCFRoutes(nitro: Nitro) {
   }
 
   // Exclude public assets from hitting the worker
-  const explicitPublicAssets = nitro.options.publicAssets.filter((dir, index, array) => {
+  const explicitPublicAssets = fastnode.options.publicAssets.filter((dir, index, array) => {
     if (dir.fallthrough || !dir.baseURL) {
       return false;
     }
@@ -63,19 +63,19 @@ export async function writeCFRoutes(nitro: Nitro) {
   // Explicit prefixes
   routes.exclude!.push(
     ...explicitPublicAssets
-      .map((asset) => joinURL(nitro.options.baseURL, asset.baseURL || "/", "*"))
+      .map((asset) => joinURL(fastnode.options.baseURL, asset.baseURL || "/", "*"))
       .sort(comparePaths)
   );
 
   // Unprefixed assets
   const publicAssetFiles = await glob("**", {
-    cwd: nitro.options.output.dir,
+    cwd: fastnode.options.output.dir,
     absolute: false,
     dot: true,
     ignore: [
       "_worker.js",
       "_worker.js.map",
-      "nitro.json",
+      "fastnode.json",
       ...routes.exclude!.map((path) => withoutLeadingSlash(path.replace(/\/\*$/, "/**"))),
     ],
   });
@@ -106,26 +106,29 @@ function comparePaths(a: string, b: string) {
  * the static assets directory, where Cloudflare reads it on Workers. With a baseURL, the user's own
  * `_headers` is copied under it in the public dir, so it is moved from there.
  */
-export async function writeCFHeaders(nitro: Nitro, outdir: "public" | "output" | "assets") {
+export async function writeCFHeaders(fastnode: Fastnode, outdir: "public" | "output" | "assets") {
   const headersPath = join(
     outdir === "assets"
-      ? getCFAssetsDir(nitro)
+      ? getCFAssetsDir(fastnode)
       : outdir === "public"
-        ? nitro.options.output.publicDir
-        : nitro.options.output.dir,
+        ? fastnode.options.output.publicDir
+        : fastnode.options.output.dir,
     "_headers"
   );
   const userHeadersPath =
-    outdir === "assets" ? join(nitro.options.output.publicDir, "_headers") : headersPath;
+    outdir === "assets" ? join(fastnode.options.output.publicDir, "_headers") : headersPath;
   const contents = [];
 
-  for (const path of sortRoutes(Object.keys(nitro.options.routeRules))) {
-    const routeRules = nitro.options.routeRules[path];
-    if (!hasHeaders(routeRules) || skipUnsupportedRoute(nitro, { route: path, file: "_headers" })) {
+  for (const path of sortRoutes(Object.keys(fastnode.options.routeRules))) {
+    const routeRules = fastnode.options.routeRules[path]!;
+    if (
+      !hasHeaders(routeRules) ||
+      skipUnsupportedRoute(fastnode, { route: path, file: "_headers" })
+    ) {
       continue;
     }
     const headers = [
-      joinURL(nitro.options.baseURL, routeToSplat(path)),
+      joinURL(fastnode.options.baseURL, routeToSplat(path)),
       ...Object.entries({ ...routeRules.headers }).map(
         ([header, value]) => `  ${header}: ${value}`
       ),
@@ -137,10 +140,10 @@ export async function writeCFHeaders(nitro: Nitro, outdir: "public" | "output" |
   const headersFile = existsSync(userHeadersPath)
     ? await readFile(userHeadersPath, "utf8")
     : undefined;
-  for (const { base, headers } of getPublicAssetCorsHeaders(nitro, { headersFile })) {
+  for (const { base, headers } of getPublicAssetCorsHeaders(fastnode, { headersFile })) {
     contents.push(
       [
-        joinURL(nitro.options.baseURL, base, "*"),
+        joinURL(fastnode.options.baseURL, base, "*"),
         ...Object.entries(headers).map(([header, value]) => `  ${header}: ${value}`),
       ].join("\n")
     );
@@ -151,12 +154,12 @@ export async function writeCFHeaders(nitro: Nitro, outdir: "public" | "output" |
       await rename(userHeadersPath, headersPath);
     }
     if (/^\/\* /m.test(headersFile)) {
-      nitro.logger.info(
-        "Not adding Nitro fallback to `_headers` (as an existing fallback was found)."
+      fastnode.logger.info(
+        "Not adding Fastnode fallback to `_headers` (as an existing fallback was found)."
       );
       return;
     }
-    nitro.logger.info("Adding Nitro fallback to `_headers` to handle all unmatched routes.");
+    fastnode.logger.info("Adding Fastnode fallback to `_headers` to handle all unmatched routes.");
     contents.unshift(headersFile);
   }
 
@@ -167,41 +170,41 @@ export async function writeCFHeaders(nitro: Nitro, outdir: "public" | "output" |
  * Move the user's `_redirects` to the root of the static assets directory, where Cloudflare reads
  * it on Workers (with a baseURL, it is copied under it in the public dir).
  */
-export async function moveCFRedirects(nitro: Nitro) {
-  const source = join(nitro.options.output.publicDir, "_redirects");
-  const target = join(getCFAssetsDir(nitro), "_redirects");
+export async function moveCFRedirects(fastnode: Fastnode) {
+  const source = join(fastnode.options.output.publicDir, "_redirects");
+  const target = join(getCFAssetsDir(fastnode), "_redirects");
   if (source !== target && existsSync(source)) {
     await rename(source, target);
   }
 }
 
 /** Root of the static assets directory: the public dir without its baseURL suffix. */
-export function getCFAssetsDir(nitro: Nitro): string {
-  const publicDir = withoutTrailingSlash(nitro.options.output.publicDir);
-  const base = withoutTrailingSlash(nitro.options.baseURL);
+export function getCFAssetsDir(fastnode: Fastnode): string {
+  const publicDir = withoutTrailingSlash(fastnode.options.output.publicDir);
+  const base = withoutTrailingSlash(fastnode.options.baseURL);
   return base && publicDir.endsWith(base) ? publicDir.slice(0, -base.length) : publicDir;
 }
 
-export async function writeCFPagesRedirects(nitro: Nitro) {
-  const redirectsPath = join(nitro.options.output.dir, "_redirects");
-  const staticFallback = existsSync(join(nitro.options.output.publicDir, "404.html"))
-    ? `${joinURL(nitro.options.baseURL, "/*")} ${joinURL(nitro.options.baseURL, "/404.html")} 404`
+export async function writeCFPagesRedirects(fastnode: Fastnode) {
+  const redirectsPath = join(fastnode.options.output.dir, "_redirects");
+  const staticFallback = existsSync(join(fastnode.options.output.publicDir, "404.html"))
+    ? `${joinURL(fastnode.options.baseURL, "/*")} ${joinURL(fastnode.options.baseURL, "/404.html")} 404`
     : "";
   const contents: string[] = [];
 
   // Most specific first, as the first matching rule wins
-  const routes = sortRoutes(Object.keys(nitro.options.routeRules));
-  const redirects = routes.filter((key) => nitro.options.routeRules[key].redirect);
+  const routes = sortRoutes(Object.keys(fastnode.options.routeRules));
+  const redirects = routes.filter((key) => fastnode.options.routeRules[key]!.redirect);
   for (const key of routes) {
-    const redirect = nitro.options.routeRules[key].redirect;
+    const redirect = fastnode.options.routeRules[key]!.redirect;
     if (
       !redirect ||
-      skipUnsupportedRoute(nitro, { route: key, file: "_redirects", routes: redirects })
+      skipUnsupportedRoute(fastnode, { route: key, file: "_redirects", routes: redirects })
     ) {
       continue;
     }
     const code = redirect.status;
-    const from = joinURL(nitro.options.baseURL, routeToSplat(key));
+    const from = joinURL(fastnode.options.baseURL, routeToSplat(key));
     const to = redirect.to.replaceAll("**", ":splat");
     contents.push(`${from}\t${to}\t${code}`);
   }
@@ -210,27 +213,29 @@ export async function writeCFPagesRedirects(nitro: Nitro) {
   if (existsSync(redirectsPath)) {
     const currentRedirects = await readFile(redirectsPath, "utf8");
     if (/^\/\* /m.test(currentRedirects)) {
-      nitro.logger.info(
-        "Not adding Nitro fallback to `_redirects` (as an existing fallback was found)."
+      fastnode.logger.info(
+        "Not adding Fastnode fallback to `_redirects` (as an existing fallback was found)."
       );
       return;
     }
-    nitro.logger.info("Adding Nitro fallback to `_redirects` to handle all unmatched routes.");
+    fastnode.logger.info(
+      "Adding Fastnode fallback to `_redirects` to handle all unmatched routes."
+    );
     contents.unshift(currentRedirects);
   }
 
   await writeFile(redirectsPath, contents.join("\n"), true);
 }
 
-export async function enableNodeCompat(nitro: Nitro) {
-  nitro.options.cloudflare ??= {};
+export async function enableNodeCompat(fastnode: Fastnode) {
+  fastnode.options.cloudflare ??= {};
 
-  nitro.options.cloudflare.deployConfig ??= true;
-  nitro.options.cloudflare.nodeCompat ??= true;
-  if (nitro.options.cloudflare.nodeCompat) {
-    nitro.options.rolldownConfig ??= {};
-    nitro.options.rolldownConfig.platform ??= "node";
-    extendEnv(nitro, unenvCfNodeCompat);
+  fastnode.options.cloudflare.deployConfig ??= true;
+  fastnode.options.cloudflare.nodeCompat ??= true;
+  if (fastnode.options.cloudflare.nodeCompat) {
+    fastnode.options.rolldownConfig ??= {};
+    fastnode.options.rolldownConfig.platform ??= "node";
+    extendEnv(fastnode, unenvCfNodeCompat);
   }
 }
 
@@ -241,10 +246,10 @@ const extensionParsers = {
 } as const;
 
 export async function readWranglerConfig(
-  nitro: Nitro
+  fastnode: Fastnode
 ): Promise<{ configPath?: string; config?: WranglerConfig }> {
   const configPath = await findNearestFile(["wrangler.json", "wrangler.jsonc", "wrangler.toml"], {
-    startingFrom: nitro.options.rootDir,
+    startingFrom: fastnode.options.rootDir,
   }).catch(() => undefined);
   if (!configPath) {
     return {};
@@ -260,14 +265,14 @@ export async function readWranglerConfig(
 }
 
 // https://developers.cloudflare.com/workers/wrangler/configuration/#generated-wrangler-configuration
-export async function writeWranglerConfig(nitro: Nitro, cfTarget: "pages" | "module") {
+export async function writeWranglerConfig(fastnode: Fastnode, cfTarget: "pages" | "module") {
   // Skip if not enabled
-  if (!nitro.options.cloudflare?.deployConfig) {
+  if (!fastnode.options.cloudflare?.deployConfig) {
     return;
   }
 
   // Compute path to generated wrangler.json
-  const wranglerConfigDir = nitro.options.output.serverDir;
+  const wranglerConfigDir = fastnode.options.output.serverDir;
   const wranglerConfigPath = join(wranglerConfigDir, "wrangler.json");
 
   // Default configs
@@ -278,28 +283,28 @@ export async function writeWranglerConfig(nitro: Nitro, cfTarget: "pages" | "mod
 
   // Compatibility date
   defaults.compatibility_date =
-    nitro.options.compatibilityDate.cloudflare || nitro.options.compatibilityDate.default;
+    fastnode.options.compatibilityDate.cloudflare || fastnode.options.compatibilityDate.default;
 
   if (cfTarget === "pages") {
     // Pages
-    overrides.pages_build_output_dir = relative(wranglerConfigDir, nitro.options.output.dir);
+    overrides.pages_build_output_dir = relative(wranglerConfigDir, fastnode.options.output.dir);
   } else {
     // Modules
     const assetsDirectory = relative(
       wranglerConfigDir,
       resolve(
-        nitro.options.output.publicDir,
-        "../".repeat(nitro.options.baseURL.split("/").filter(Boolean).length)
+        fastnode.options.output.publicDir,
+        "../".repeat(fastnode.options.baseURL.split("/").filter(Boolean).length)
       )
     );
-    if (nitro.options.static) {
+    if (fastnode.options.static) {
       // No worker script is emitted; `main` and `assets.binding` only apply
       // when there is one. https://developers.cloudflare.com/workers/static-assets/
       overrides.assets = { directory: assetsDirectory };
     } else {
       overrides.main = relative(
         wranglerConfigDir,
-        join(nitro.options.output.serverDir, "index.mjs")
+        join(fastnode.options.output.serverDir, "index.mjs")
       );
       overrides.assets = {
         binding: "ASSETS",
@@ -309,16 +314,17 @@ export async function writeWranglerConfig(nitro: Nitro, cfTarget: "pages" | "mod
   }
 
   // Read user config
-  const { configPath: userConfigPath, config: userConfig = {} } = await readWranglerConfig(nitro);
+  const { configPath: userConfigPath, config: userConfig = {} } =
+    await readWranglerConfig(fastnode);
 
-  // Nitro context config (from frameworks and modules)
-  const ctxConfig = nitro.options.cloudflare?.wrangler || {};
+  // Fastnode context config (from frameworks and modules)
+  const ctxConfig = fastnode.options.cloudflare?.wrangler || {};
 
   // `main` can point to the server entry, so `wrangler types` can type Durable Object bindings
   const mainIsServerEntry =
     !!userConfig.main &&
-    !!nitro.options.serverEntry &&
-    resolve(dirname(userConfigPath!), userConfig.main) === nitro.options.serverEntry.handler;
+    !!fastnode.options.serverEntry &&
+    resolve(dirname(userConfigPath!), userConfig.main) === fastnode.options.serverEntry.handler;
 
   // Validate and warn about overrides
   for (const key in overrides) {
@@ -329,7 +335,7 @@ export async function writeWranglerConfig(nitro: Nitro, cfTarget: "pages" | "mod
     if (key === "assets") {
       conflict = findAssetsConflict(overrides.assets!, ctxConfig.assets, userConfig.assets, {
         generatedDir: wranglerConfigDir,
-        userDir: userConfigPath ? dirname(userConfigPath) : nitro.options.rootDir,
+        userDir: userConfigPath ? dirname(userConfigPath) : fastnode.options.rootDir,
       });
     } else if (key in ctxConfig) {
       conflict = "ctx";
@@ -337,7 +343,7 @@ export async function writeWranglerConfig(nitro: Nitro, cfTarget: "pages" | "mod
       conflict = "user";
     }
     if (conflict) {
-      nitro.logger.warn(
+      fastnode.logger.warn(
         `[cloudflare] Wrangler config \`${key}\`${conflict === "ctx" ? " set by config or modules" : ""} is overridden and will be ignored.`
       );
     }
@@ -348,14 +354,14 @@ export async function writeWranglerConfig(nitro: Nitro, cfTarget: "pages" | "mod
 
   // Name is required
   if (!wranglerConfig.name) {
-    wranglerConfig.name = await generateWorkerName(nitro)!;
-    nitro.logger.info(`Using auto generated worker name: \`${wranglerConfig.name}\``);
+    wranglerConfig.name = await generateWorkerName(fastnode)!;
+    fastnode.logger.info(`Using auto generated worker name: \`${wranglerConfig.name}\``);
   }
 
   // Compatibility flags
   wranglerConfig.compatibility_flags ??= [];
   if (
-    nitro.options.cloudflare?.nodeCompat &&
+    fastnode.options.cloudflare?.nodeCompat &&
     wranglerConfig.compatibility_date &&
     wranglerConfig.compatibility_date >= NODEJS_COMPAT_SUPPORTED_FROM_DATE &&
     wranglerConfig.compatibility_date < NODEJS_COMPAT_DEFAULT_ON_DATE &&
@@ -364,7 +370,7 @@ export async function writeWranglerConfig(nitro: Nitro, cfTarget: "pages" | "mod
     wranglerConfig.compatibility_flags.push("nodejs_compat");
   }
 
-  if (cfTarget === "module" && !nitro.options.static) {
+  if (cfTarget === "module" && !fastnode.options.static) {
     // Avoid double bundling
     if (wranglerConfig.no_bundle === undefined) {
       wranglerConfig.no_bundle = true;
@@ -380,13 +386,13 @@ export async function writeWranglerConfig(nitro: Nitro, cfTarget: "pages" | "mod
     }
   }
 
-  // Nitro Tasks cron triggers
+  // Fastnode Tasks cron triggers
   if (
-    nitro.options.experimental.tasks &&
-    Object.keys(nitro.options.scheduledTasks || {}).length > 0 &&
+    fastnode.options.experimental.tasks &&
+    Object.keys(fastnode.options.scheduledTasks || {}).length > 0 &&
     cfTarget !== "pages"
   ) {
-    const schedules = Object.keys(nitro.options.scheduledTasks!);
+    const schedules = Object.keys(fastnode.options.scheduledTasks!);
     wranglerConfig.triggers = defu(wranglerConfig.triggers, { crons: [] });
     const existingCrons = new Set(wranglerConfig.triggers!.crons);
     for (const schedule of schedules) {
@@ -399,7 +405,7 @@ export async function writeWranglerConfig(nitro: Nitro, cfTarget: "pages" | "mod
   // Write wrangler.json
   await writeFile(wranglerConfigPath, JSON.stringify(wranglerConfig, null, 2), true);
 
-  const configPath = join(nitro.options.rootDir, ".wrangler/deploy/config.json");
+  const configPath = join(fastnode.options.rootDir, ".wrangler/deploy/config.json");
 
   await writeFile(
     configPath,
@@ -410,14 +416,14 @@ export async function writeWranglerConfig(nitro: Nitro, cfTarget: "pages" | "mod
   );
 }
 
-async function generateWorkerName(nitro: Nitro) {
-  const gitConfig = await readGitConfig(nitro.options.rootDir).catch(() => undefined);
+async function generateWorkerName(fastnode: Fastnode) {
+  const gitConfig = await readGitConfig(fastnode.options.rootDir).catch(() => undefined);
   const gitRepo = gitConfig?.remote?.origin?.url
     ?.replace(/\.git$/, "")
     .match(/[/:]([^/]+\/[^/]+)$/)?.[1];
-  const pkgJSON = await readPackageJSON(nitro.options.rootDir).catch(() => undefined);
+  const pkgJSON = await readPackageJSON(fastnode.options.rootDir).catch(() => undefined);
   const pkgName = pkgJSON?.name;
-  const subpath = relative(nitro.options.workspaceDir, nitro.options.rootDir);
+  const subpath = relative(fastnode.options.workspaceDir, fastnode.options.rootDir);
   return `${gitRepo || pkgName}/${subpath}`
     .toLowerCase()
     .replace(/[^a-zA-Z0-9-]/g, "-")
@@ -455,4 +461,5 @@ function findAssetsConflict(
       return source;
     }
   }
+  return undefined;
 }

@@ -1,10 +1,10 @@
 import * as queueSdk from "@vercel/queue";
 import { send } from "@vercel/queue";
-import { useRuntimeConfig } from "nitro/runtime-config";
+import { useRuntimeConfig } from "fastnode/runtime-config";
 import { registerVercelQueueConsumer } from "env-runner/runners/vercel/queue-dev";
 
 import type { MessageMetadata } from "@vercel/queue";
-import type { NitroAppPlugin } from "nitro/types";
+import type { FastnodeAppPlugin } from "fastnode/types";
 
 interface DevTrigger {
   topic: string;
@@ -12,7 +12,7 @@ interface DevTrigger {
   initialDelaySeconds?: number;
 }
 
-const queueDevPlugin: NitroAppPlugin = (nitroApp) => {
+const queueDevPlugin: FastnodeAppPlugin = (fastnodeApp) => {
   const triggers =
     (useRuntimeConfig() as { vercel?: { queues?: { triggers?: DevTrigger[] } } }).vercel?.queues
       ?.triggers || [];
@@ -32,15 +32,15 @@ const queueDevPlugin: NitroAppPlugin = (nitroApp) => {
         retryAfterSeconds: trigger.retryAfterSeconds,
         handler: async (message: unknown, metadata: unknown) => {
           try {
-            await nitroApp.ready;
-            await nitroApp.hooks.callHook("vercel:queue", {
+            await fastnodeApp.ready;
+            await fastnodeApp.hooks.callHook("vercel:queue", {
               message,
               metadata: metadata as MessageMetadata,
               send,
             });
           } catch (error) {
             console.error("[vercel:queue]", error);
-            nitroApp.captureError?.(error as Error, {
+            fastnodeApp.captureError?.(error as Error, {
               tags: ["vercel:queue"],
             });
             // Rethrow so @vercel/queue schedules a local retry.
@@ -55,7 +55,7 @@ const queueDevPlugin: NitroAppPlugin = (nitroApp) => {
     console.error("[vercel:queue] failed to register dev consumer:", error);
   });
 
-  nitroApp.hooks.hook("close", async () => {
+  fastnodeApp.hooks.hook("close", async () => {
     await ready;
     for (const unregister of unregisters) {
       try {

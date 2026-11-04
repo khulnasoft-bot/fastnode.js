@@ -1,7 +1,7 @@
 import { defineCommand } from "citty";
 import { consola } from "consola";
 import destr from "destr";
-import { loadOptions, runTask } from "nitro/builder";
+import { loadOptions, runTask } from "fastnode/builder";
 import { resolve } from "pathe";
 
 export default defineCommand({
@@ -43,7 +43,7 @@ export default defineCommand({
         },
         {
           cwd,
-          buildDir: options?.buildDir || ".nitro",
+          buildDir: options?.buildDir || ".fastnode",
         }
       );
       consola.success("Result:", result);

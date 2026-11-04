@@ -3,17 +3,17 @@ import { tmpdir } from "node:os";
 import { join } from "pathe";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import type { InlineConfig } from "vite";
-import { nitro } from "../../src/vite.ts";
+import { fastnode } from "../../src/vite.ts";
 
 const { createBuilder, createServer } = (await import(
-  process.env.NITRO_VITE_PKG || "vite"
+  process.env.FASTNODE_VITE_PKG || "vite"
 )) as typeof import("vite");
 
-describe("vite: nitro aliases in host environments", () => {
+describe("vite: fastnode aliases in host environments", () => {
   let rootDir: string;
   let appFile: string;
   let serverFile: string;
-  let nitroOnlyFile: string;
+  let fastnodeOnlyFile: string;
   let ssrEntry: string;
 
   const createConfig = (): InlineConfig => ({
@@ -26,27 +26,27 @@ describe("vite: nitro aliases in host environments", () => {
       ssr: { build: { rollupOptions: { input: ssrEntry } } },
     },
     plugins: [
-      nitro({
+      fastnode({
         preset: "standard",
         serverDir: "./",
         output: { dir: join(rootDir, ".output") },
-        alias: { "#x": serverFile, "#late": serverFile, "#nitro-only": nitroOnlyFile },
+        alias: { "#x": serverFile, "#late": serverFile, "#fastnode-only": fastnodeOnlyFile },
       }),
       { name: "late-alias", config: () => ({ resolve: { alias: { "#late": appFile } } }) },
     ],
   });
 
   beforeAll(() => {
-    rootDir = realpathSync(mkdtempSync(join(tmpdir(), "nitro-env-aliases-")));
+    rootDir = realpathSync(mkdtempSync(join(tmpdir(), "fastnode-env-aliases-")));
     mkdirSync(join(rootDir, "app"), { recursive: true });
     mkdirSync(join(rootDir, "api"), { recursive: true });
     appFile = join(rootDir, "app/x-app.ts");
     serverFile = join(rootDir, "app/x-server.ts");
-    nitroOnlyFile = join(rootDir, "app/nitro-only.ts");
+    fastnodeOnlyFile = join(rootDir, "app/fastnode-only.ts");
     ssrEntry = join(rootDir, "app/entry-server.ts");
     writeFileSync(appFile, `export const side = "app";`);
     writeFileSync(serverFile, `export const side = "server";`);
-    writeFileSync(nitroOnlyFile, `export const side = "nitro-only";`);
+    writeFileSync(fastnodeOnlyFile, `export const side = "fastnode-only";`);
     writeFileSync(
       ssrEntry,
       `import { side } from "#x";\nexport default { fetch: () => new Response(side) };`
@@ -75,7 +75,7 @@ describe("vite: nitro aliases in host environments", () => {
     test.each([
       ["client", "app"],
       ["ssr", "app"],
-      ["nitro", "server"],
+      ["fastnode", "server"],
     ] as const)("resolves a conflicting alias in the %s environment", async (env, side) => {
       for (const id of ["#x", "#late"]) {
         const resolved = await server.environments[env].pluginContainer.resolveId(id, ssrEntry);
@@ -83,13 +83,13 @@ describe("vite: nitro aliases in host environments", () => {
       }
     });
 
-    test("resolves a nitro-only alias in every environment", async () => {
-      for (const env of ["client", "ssr", "nitro"]) {
+    test("resolves a fastnode-only alias in every environment", async () => {
+      for (const env of ["client", "ssr", "fastnode"]) {
         const resolved = await server.environments[env].pluginContainer.resolveId(
-          "#nitro-only",
+          "#fastnode-only",
           ssrEntry
         );
-        expect(resolved?.id).toBe(nitroOnlyFile);
+        expect(resolved?.id).toBe(fastnodeOnlyFile);
       }
     });
   });

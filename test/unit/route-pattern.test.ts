@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { H3, mockEvent } from "h3";
 
-import { Router } from "../../src/routing.ts";
+import { Router } from "../../src/core/routing/routing.ts";
 
 // A pattern that reaches a handler in a plain h3 app must reach one through
-// Nitro's compiled rou3 router too.
+// Fastnode's compiled rou3 router too.
 const cases: [pattern: string, normalized: string][] = [
   ["/about", "/about"],
   ["/について", "/%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6"],
@@ -49,7 +49,7 @@ describe("Router", () => {
     for (const route of literals) {
       const res = await app.fetch(new Request(`http://localhost${route}`));
       expect(res.status, `h3: ${route}`).toBe(200);
-      expect(router.match("GET", eventPathname(route)), `nitro: ${route}`).toBeDefined();
+      expect(router.match("GET", eventPathname(route)), `fastnode: ${route}`).toBeDefined();
     }
   });
 
@@ -61,7 +61,7 @@ describe("Router", () => {
   });
 });
 
-// The pathname Nitro's compiled router is handed: h3 canonicalizes it on the
+// The pathname Fastnode's compiled router is handed: h3 canonicalizes it on the
 // `H3Event` before anything can match on it (`/%40handle` -> `/@handle`).
 function eventPathname(route: string): string {
   return mockEvent(`http://localhost${route}`).url.pathname;

@@ -14,9 +14,9 @@ const { closeHookMock, cronMock, cronStopMock, virtualTasks } = vi.hoisted(() =>
 
 vi.mock("croner", () => ({ Cron: cronMock }));
 vi.mock("../../src/runtime/internal/app.ts", () => ({
-  useNitroHooks: () => ({ hook: closeHookMock }),
+  useFastnodeHooks: () => ({ hook: closeHookMock }),
 }));
-vi.mock("#nitro/virtual/tasks", () => ({
+vi.mock("#fastnode/virtual/tasks", () => ({
   scheduledTasks: [
     { cron: "*/5 * * * *", tasks: ["test"] },
     { cron: "*/10 * * * *", tasks: ["test"] },
@@ -58,7 +58,7 @@ describe("startScheduleRunner", () => {
     expect(closeHookMock).not.toHaveBeenCalled();
   });
 
-  it("stops the schedule runner when the Nitro app closes", () => {
+  it("stops the schedule runner when the Fastnode app closes", () => {
     startScheduleRunner();
 
     expect(closeHookMock).toHaveBeenCalledWith("close", expect.any(Function));
@@ -94,7 +94,7 @@ describe("startScheduleRunner", () => {
   });
 });
 
-describe("#nitro/virtual/tasks", () => {
+describe("#fastnode/virtual/tasks", () => {
   const render = (options: Record<string, unknown>) =>
     tasksTemplate({
       options: {

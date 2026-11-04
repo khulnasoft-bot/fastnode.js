@@ -1,10 +1,10 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 
 // Tests in @test/unit/chunks.test.ts
 
 const virtualRe = /^(?:\0|#|virtual:)/;
 
-export const NODE_MODULES_RE = /node_modules[/\\](?!(?:nitro|nitro-nightly)[/\\])[^.]/;
+export const NODE_MODULES_RE = /node_modules[/\\](?!(?:fastnode|fastnode-nightly)[/\\])[^.]/;
 
 export function libChunkName(id: string) {
   const pkgName = pathToPkgName(id);
@@ -12,13 +12,13 @@ export function libChunkName(id: string) {
 }
 
 /** Rolldown `codeSplitting` group for library (`node_modules`) chunks. */
-export function libChunksGroup(nitro: Nitro) {
+export function libChunksGroup(fastnode: Fastnode) {
   const group = {
     test: NODE_MODULES_RE,
     name: (id: string) => libChunkName(id),
     // A package's chunk also takes in the packages it imports. Without this, startup code that imports one of them
     // loads the whole chunk, lazy routes' dependencies included.
-    entriesAware: nitro.options.experimental.entriesAwareLibChunks !== false,
+    entriesAware: fastnode.options.experimental.entriesAwareLibChunks !== false,
   };
   // Rolldown >= 1.2.10 warns without `debugName`, older versions reject unknown (enumerable) keys
   Object.defineProperty(group, "debugName", { value: "libs" });
@@ -35,7 +35,7 @@ export function pathToPkgName(path: string): string | undefined {
   return pkgName;
 }
 
-export function getChunkName(chunk: { name: string; moduleIds: string[] }, nitro: Nitro) {
+export function getChunkName(chunk: { name: string; moduleIds: string[] }, fastnode: Fastnode) {
   // Known groups
   if (chunk.name === "rolldown-runtime") {
     return "_runtime.mjs";
@@ -86,26 +86,26 @@ export function getChunkName(chunk: { name: string; moduleIds: string[] }, nitro
   }
 
   // Chunks from generated code
-  if (ids.every((id) => id.startsWith(nitro.options.buildDir))) {
+  if (ids.every((id) => id.startsWith(fastnode.options.buildDir))) {
     return `_build/[name].mjs`;
   }
 
   // Try to match user defined routes or tasks
   const mainId = ids.at(-1);
   if (mainId) {
-    const routeHandler = nitro.routing.routes.routes
+    const routeHandler = fastnode.routing.routes.routes
       .flatMap((h) => h.data)
       .find((h) => h.handler === mainId);
     if (routeHandler?.route) {
       let routePath = routeToFsPath(routeHandler.route);
-      if (nitro.options.builder === "rollup") {
+      if (fastnode.options.builder === "rollup") {
         // rollup treats [name] in chunkFileNames as an invalid placeholder
         routePath = routePath.replace(/\[/g, "%5B").replace(/\]/g, "%5D");
       }
       return `_routes/${routePath}.mjs`;
     }
 
-    const taskHandler = Object.entries(nitro.options.tasks).find(
+    const taskHandler = Object.entries(fastnode.options.tasks).find(
       ([_, task]) => task.handler === mainId
     );
     if (taskHandler) {

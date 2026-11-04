@@ -1,5 +1,5 @@
-import { html } from "nitro";
-import { defineCachedHandler } from "nitro/cache";
+import { html } from "fastnode";
+import { defineCachedHandler } from "fastnode/cache";
 
 export default defineCachedHandler(
   async () => {

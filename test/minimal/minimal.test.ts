@@ -1,5 +1,5 @@
 import { afterAll, describe, expect, it } from "vitest";
-import { createNitro, build, prepare } from "nitro/builder";
+import { createFastnode, build, prepare } from "fastnode/builder";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { mkdir, rm, stat } from "node:fs/promises";
@@ -28,7 +28,7 @@ describe("minimal fixture", () => {
           outDir = join(tmpDir, "output", builder + (minify ? "-min" : ""));
           await rm(outDir, { recursive: true, force: true });
           await mkdir(outDir, { recursive: true });
-          const nitro = await createNitro({
+          const fastnode = await createFastnode({
             rootDir: fixtureDir,
             minify,
             output: { dir: outDir },
@@ -36,9 +36,9 @@ describe("minimal fixture", () => {
             __vitePkg__: builder,
             builder: builder.includes("vite") ? "vite" : (builder as "rollup" | "rolldown"),
           });
-          await prepare(nitro);
+          await prepare(fastnode);
           const start = Date.now();
-          await build(nitro);
+          await build(fastnode);
           buildTime = Date.now() - start;
         });
 

@@ -8,7 +8,7 @@ describe("isCaseInsensitiveFS", () => {
   let dir: string;
 
   beforeEach(async () => {
-    dir = await mkdtemp(join(tmpdir(), "nitro-fs-"));
+    dir = await mkdtemp(join(tmpdir(), "fastnode-fs-"));
   });
 
   afterEach(async () => {

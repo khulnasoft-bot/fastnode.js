@@ -1,6 +1,6 @@
 # IIS
 
-> Deploy Nitro apps to IIS.
+> Deploy Fastnode apps to IIS.
 
 ## Using [IISnode](https://github.com/Azure/iisnode)
 
@@ -24,14 +24,14 @@ You can use the IIS HttpPlatformHandler directly.
 
 ## IIS config options
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   iis: {
-    // merge a pre-existing web.config file into the Nitro default file
+    // merge a pre-existing web.config file into the Fastnode default file
     mergeConfig: true,
-    // override the default Nitro web.config file altogether
+    // override the default Fastnode web.config file altogether
     overrideConfig: false,
   },
 });

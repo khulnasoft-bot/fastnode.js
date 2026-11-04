@@ -2,8 +2,8 @@ import { mkdtempSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "pathe";
 import { describe, expect, it, vi } from "vitest";
-import type { Nitro, NitroOptions } from "nitro/types";
-import { resolveCacheOptions } from "../../src/config/resolvers/cache.ts";
+import type { Fastnode, FastnodeOptions } from "fastnode/types";
+import { resolveCacheOptions } from "../../src/config/resolver/cache.ts";
 import cache from "../../src/build/virtual/cache.ts";
 import { createFSCacheStorage } from "../../src/runtime/internal/cache-fs.ts";
 import { defineCachedFunction } from "ocache";
@@ -11,7 +11,7 @@ import { defineCachedFunction } from "ocache";
 const warn = vi.hoisted(() => vi.fn());
 vi.mock("consola", () => ({ default: { warn } }));
 
-function createOptions(options: Partial<NitroOptions>): NitroOptions {
+function createOptions(options: Partial<FastnodeOptions>): FastnodeOptions {
   return {
     rootDir: "/app",
     node: true,
@@ -19,7 +19,7 @@ function createOptions(options: Partial<NitroOptions>): NitroOptions {
     devStorage: {},
     cache: {},
     ...options,
-  } as NitroOptions;
+  } as FastnodeOptions;
 }
 
 describe("resolveCacheOptions", () => {
@@ -29,7 +29,7 @@ describe("resolveCacheOptions", () => {
     expect(options.cache.driver).toBe("memory");
   });
 
-  it.each(["cache", "/cache", "cache:nitro", "/cache/nitro", "cache/functions"])(
+  it.each(["cache", "/cache", "cache:fastnode", "/cache/fastnode", "cache/functions"])(
     "defaults to the kv driver with a `%s` kv mount",
     async (mount) => {
       const options = createOptions({ kv: { [mount]: { driver: "redis" } } });
@@ -88,8 +88,8 @@ describe("resolveCacheOptions", () => {
 });
 
 describe("virtual/cache template", () => {
-  const render = (config: NitroOptions["cache"]) =>
-    cache({ options: { cache: config } } as unknown as Nitro).template();
+  const render = (config: FastnodeOptions["cache"]) =>
+    cache({ options: { cache: config } } as unknown as Fastnode).template();
 
   it("uses ocache memory storage", () => {
     const template = render({ driver: "memory", memory: { maxSize: Infinity } });
@@ -100,7 +100,7 @@ describe("virtual/cache template", () => {
 
   it("uses kv storage", () => {
     const template = render({ driver: "kv" });
-    expect(template).toContain(`from "#nitro/runtime/cache-kv"`);
+    expect(template).toContain(`from "#fastnode/runtime/cache-kv"`);
     expect(template).not.toContain("createMemoryStorage");
   });
 
@@ -123,7 +123,7 @@ describe("virtual/cache template", () => {
 
 describe("fs cache storage", () => {
   it("persists entries across storage instances", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "nitro-cache-fs-"));
+    const dir = mkdtempSync(join(tmpdir(), "fastnode-cache-fs-"));
     try {
       let calls = 0;
       const create = () =>
@@ -144,7 +144,7 @@ describe("fs cache storage", () => {
   });
 
   it("rejects path traversal keys", async () => {
-    const storage = createFSCacheStorage({ dir: "/tmp/nitro-cache" });
+    const storage = createFSCacheStorage({ dir: "/tmp/fastnode-cache" });
     await expect(storage.get("cache:..:..:etc:passwd")).rejects.toThrow("Invalid cache key");
   });
 });

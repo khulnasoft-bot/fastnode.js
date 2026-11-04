@@ -1,7 +1,7 @@
-import "#nitro/virtual/polyfills";
+import "#fastnode/virtual/polyfills";
 import type { fetch } from "@cloudflare/workers-types";
 
-import { isPublicAssetURL } from "#nitro/virtual/public-assets";
+import { isPublicAssetURL } from "#fastnode/virtual/public-assets";
 import { createHandler, fetchPublicAsset } from "./_module-handler.ts";
 import { ws } from "./_durable.ts";
 

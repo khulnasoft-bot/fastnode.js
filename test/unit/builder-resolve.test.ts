@@ -1,4 +1,4 @@
-import type { NitroOptions } from "nitro/types";
+import type { FastnodeOptions } from "fastnode/types";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "pathe";
@@ -6,8 +6,8 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vites
 
 const state = vi.hoisted(() => ({ rolldown: undefined as string | undefined, vite: false }));
 
-vi.mock("../../src/build/rolldown/_import.ts", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("../../src/build/rolldown/_import.ts")>()),
+vi.mock("../../src/build/builders/rolldown/_import.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../src/build/builders/rolldown/_import.ts")>()),
   resolveRolldown: () => state.rolldown,
 }));
 
@@ -22,33 +22,33 @@ vi.mock("../../src/utils/dep.ts", async (importOriginal) => {
   };
 });
 
-const { resolveBuilder } = await import("../../src/config/resolvers/builder.ts");
+const { resolveBuilder } = await import("../../src/config/resolver/builder.ts");
 
 describe("resolveBuilder", () => {
   let rootDir: string;
-  const originalBuilder = process.env.NITRO_BUILDER;
+  const originalBuilder = process.env.FASTNODE_BUILDER;
 
   beforeAll(async () => {
-    rootDir = await mkdtemp(join(tmpdir(), "nitro-builder-"));
+    rootDir = await mkdtemp(join(tmpdir(), "fastnode-builder-"));
   });
 
   afterAll(async () => {
     await rm(rootDir, { recursive: true, force: true });
     if (originalBuilder === undefined) {
-      delete process.env.NITRO_BUILDER;
+      delete process.env.FASTNODE_BUILDER;
     } else {
-      process.env.NITRO_BUILDER = originalBuilder;
+      process.env.FASTNODE_BUILDER = originalBuilder;
     }
   });
 
   beforeEach(() => {
-    delete process.env.NITRO_BUILDER;
+    delete process.env.FASTNODE_BUILDER;
     state.rolldown = undefined;
     state.vite = false;
   });
 
-  async function resolve(opts: Partial<NitroOptions>) {
-    const options = { rootDir, ...opts } as NitroOptions;
+  async function resolve(opts: Partial<FastnodeOptions>) {
+    const options = { rootDir, ...opts } as FastnodeOptions;
     await resolveBuilder(options);
     return options.builder;
   }
@@ -67,11 +67,11 @@ describe("resolveBuilder", () => {
     vi.resetModules();
     const { consola } = await import("consola");
     const { resolveBuilder: freshResolveBuilder } =
-      await import("../../src/config/resolvers/builder.ts");
+      await import("../../src/config/resolver/builder.ts");
     const info = vi.spyOn(consola, "info").mockImplementation(() => {});
     try {
       for (let i = 0; i < 2; i++) {
-        const options = { rootDir, dev: true } as NitroOptions;
+        const options = { rootDir, dev: true } as FastnodeOptions;
         await freshResolveBuilder(options);
         expect(options.builder).toBe(false);
       }
@@ -104,7 +104,7 @@ describe("resolveBuilder", () => {
     expect(await resolve({ dev: false, builder: false })).toBe(false);
   });
 
-  describe("vite config with nitro() plugin", () => {
+  describe("vite config with fastnode() plugin", () => {
     let viteRootDir: string;
 
     beforeAll(async () => {
@@ -112,7 +112,7 @@ describe("resolveBuilder", () => {
       await mkdir(viteRootDir, { recursive: true });
       await writeFile(
         join(viteRootDir, "vite.config.ts"),
-        `import { nitro } from "nitro/vite";\nexport default { plugins: [nitro()] };\n`
+        `import { fastnode } from "fastnode/vite";\nexport default { plugins: [fastnode()] };\n`
       );
     });
 
@@ -121,16 +121,16 @@ describe("resolveBuilder", () => {
       expect(await resolve({ rootDir: viteRootDir, dev: false })).toBe("vite");
     });
 
-    it("falls back with a warning in nitro dev", async () => {
+    it("falls back with a warning in fastnode dev", async () => {
       vi.resetModules();
       const { consola } = await import("consola");
       const { resolveBuilder: freshResolveBuilder } =
-        await import("../../src/config/resolvers/builder.ts");
+        await import("../../src/config/resolver/builder.ts");
       const warn = vi.spyOn(consola, "warn").mockImplementation(() => {});
       try {
         state.vite = true;
         state.rolldown = "/rolldown/index.mjs";
-        const options = { rootDir: viteRootDir, dev: true } as NitroOptions;
+        const options = { rootDir: viteRootDir, dev: true } as FastnodeOptions;
         await freshResolveBuilder(options);
         expect(options.builder).toBe("rolldown");
         expect(warn).toHaveBeenCalledOnce();

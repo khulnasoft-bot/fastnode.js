@@ -6,14 +6,14 @@ icon: i-lucide-box
 
 # Virtual Routes
 
-> Define routes programmatically using Nitro's virtual module system.
+> Define routes programmatically using Fastnode's virtual module system.
 
-<!-- automd:ui-code-tree src="../../examples/virtual-routes" default="nitro.config.ts" ignore="README.md,GUIDE.md" expandAll -->
+<!-- automd:ui-code-tree src="../../examples/virtual-routes" default="fastnode.config.ts" ignore="README.md,GUIDE.md" expandAll -->
 
-::code-tree{defaultValue="nitro.config.ts" expandAll}
+::code-tree{defaultValue="fastnode.config.ts" expandAll}
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   routes: {
@@ -30,12 +30,12 @@ export default defineConfig({
 {
   "type": "module",
   "scripts": {
-    "build": "nitro build",
-    "dev": "nitro dev",
+    "build": "fastnode build",
+    "dev": "fastnode dev",
     "preview": "node .output/server/index.mjs"
   },
   "devDependencies": {
-    "nitro": "latest",
+    "fastnode": "latest",
     "rolldown": "latest"
   }
 }
@@ -43,15 +43,15 @@ export default defineConfig({
 
 ```json [tsconfig.json]
 {
-  "extends": "nitro/tsconfig"
+  "extends": "fastnode/tsconfig"
 }
 ```
 
 ```ts [vite.config.ts]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
-export default defineConfig({ plugins: [nitro()] });
+export default defineConfig({ plugins: [fastnode()] });
 ```
 
 ::
@@ -64,8 +64,8 @@ Virtual routes let you define handlers as strings in your config instead of crea
 
 ## Configuration
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   routes: {
@@ -78,9 +78,9 @@ export default defineConfig({
 });
 ```
 
-The `routes` option maps URL paths to virtual module identifiers (prefixed with `#`). The `virtual` option defines the module content as a string or function returning a string. At build time, Nitro resolves these virtual modules to actual handlers.
+The `routes` option maps URL paths to virtual module identifiers (prefixed with `#`). The `virtual` option defines the module content as a string or function returning a string. At build time, Fastnode resolves these virtual modules to actual handlers.
 
-There are no route files in this project. The entire handler is defined inline in the config, and Nitro generates the route at build time.
+There are no route files in this project. The entire handler is defined inline in the config, and Fastnode generates the route at build time.
 
 <!-- /automd -->
 

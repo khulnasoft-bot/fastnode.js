@@ -5,17 +5,17 @@ import { execa } from "execa";
 import { join } from "pathe";
 import { afterAll, describe, expect, test } from "vitest";
 
-// Vitest runs test files in the `nitro` Vite environment, without starting the dev worker.
+// Vitest runs test files in the `fastnode` Vite environment, without starting the dev worker.
 describe("vite: vitest", () => {
   const rootDir = fileURLToPath(new URL("./vitest-fixture", import.meta.url));
-  const tmpDir = mkdtempSync(join(tmpdir(), "nitro-vitest-"));
+  const tmpDir = mkdtempSync(join(tmpdir(), "fastnode-vitest-"));
 
   afterAll(() => {
     rmSync(tmpDir, { recursive: true, force: true });
     rmSync(join(rootDir, "node_modules"), { recursive: true, force: true });
   });
 
-  test("runs tests against the nitro runtime", async () => {
+  test("runs tests against the fastnode runtime", async () => {
     await runFixture([]);
   }, 60_000);
 
@@ -51,7 +51,7 @@ describe("vite: vitest", () => {
       ],
       {
         cwd: rootDir,
-        env: { ...env, NITRO_TEST_CLOSE_LOG: logFile },
+        env: { ...env, FASTNODE_TEST_CLOSE_LOG: logFile },
         extendEnv: false,
         reject: false,
       }

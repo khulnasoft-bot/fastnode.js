@@ -1,9 +1,9 @@
 import { appendFileSync } from "node:fs";
-import { definePlugin } from "nitro";
+import { definePlugin } from "fastnode";
 
-export default definePlugin((nitroApp) => {
-  nitroApp.hooks.hook("close", async () => {
-    const log = process.env.NITRO_TEST_CLOSE_LOG;
+export default definePlugin((fastnodeApp) => {
+  fastnodeApp.hooks.hook("close", async () => {
+    const log = process.env.FASTNODE_TEST_CLOSE_LOG;
     if (!log) {
       return;
     }

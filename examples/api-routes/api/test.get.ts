@@ -1,3 +1,3 @@
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 
 export default defineHandler(() => "Test get handler");

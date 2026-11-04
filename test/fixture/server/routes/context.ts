@@ -1,5 +1,5 @@
-import { defineEventHandler } from "nitro/h3";
-import { useRequest } from "nitro/context";
+import { defineEventHandler } from "fastnode/h3";
+import { useRequest } from "fastnode/context";
 
 export default defineEventHandler(async () => {
   await Promise.resolve(setTimeout(() => {}, 10));

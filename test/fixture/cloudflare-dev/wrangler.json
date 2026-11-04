@@ -1,5 +1,5 @@
 {
-  "name": "nitro-dev-bindings-test",
+  "name": "fastnode-dev-bindings-test",
   "compatibility_date": "2025-04-01",
   "vars": { "TEST_VAR": "default" },
   "env": {

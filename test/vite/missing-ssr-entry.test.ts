@@ -3,7 +3,7 @@ import { cp, mkdir, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "pathe";
 import { describe, expect, test } from "vitest";
-import { createNitro, build, prepare } from "nitro/builder";
+import { createFastnode, build, prepare } from "fastnode/builder";
 
 const fixtureDir = fileURLToPath(new URL("./missing-ssr-entry-fixture", import.meta.url));
 const tmpDir = fileURLToPath(new URL("./.tmp/missing-ssr-entry", import.meta.url));
@@ -16,7 +16,7 @@ const SSR_ENTRY = `export default {
 `;
 
 // The Vite plugin only auto-detects `./entry-server` in `<rootDir|scanDirs>/{app,src,}/` (see
-// `setupNitroContext`). Anywhere else no `ssr` service is registered, no renderer is wired up and
+// `setupFastnodeContext`). Anywhere else no `ssr` service is registered, no renderer is wired up and
 // every prerendered route resolves to `404` — which used to exit 0 with an empty output. #4591
 async function buildWithSsrEntryAt(name: string, entryPath: string) {
   const rootDir = join(tmpDir, name);
@@ -27,15 +27,15 @@ async function buildWithSsrEntryAt(name: string, entryPath: string) {
   await writeFile(join(rootDir, entryPath), SSR_ENTRY, "utf8");
 
   const publicDir = join(rootDir, ".output/public");
-  const nitro = await createNitro({ rootDir, builder: "vite", prerender: { routes: ["/"] } });
+  const fastnode = await createFastnode({ rootDir, builder: "vite", prerender: { routes: ["/"] } });
   try {
-    await prepare(nitro);
-    await build(nitro);
+    await prepare(fastnode);
+    await build(fastnode);
     return { error: undefined, publicDir };
   } catch (error) {
     return { error: error as Error, publicDir };
   } finally {
-    await nitro.close();
+    await fastnode.close();
   }
 }
 

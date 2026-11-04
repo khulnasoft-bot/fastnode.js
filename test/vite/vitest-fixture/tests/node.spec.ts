@@ -2,5 +2,5 @@
 import { expect, test } from "vitest";
 
 test("per-file environment override", () => {
-  expect(globalThis.__nitro__).toBeUndefined();
+  expect(globalThis.__fastnode__).toBeUndefined();
 });

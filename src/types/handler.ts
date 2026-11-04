@@ -8,15 +8,15 @@ type MaybeArray<T> = T | T[];
  * Route-level metadata attached to event handlers.
  *
  * @experimental
- * @see https://nitro.build/docs/routing
+ * @see https://fastnode.khulnasoft.com/docs/routing
  */
-export interface NitroRouteMeta {
+export interface FastnodeRouteMeta {
   openAPI?: OperationObject & {
     $global?: Pick<OpenAPI3, "components"> & Extensable;
   };
 }
 
-interface NitroHandlerCommon {
+interface FastnodeHandlerCommon {
   /**
    * HTTP pathname pattern to match.
    *
@@ -37,7 +37,7 @@ interface NitroHandlerCommon {
   /**
    * Route metadata (e.g. OpenAPI operation info).
    */
-  meta?: NitroRouteMeta;
+  meta?: FastnodeRouteMeta;
 }
 
 /**
@@ -52,12 +52,12 @@ export type EventHandlerFormat = "web" | "node";
  * Event handler registration for build-time bundling.
  *
  * Handlers are file references that the bundler imports and transforms.
- * For runtime-only handlers in development, use {@link NitroDevEventHandler}.
+ * For runtime-only handlers in development, use {@link FastnodeDevEventHandler}.
  *
- * @see https://nitro.build/config/routing#handlers
- * @see https://nitro.build/docs/routing
+ * @see https://fastnode.khulnasoft.com/config/routing#handlers
+ * @see https://fastnode.khulnasoft.com/docs/routing
  */
-export interface NitroEventHandler extends NitroHandlerCommon {
+export interface FastnodeEventHandler extends FastnodeHandlerCommon {
   /**
    * Use lazy loading to import handler.
    */
@@ -90,12 +90,12 @@ export interface NitroEventHandler extends NitroHandlerCommon {
 /**
  * Development-only event handler with an inline handler function.
  *
- * These handlers are available only during `nitro dev` and are not
+ * These handlers are available only during `fastnode dev` and are not
  * included in production builds.
  *
- * @see https://nitro.build/config/routing#devhandlers
+ * @see https://fastnode.khulnasoft.com/config/routing#devhandlers
  */
-export interface NitroDevEventHandler extends NitroHandlerCommon {
+export interface FastnodeDevEventHandler extends FastnodeHandlerCommon {
   /**
    * Event handler function.
    */
@@ -110,9 +110,9 @@ type MaybePromise<T> = T | Promise<T>;
  * Receives the error, the H3 event, and a helper object containing the
  * `defaultHandler` for fallback rendering.
  *
- * @see https://nitro.build/config/routing#errorhandler
+ * @see https://fastnode.khulnasoft.com/config/routing#errorhandler
  */
-export type NitroErrorHandler = (
+export type FastnodeErrorHandler = (
   error: HTTPError,
   event: HTTPEvent,
   _: {

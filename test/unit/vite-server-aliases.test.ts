@@ -1,16 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
-import { nitroServerAliases } from "../../src/build/vite/_server-aliases.ts";
-import type { NitroPluginContext } from "../../src/build/vite/types.ts";
+import { fastnodeServerAliases } from "../../src/build/builders/vite/_server-aliases.ts";
+import type { FastnodePluginContext } from "../../src/build/builders/vite/types.ts";
 
 function setup(aliases: Record<string, string>) {
-  const ctx = { bundlerConfig: { base: { aliases } } } as unknown as NitroPluginContext;
-  const resolveId = nitroServerAliases(ctx).resolveId as (...args: unknown[]) => Promise<unknown>;
+  const ctx = { bundlerConfig: { base: { aliases } } } as unknown as FastnodePluginContext;
+  const resolveId = fastnodeServerAliases(ctx).resolveId as (
+    ...args: unknown[]
+  ) => Promise<unknown>;
   const resolve = vi.fn(async (id: string) => (id === "node:events" ? { id } : null));
   const call = (id: string) => resolveId.call({ resolve }, id, "/app/server.ts", {});
   return { ctx, call, resolve };
 }
 
-describe("nitro:server-aliases", () => {
+describe("fastnode:server-aliases", () => {
   it("resolves ids aliased to `node:` builtins", async () => {
     const { call, resolve } = setup({
       "events/": "node:events/",

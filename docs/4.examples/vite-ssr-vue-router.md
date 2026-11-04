@@ -6,7 +6,7 @@ icon: i-logos-vue
 
 # SSR with Vue Router
 
-> Server-side rendering with Vue Router in Nitro using Vite.
+> Server-side rendering with Vue Router in Fastnode using Vite.
 
 <!-- automd:ui-code-tree src="../../examples/vite-ssr-vue-router" default="app/entry-server.ts" ignore="README.md,GUIDE.md" expandAll -->
 
@@ -22,7 +22,7 @@ icon: i-logos-vue
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.10",
-    "nitro": "latest",
+    "fastnode": "latest",
     "unhead": "^3.4.3",
     "vite": "latest",
     "vite-plugin-devtools-json": "^1.1.2",
@@ -34,7 +34,7 @@ icon: i-logos-vue
 
 ```json [tsconfig.json]
 {
-  "extends": "nitro/tsconfig"
+  "extends": "fastnode/tsconfig"
 }
 ```
 
@@ -42,14 +42,14 @@ icon: i-logos-vue
 import vue from "@vitejs/plugin-vue";
 import { defineConfig } from "vite";
 import devtoolsJson from "vite-plugin-devtools-json";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
 export default defineConfig((_env) => ({
-  plugins: [vue({ exclude: /\?assets/ }), devtoolsJson(), nitro()],
+  plugins: [vue({ exclude: /\?assets/ }), devtoolsJson(), fastnode()],
   environments: {
     client: { build: { rollupOptions: { input: "./app/entry-client.ts" } } },
     ssr: { build: { rollupOptions: { input: "./app/entry-server.ts" } } },
-    nitro: { build: { rollupOptions: { treeshake: { moduleSideEffects: () => false } } } },
+    fastnode: { build: { rollupOptions: { treeshake: { moduleSideEffects: () => false } } } },
   },
 }));
 ```
@@ -371,11 +371,11 @@ function increment() {
 
 <!-- automd:file src="../../examples/vite-ssr-vue-router/README.md" -->
 
-Set up server-side rendering (SSR) with Vue, Vue Router, Vite, and Nitro. This setup enables per-route code splitting, head management with unhead, and client hydration.
+Set up server-side rendering (SSR) with Vue, Vue Router, Vite, and Fastnode. This setup enables per-route code splitting, head management with unhead, and client hydration.
 
 ## Overview
 
-1. Add the Nitro Vite plugin to your Vite config
+1. Add the Fastnode Vite plugin to your Vite config
 2. Define routes with lazy-loaded components
 3. Create a server entry that renders your app with router support
 4. Create a client entry that hydrates and takes over routing
@@ -383,16 +383,16 @@ Set up server-side rendering (SSR) with Vue, Vue Router, Vite, and Nitro. This s
 
 ## 1. Configure Vite
 
-Add the Nitro and Vue plugins to your Vite config. Define both `client` and `ssr` environments:
+Add the Fastnode and Vue plugins to your Vite config. Define both `client` and `ssr` environments:
 
 ```js [vite.config.mjs]
 import vue from "@vitejs/plugin-vue";
 import { defineConfig } from "vite";
 import devtoolsJson from "vite-plugin-devtools-json";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
 export default defineConfig((_env) => ({
-  plugins: [vue({ exclude: /\?assets/ }), devtoolsJson(), nitro()],
+  plugins: [vue({ exclude: /\?assets/ }), devtoolsJson(), fastnode()],
   environments: {
     client: { build: { rollupOptions: { input: "./app/entry-client.ts" } } },
     ssr: { build: { rollupOptions: { input: "./app/entry-server.ts" } } },

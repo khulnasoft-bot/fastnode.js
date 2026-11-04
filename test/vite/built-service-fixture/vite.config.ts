@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
 export default defineConfig({
   environments: {
@@ -12,5 +12,5 @@ export default defineConfig({
       },
     },
   },
-  plugins: [nitro({ preset: "standard", serverDir: "./" })],
+  plugins: [fastnode({ preset: "standard", serverDir: "./" })],
 });

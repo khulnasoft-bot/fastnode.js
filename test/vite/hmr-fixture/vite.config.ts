@@ -1,5 +1,5 @@
 import { defineConfig, type Plugin } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
 /**
  * Simulates an asset-collecting plugin (e.g. vite-plugin-solid's `?assets`
@@ -40,5 +40,5 @@ function serverGraphInvalidator(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [nitro({ serverDir: "./" }), depCrawler(), serverGraphInvalidator()],
+  plugins: [fastnode({ serverDir: "./" }), depCrawler(), serverGraphInvalidator()],
 });

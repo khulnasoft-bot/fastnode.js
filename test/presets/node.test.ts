@@ -4,7 +4,7 @@ import { getRandomPort } from "get-port-please";
 import { resolve } from "pathe";
 import { isBun, isWindows } from "std-env";
 import { describe, expect, it } from "vitest";
-import { setupTest, startServer, testNitro } from "../tests.ts";
+import { setupTest, startServer, testFastnode } from "../tests.ts";
 import { testCloseHook } from "./_close-hook.ts";
 import { testListenError } from "./_listen-error.ts";
 import { testUnixSocket } from "./_unix-socket.ts";
@@ -15,10 +15,10 @@ import { waitForServer } from "./_wait-for-server.ts";
 
 const presetFixturesDir = resolve(import.meta.dirname, "fixtures");
 
-describe("nitro:preset:node-middleware", async () => {
+describe("fastnode:preset:node-middleware", async () => {
   const ctx = await setupTest("node-middleware");
 
-  testNitro(ctx, async () => {
+  testFastnode(ctx, async () => {
     const entryPath = resolve(ctx.outDir, "server/index.mjs");
     const { middleware } = await import(entryPath);
 
@@ -46,15 +46,15 @@ describe("nitro:preset:node-middleware", async () => {
 
   it("should trace externals", () => {
     const serverNodeModules = resolve(ctx.outDir, "server/node_modules");
-    expect(existsSync(resolve(serverNodeModules, "@fixture/nitro-utils/extra.mjs"))).toBe(true);
-    // required from a bundled CommonJS package (https://github.com/nitrojs/nitro/issues/4093)
-    expect(existsSync(resolve(serverNodeModules, "@fixture/nitro-native-mock/index.js"))).toBe(
+    expect(existsSync(resolve(serverNodeModules, "@fixture/fastnode-utils/extra.mjs"))).toBe(true);
+    // required from a bundled CommonJS package (https://github.com/khulnasoft/fastnode/issues/4093)
+    expect(existsSync(resolve(serverNodeModules, "@fixture/fastnode-native-mock/index.js"))).toBe(
       true
     );
   });
 });
 
-describe("nitro:preset:node-server", async () => {
+describe("fastnode:preset:node-server", async () => {
   const ctx = await setupTest("node-server", {
     config: {
       features: { websocket: true },
@@ -69,7 +69,7 @@ describe("nitro:preset:node-server", async () => {
     skip(isBun);
     const port = await getRandomPort();
     const child = execa(process.execPath, [resolve(ctx.outDir, "server/index.mjs")], {
-      env: { NITRO_PORT: String(port), NITRO_HOST: "127.0.0.1" },
+      env: { FASTNODE_PORT: String(port), FASTNODE_HOST: "127.0.0.1" },
       stdio: process.env.TEST_DEBUG ? "inherit" : "ignore",
       reject: false,
     });
@@ -94,7 +94,7 @@ describe("nitro:preset:node-server", async () => {
     async () => {
       const port = await getRandomPort();
       const child = execa(process.execPath, [resolve(ctx.outDir, "server/index.mjs")], {
-        env: { NITRO_PORT: String(port), NITRO_HOST: "127.0.0.1" },
+        env: { FASTNODE_PORT: String(port), FASTNODE_HOST: "127.0.0.1" },
         stdio: process.env.TEST_DEBUG ? "inherit" : "ignore",
         reject: false,
       });
@@ -121,7 +121,7 @@ describe("nitro:preset:node-server", async () => {
   }
 });
 
-describe("nitro:preset:node-cluster", async () => {
+describe("fastnode:preset:node-cluster", async () => {
   const ctx = await setupTest("node-cluster");
 
   // Signals sent to the primary (`index.mjs`) must be forwarded to workers, and the
@@ -129,7 +129,7 @@ describe("nitro:preset:node-cluster", async () => {
   testCloseHook(ctx, {
     command: process.execPath,
     args: (entry) => [entry],
-    env: { NITRO_CLUSTER_WORKERS: "2" },
+    env: { FASTNODE_CLUSTER_WORKERS: "2" },
     exitCode: 0,
   });
 
@@ -139,9 +139,9 @@ describe("nitro:preset:node-cluster", async () => {
       const port = await getRandomPort();
       const child = execa(process.execPath, [resolve(ctx.outDir, "server/index.mjs")], {
         env: {
-          NITRO_CLUSTER_WORKERS: "1",
-          NITRO_PORT: String(port),
-          NITRO_HOST: "127.0.0.1",
+          FASTNODE_CLUSTER_WORKERS: "1",
+          FASTNODE_PORT: String(port),
+          FASTNODE_HOST: "127.0.0.1",
         },
         extendEnv: false,
         reject: false,
@@ -169,13 +169,13 @@ describe("nitro:preset:node-cluster", async () => {
   testUnixSocket(ctx, {
     command: process.execPath,
     args: (entry) => [entry],
-    env: { NITRO_CLUSTER_WORKERS: "2" },
+    env: { FASTNODE_CLUSTER_WORKERS: "2" },
   });
 
   testListenError(ctx, {
     command: process.execPath,
     args: (entry) => [entry],
-    env: { NITRO_CLUSTER_WORKERS: "2" },
+    env: { FASTNODE_CLUSTER_WORKERS: "2" },
     skip: isBun,
   });
 });

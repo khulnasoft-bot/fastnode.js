@@ -1,13 +1,13 @@
-# Nitro Architecture Deep Dive
+# Fastnode Architecture Deep Dive
 
-## Core Instance (`src/nitro.ts`)
+## Core Instance (`src/fastnode.ts`)
 
-`createNitro(config, opts)` creates the main context with:
-- `options: NitroOptions` — Resolved configuration
-- `hooks: Hookable<NitroHooks>` — Build lifecycle hooks
+`createFastnode(config, opts)` creates the main context with:
+- `options: FastnodeOptions` — Resolved configuration
+- `hooks: Hookable<FastnodeHooks>` — Build lifecycle hooks
 - `vfs: Map<string, { render }>` — Virtual file system
 - `routing: { routes, routeRules, globalMiddleware, routedMiddleware }`
-- `scannedHandlers: NitroEventHandler[]`
+- `scannedHandlers: FastnodeEventHandler[]`
 - `logger: ConsolaInstance`
 - `updateConfig(config)` — Hot-reload config
 - `close()` — Cleanup
@@ -15,23 +15,23 @@
 **Setup flow:**
 1. Load options via `loadOptions()`
 2. Install modules via `installModules()`
-3. Init routing via `initNitroRouting()`
+3. Init routing via `initFastnodeRouting()`
 4. Scan handlers/plugins/tasks via `scanAndSyncOptions()`
 5. Setup hooks
 
 ## Entry Points
 
-- `src/builder.ts` — Main public API: `createNitro()`, `build()`, `createDevServer()`, `prerender()`, `copyPublicAssets()`, `prepare()`, `runTask()`, `listTasks()`
-- `src/vite.ts` — Vite plugin export from `src/build/vite/plugin.ts`
+- `src/builder.ts` — Main public API: `createFastnode()`, `build()`, `createDevServer()`, `prerender()`, `copyPublicAssets()`, `prepare()`, `runTask()`, `listTasks()`
+- `src/vite.ts` — Vite plugin export from `src/build/builders/vite/plugin.ts`
 
 ## Build System (`src/build/`)
 
-**Builder dispatch** (`build/build.ts`): delegates to `rollup`, `rolldown`, or `vite` based on `nitro.options.builder`.
+**Builder dispatch** (`build/build.ts`): delegates to `rollup`, `rolldown`, or `vite` based on `fastnode.options.builder`.
 
-**Builder selection** (resolved in `config/resolvers/builder.ts`):
-- Check `NITRO_BUILDER` env var
-- Auto-detect: `vite` when a `vite.config` uses `nitro()`, otherwise `rolldown`
-- No builder package is a dependency of Nitro: they are imported from the user project and installed on demand (`rolldown` via `build/rolldown/_import.ts`)
+**Builder selection** (resolved in `config/resolver/builder.ts`):
+- Check `FASTNODE_BUILDER` env var
+- Auto-detect: `vite` when a `vite.config` uses `fastnode()`, otherwise `rolldown`
+- No builder package is a dependency of Fastnode: they are imported from the user project and installed on demand (`rolldown` via `build/rolldown/_import.ts`)
 - Dev without `rolldown` (and no `rollupConfig`/`rolldownConfig`) falls back to `builder: false`
 
 **Base config** (`build/config.ts`):
@@ -54,7 +54,7 @@
 User `buildPlugins` are added around this list by `withBuildPlugins()` (`enforce: "pre"` before, the others after the builder's own plugins). With `builder: false`, they are appended to the env-runner plugins (`build/unbundled/plugins.ts`).
 
 **Virtual modules** (`build/virtual/`, 14 templates):
-All prefixed `#nitro/virtual/<name>`:
+All prefixed `#fastnode/virtual/<name>`:
 - `routing.ts` — Compiled router matcher
 - `plugins.ts` — Plugin registry
 - `error-handler.ts` — Error handler
@@ -73,39 +73,39 @@ All prefixed `#nitro/virtual/<name>`:
 ## Configuration System (`src/config/`)
 
 **Loader** (`config/loader.ts`): `loadOptions(config, opts)`
-1. Merge with defaults (`NitroDefaults`)
-2. Load c12 config files (`nitro.config.ts`, `package.json.nitro`, etc.)
+1. Merge with defaults (`FastnodeDefaults`)
+2. Load c12 config files (`fastnode.config.ts`, `package.json.fastnode`, etc.)
 3. Resolve preset
 4. Run config resolvers sequentially
 
-**Resolvers** (`config/resolvers/`):
+**Resolvers** (`config/resolver/`):
 `compatibility`, `tsconfig`, `paths`, `imports`, `route-rules`, `database`, `export-conditions`, `runtime-config`, `open-api`, `url`, `assets`, `storage`, `error`, `unenv`, `builder`
 
-**Defaults** (`config/defaults.ts`): All NitroConfig defaults.
+**Defaults** (`config/defaults.ts`): All FastnodeConfig defaults.
 
 ## Runtime (`src/runtime/`)
 
 **Internal** (`runtime/internal/`):
-- `app.ts` — NitroApp creation, H3 app setup
+- `app.ts` — FastnodeApp creation, H3 app setup
 - `cache.ts` — Response caching
 - `context.ts` — Async context
-- `route-rule-handlers.ts` — Nitro's rule handlers for the compiled matcher: a `cache` handler bound to Nitro's cache runtime. The built-ins (headers, redirect, proxy, cors) and rule matching/normalization live in [`h3/rules`](https://h3.dev/guide/rules).
+- `route-rule-handlers.ts` — Fastnode's rule handlers for the compiled matcher: a `cache` handler bound to Fastnode's cache runtime. The built-ins (headers, redirect, proxy, cors) and rule matching/normalization live in [`h3/rules`](https://h3.dev/guide/rules).
 - `static.ts` — Static file serving
 - `task.ts` — Task execution
 - `plugin.ts` — Plugin helpers
 - `runtime-config.ts` — Config getter
 
-**Public exports**: `runtime/app.ts` (`defineConfig()`), `runtime/nitro.ts` (`serverFetch()`), `runtime/cache.ts`, `runtime/task.ts`, `runtime/kv.ts`, etc.
+**Public exports**: `runtime/app.ts` (`defineConfig()`), `runtime/fastnode.ts` (`serverFetch()`), `runtime/cache.ts`, `runtime/task.ts`, `runtime/kv.ts`, etc.
 
 ## Dev Server (`src/dev/`)
 
-- `dev/server.ts` — `createDevServer()` (public `NitroDevServer` interface, internal `DevServer` class): Worker management via `env-runner`, restart on failure (max 3 retries), WebSocket support, VFS debug endpoint (`/_vfs/**`)
-- `dev/app.ts` — `NitroDevApp`: H3 app with error handling, static serving with compression, dev proxy
-- `dev/_reload-signal.ts` + `dev/_error-recovery.ts` — Dev error page auto-reload (all builders): HTML 5xx page loads get a script that long-polls `/_nitro/dev/reload?id=<instance>&v=<generation>`; the generation is bumped by `DevServer.reload()`/`dev:error` (Rollup/Rolldown) or `hotUpdate` (Vite, where the page also re-checks its status since the worker reloads lazily)
+- `dev/server.ts` — `createDevServer()` (public `FastnodeDevServer` interface, internal `DevServer` class): Worker management via `env-runner`, restart on failure (max 3 retries), WebSocket support, VFS debug endpoint (`/_vfs/**`)
+- `dev/app.ts` — `FastnodeDevApp`: H3 app with error handling, static serving with compression, dev proxy
+- `dev/_reload-signal.ts` + `dev/_error-recovery.ts` — Dev error page auto-reload (all builders): HTML 5xx page loads get a script that long-polls `/_fastnode/dev/reload?id=<instance>&v=<generation>`; the generation is bumped by `DevServer.reload()`/`dev:error` (Rollup/Rolldown) or `hotUpdate` (Vite, where the page also re-checks its status since the worker reloads lazily)
 
 ## Prerender (`src/prerender/`)
 
-- `prerender/prerender.ts` — Main flow: parse routes → build prerenderer (preset: `nitro-prerender`) → execute in parallel → link crawling → write to disk → compress
+- `prerender/prerender.ts` — Main flow: parse routes → build prerenderer (preset: `fastnode-prerender`) → execute in parallel → link crawling → write to disk → compress
 - `prerender/utils.ts` — `extractLinks()`, `matchesIgnorePattern()`, `formatPrerenderRoute()`
 
 ## Routing & Scanning (`src/routing.ts`, `src/scan.ts`)
@@ -123,11 +123,11 @@ Route file conventions:
 
 ## Presets (`src/presets/`)
 
-Several deployment-target presets (+ internal `_nitro`/`_static`); see `.agents/presets.md`. Structure per preset:
+Several deployment-target presets (+ internal `_fastnode`/`_static`); see `.agents/presets.md`. Structure per preset:
 
 ```
 presets/<name>/
-├── preset.ts        # defineNitroPreset()
+├── preset.ts        # defineFastnodePreset()
 ├── runtime/         # Runtime entry (bundled)
 ├── types.ts         # Types (optional)
 ├── utils.ts         # Build-time utils (optional)
@@ -151,9 +151,9 @@ Uses `citty` with lazy-loaded commands: `dev`, `build`, `deploy`, `preview`, `pr
 | `c12` | Config loading |
 | `citty` | CLI framework |
 | `hookable` | Hook system |
-| `unstorage` | Storage abstraction (`nitro/kv`), installed on demand by `build/plugins/runtime-deps.ts` |
-| `db0` | SQL database layer (`nitro/database`), installed on demand by `build/plugins/runtime-deps.ts` |
-| `ocache` | Caching (`nitro/cache`, `cache` route rules) |
+| `unstorage` | Storage abstraction (`fastnode/kv`), installed on demand by `build/plugins/runtime-deps.ts` |
+| `db0` | SQL database layer (`fastnode/database`), installed on demand by `build/plugins/runtime-deps.ts` |
+| `ocache` | Caching (`fastnode/cache`, `cache` route rules) |
 | `unenv` | Node.js polyfills for `node: false` builds (`build/_node-compat.ts`), installed on demand by `build/plugins/unenv.ts` |
 | `defu` | Config merging |
 | `pathe` | Path operations |

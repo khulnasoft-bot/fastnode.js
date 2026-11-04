@@ -3,14 +3,14 @@ import fsp from "node:fs/promises";
 import zlib from "node:zlib";
 import { glob } from "tinyglobby";
 import mime from "mime";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import { resolve } from "pathe";
 
 const EncodingMap = { gzip: ".gz", br: ".br", zstd: ".zst" } as const;
 
-export async function compressPublicAssets(nitro: Nitro) {
+export async function compressPublicAssets(fastnode: Fastnode) {
   const publicFiles = await glob("**", {
-    cwd: nitro.options.output.publicDir,
+    cwd: fastnode.options.output.publicDir,
     absolute: false,
     dot: true,
     ignore: ["**/*.gz", "**/*.br", "**/*.zst"],
@@ -18,7 +18,7 @@ export async function compressPublicAssets(nitro: Nitro) {
 
   await Promise.all(
     publicFiles.map(async (fileName) => {
-      const compressPublicAssets = nitro.options.compressPublicAssets;
+      const compressPublicAssets = fastnode.options.compressPublicAssets;
       if (compressPublicAssets === false) {
         return;
       }
@@ -31,7 +31,7 @@ export async function compressPublicAssets(nitro: Nitro) {
         ? { gzip: true, brotli: true, zstd: true }
         : compressPublicAssets;
       const zstdSupported = zlib.zstdCompress !== undefined;
-      const filePath = resolve(nitro.options.output.publicDir, fileName);
+      const filePath = resolve(fastnode.options.output.publicDir, fileName);
 
       if (!isCompressibleFile(fileName)) {
         return;

@@ -6,7 +6,7 @@ const { runTask, runCronTasks } = vi.hoisted(() => ({
   runCronTasks: vi.fn(),
 }));
 
-vi.mock("#nitro/runtime/task", () => ({ runTask, runCronTasks }));
+vi.mock("#fastnode/runtime/task", () => ({ runTask, runCronTasks }));
 
 import { createScheduleHandler } from "../../src/presets/vercel/runtime/schedule-handler.ts";
 import { createCronHandler } from "../../src/presets/vercel/runtime/cron-handler.ts";

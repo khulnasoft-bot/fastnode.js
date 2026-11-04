@@ -3,7 +3,7 @@ import type { ViteDevServer } from "vite";
 import { beforeAll, afterAll, describe, expect, test } from "vitest";
 
 const { createServer } = (await import(
-  process.env.NITRO_VITE_PKG || "vite"
+  process.env.FASTNODE_VITE_PKG || "vite"
 )) as typeof import("vite");
 
 describe("vite:server entry", { concurrent: false }, () => {
@@ -39,7 +39,7 @@ describe("vite:server entry", { concurrent: false }, () => {
     expect(await res.text()).toContain("/image.png");
   });
 
-  // #4252: routes defined in a custom server entry are invisible to `nitro.routing.routes`,
+  // #4252: routes defined in a custom server entry are invisible to `fastnode.routing.routes`,
   // but asset-tagged requests must still reach them instead of dying in Vite as a 404.
   test("custom server entry serves asset-extensioned routes (sec-fetch-dest: image)", async () => {
     const res = await fetch(`${serverURL}/image.png`, {

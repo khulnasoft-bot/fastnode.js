@@ -1,5 +1,5 @@
-import type { NitroAppPlugin } from "nitro/types";
+import type { FastnodeAppPlugin } from "fastnode/types";
 
-export function definePlugin(def: NitroAppPlugin): NitroAppPlugin {
+export function definePlugin(def: FastnodeAppPlugin): FastnodeAppPlugin {
   return def;
 }

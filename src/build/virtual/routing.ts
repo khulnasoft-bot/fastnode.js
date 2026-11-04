@@ -1,32 +1,33 @@
-import type { Nitro, NitroEventHandler } from "nitro/types";
+import type { Fastnode, FastnodeEventHandler } from "fastnode/types";
 import { compileRouteRules } from "h3/rules/compiler";
 import { hasServerEntryDefaultExport } from "./server-entry.ts";
 
-export default function routing(nitro: Nitro) {
+export default function routing(fastnode: Fastnode) {
   return {
-    id: "#nitro/virtual/routing",
+    id: "#fastnode/virtual/routing",
     template: async () => {
       const allHandlers = uniqueBy(
         [
-          ...Object.values(nitro.routing.routes.routes).flatMap((h) => h.data),
-          ...Object.values(nitro.routing.routedMiddleware.routes).map((h) => h.data),
-          ...nitro.routing.globalMiddleware,
+          ...Object.values(fastnode.routing.routes.routes).flatMap((h) => h.data),
+          ...Object.values(fastnode.routing.routedMiddleware.routes).map((h) => h.data),
+          ...fastnode.routing.globalMiddleware,
         ],
         "_importHash"
       );
 
-      const traceH3 = !!nitro.options.tracingChannel?.h3;
+      const traceH3 = !!fastnode.options.tracingChannel?.h3;
 
-      const serverEntry = nitro.options.serverEntry;
+      const serverEntry = fastnode.options.serverEntry;
       const webServerEntry =
         serverEntry && serverEntry.handler && serverEntry.format !== "node"
           ? serverEntry.handler.replace(/\\/g, "/")
           : undefined;
-      const serverEntryHasDefault = !!webServerEntry && (await hasServerEntryDefaultExport(nitro));
+      const serverEntryHasDefault =
+        !!webServerEntry && (await hasServerEntryDefaultExport(fastnode));
 
-      const routeRulesModule = compileRouteRules(nitro.options.routeRules, {
-        runtimeRules: { cache: "#nitro/runtime/route-rule-handlers" },
-        baseURL: nitro.options.baseURL,
+      const routeRulesModule = compileRouteRules(fastnode.options.routeRules, {
+        runtimeRules: { cache: "#fastnode/runtime/route-rule-handlers" },
+        baseURL: fastnode.options.baseURL,
         preMerge: true,
       });
 
@@ -58,12 +59,12 @@ ${allHandlers
   )
   .join("\n")}
 
-export const findRoute = ${nitro.routing.routes.compileToString({ serialize: (h) => serializeHandler(h, { tracing: traceH3 }) })}
+export const findRoute = ${fastnode.routing.routes.compileToString({ serialize: (h) => serializeHandler(h, { tracing: traceH3 }) })}
 
-export const findRoutedMiddleware = ${nitro.routing.routedMiddleware.compileToString({ serialize: serializeHandlerFn, matchAll: true })};
+export const findRoutedMiddleware = ${fastnode.routing.routedMiddleware.compileToString({ serialize: serializeHandlerFn, matchAll: true })};
 
 export const globalMiddleware = [
-  ${nitro.routing.globalMiddleware.map((h) => (h.lazy ? h._importHash : `h3.toEventHandler(${h._importHash})`)).join(",")}
+  ${fastnode.routing.globalMiddleware.map((h) => (h.lazy ? h._importHash : `h3.toEventHandler(${h._importHash})`)).join(",")}
 ].filter(Boolean);
   `;
     },
@@ -73,7 +74,7 @@ export const globalMiddleware = [
 // The default export (and its `fetch`) of the server entry is optional: it can be used
 // for startup logic only. Without a handler, requests continue to the renderer (or 404).
 function serverEntryImport(
-  h: NitroEventHandler & { _importHash: string },
+  h: FastnodeEventHandler & { _importHash: string },
   hasDefault: boolean
 ): string {
   const notFound = `() => Symbol.for("h3.notFound")`;
@@ -95,10 +96,10 @@ function uniqueBy<T>(arr: T[], key: keyof T): T[] {
 type MaybeArray<T> = T | T[];
 
 function serializeHandler(
-  h: MaybeArray<NitroEventHandler & { _importHash: string }>,
+  h: MaybeArray<FastnodeEventHandler & { _importHash: string }>,
   opts: { tracing?: boolean } = {}
 ): string {
-  const meta = Array.isArray(h) ? h[0] : h;
+  const meta = Array.isArray(h) ? (h[0] as NonNullable<(typeof h)[0]>) : h;
   const handler = Array.isArray(h)
     ? `multiHandler(${h.map((handler) => serializeHandlerFn(handler)).join(",")})`
     : serializeHandlerFn(h);
@@ -113,7 +114,7 @@ function serializeHandler(
     .join(",")}}`;
 }
 
-function serializeHandlerFn(h: NitroEventHandler & { _importHash: string }): string {
+function serializeHandlerFn(h: FastnodeEventHandler & { _importHash: string }): string {
   let code = h._importHash;
   if (!h.lazy) {
     if (h.format === "node") {

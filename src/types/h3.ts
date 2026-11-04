@@ -5,7 +5,7 @@ import type { ResolvedRouteRules } from "./route-rules.ts";
 declare module "srvx" {
   interface ServerRequestContext {
     routeRules?: Readonly<ResolvedRouteRules>;
-    nitro?: {
+    fastnode?: {
       errors?: { error?: Error; context: CapturedErrorContext }[];
     };
   }

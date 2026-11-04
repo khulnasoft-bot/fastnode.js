@@ -2,13 +2,13 @@ import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { rm, mkdir, readFile } from "node:fs/promises";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { createNitro, createDevServer, build, prepare } from "nitro/builder";
-import type { Nitro } from "nitro/types";
+import { createFastnode, createDevServer, build, prepare } from "fastnode/builder";
+import type { Fastnode } from "fastnode/types";
 import type { Server } from "srvx";
 import type { ViteDevServer } from "vite";
 
 const { createServer } = (await import(
-  process.env.NITRO_VITE_PKG || "vite"
+  process.env.FASTNODE_VITE_PKG || "vite"
 )) as typeof import("vite");
 
 const fixtureDir = fileURLToPath(new URL("./tsconfig-paths-fixture", import.meta.url));
@@ -35,18 +35,18 @@ describe("tsconfig-paths", () => {
         outDir = join(tmpDir, builder);
         await rm(outDir, { recursive: true, force: true });
         await mkdir(outDir, { recursive: true });
-        const nitro = await createNitro({
+        const fastnode = await createFastnode({
           rootDir: fixtureDir,
           output: { dir: outDir },
           // @ts-expect-error for testing
-          __vitePkg__: builder === "vite" ? process.env.NITRO_VITE_PKG : undefined,
+          __vitePkg__: builder === "vite" ? process.env.FASTNODE_VITE_PKG : undefined,
           builder,
         });
         try {
-          await prepare(nitro);
-          await build(nitro);
+          await prepare(fastnode);
+          await build(fastnode);
         } finally {
-          await nitro.close();
+          await fastnode.close();
         }
       });
 
@@ -60,24 +60,24 @@ describe("tsconfig-paths", () => {
   }
 
   it("can be disabled with `typescript.tsconfigPaths: false`", async () => {
-    const nitro = await createNitro({
+    const fastnode = await createFastnode({
       rootDir: fixtureDir,
       output: { dir: join(tmpDir, "disabled") },
       builder: "rolldown",
       typescript: { tsconfigPaths: false },
     });
     try {
-      await prepare(nitro);
-      await build(nitro);
+      await prepare(fastnode);
+      await build(fastnode);
     } finally {
-      await nitro.close();
+      await fastnode.close();
     }
     const entry = await readFile(join(tmpDir, "disabled/server/index.mjs"), "utf8");
     expect(entry).toMatch(/from ["']@greeting["']/);
   });
 
   it("warns about invalid `paths` instead of failing", async () => {
-    const nitro = await createNitro({
+    const fastnode = await createFastnode({
       rootDir: fixtureDir,
       output: { dir: join(tmpDir, "invalid") },
       builder: "rolldown",
@@ -86,12 +86,12 @@ describe("tsconfig-paths", () => {
         tsConfig: { compilerOptions: { paths: { "@greeting": ["app/greeting.ts"] } } },
       },
     });
-    const warn = vi.spyOn(nitro.logger, "warn");
+    const warn = vi.spyOn(fastnode.logger, "warn");
     try {
-      await prepare(nitro);
-      await build(nitro);
+      await prepare(fastnode);
+      await build(fastnode);
     } finally {
-      await nitro.close();
+      await fastnode.close();
     }
     expect(warn).toHaveBeenCalledWith(
       expect.stringContaining("Ignoring `compilerOptions.paths` of the project tsconfig")
@@ -120,27 +120,27 @@ describe("tsconfig-paths", () => {
   });
 
   describe("builder: false", () => {
-    let nitro: Nitro;
+    let fastnode: Fastnode;
     let server: Server;
 
     beforeAll(async () => {
-      nitro = await createNitro({
+      fastnode = await createFastnode({
         rootDir: fixtureDir,
         buildDir: join(tmpDir, "unbundled"),
         builder: false,
         dev: true,
       });
-      server = createDevServer(nitro).listen({ port: 0 });
+      server = createDevServer(fastnode).listen({ port: 0 });
       await server.ready();
       const ready = new Promise<void>((resolve) => {
-        nitro.hooks.hookOnce("dev:reload", () => resolve());
+        fastnode.hooks.hookOnce("dev:reload", () => resolve());
       });
-      await build(nitro);
+      await build(fastnode);
       await ready;
     });
 
     afterAll(async () => {
-      await nitro?.close();
+      await fastnode?.close();
     });
 
     it("resolves tsconfig `paths`", async () => {

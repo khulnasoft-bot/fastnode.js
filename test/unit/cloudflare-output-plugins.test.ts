@@ -121,11 +121,12 @@ export { readFile };
     it("does not strip a matching line inside a template literal", async () => {
       // `import "node:fs";` on its own line inside template text is data, not an
       // import declaration (the issue #4526 case).
-      const input = 'const source = `foo\nimport "node:fs";\nexport const nitro4526marker = 1;`;\n';
+      const input =
+        'const source = `foo\nimport "node:fs";\nexport const fastnode4526marker = 1;`;\n';
       const { output } = await renderChunk(input);
       expect(output).toBe(input);
       expect(output).toContain('import "node:fs";');
-      expect(output).toContain("nitro4526marker");
+      expect(output).toContain("fastnode4526marker");
     });
   });
 

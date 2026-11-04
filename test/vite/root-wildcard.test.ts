@@ -3,7 +3,7 @@ import type { ViteDevServer } from "vite";
 import { beforeAll, afterAll, describe, expect, test } from "vitest";
 
 const { createServer } = (await import(
-  process.env.NITRO_VITE_PKG || "vite"
+  process.env.FASTNODE_VITE_PKG || "vite"
 )) as typeof import("vite");
 
 describe("vite:root wildcard routes", { concurrent: false }, () => {

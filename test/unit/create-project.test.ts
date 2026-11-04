@@ -18,7 +18,7 @@ afterEach(async () => {
 });
 
 async function tmpDir() {
-  const dir = await mkdtemp(join(tmpdir(), "nitro-create-"));
+  const dir = await mkdtemp(join(tmpdir(), "fastnode-create-"));
   temporaryDirs.push(dir);
   return dir;
 }
@@ -31,12 +31,12 @@ describe("createProject", () => {
       await createProject(dir, { template });
 
       expect(existsSync(join(dir, ".gitignore"))).toBe(true);
-      expect(existsSync(join(dir, "nitro.config.ts"))).toBe(true);
+      expect(existsSync(join(dir, "fastnode.config.ts"))).toBe(true);
       expect(existsSync(join(dir, "server/api/hello.ts"))).toBe(true);
 
       const projectPkg = JSON.parse(await readFile(join(dir, "package.json"), "utf8"));
       expect(projectPkg.name).toBe("my-app");
-      expect(projectPkg.dependencies.nitro).toBe(`^${pkg.version}`);
+      expect(projectPkg.dependencies.fastnode).toBe(`^${pkg.version}`);
     }
   );
 
@@ -50,7 +50,7 @@ describe("createProject", () => {
     const { overwritten } = await createProject(dir, { template: "rolldown", force: true });
     expect(overwritten).toEqual(["package.json"]);
     expect(JSON.parse(await readFile(join(dir, "package.json"), "utf8")).scripts.dev).toBe(
-      "nitro dev"
+      "fastnode dev"
     );
   });
 

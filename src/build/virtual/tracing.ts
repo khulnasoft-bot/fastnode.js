@@ -1,10 +1,10 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 
-export default function tracing(nitro: Nitro) {
+export default function tracing(fastnode: Fastnode) {
   return {
-    id: "#nitro/virtual/tracing",
+    id: "#fastnode/virtual/tracing",
     template: () => {
-      const { srvx, h3 } = nitro.options.tracingChannel || {};
+      const { srvx, h3 } = fastnode.options.tracingChannel || {};
       const imports: string[] = [];
       const setup: string[] = [];
 
@@ -13,13 +13,13 @@ export default function tracing(nitro: Nitro) {
       }
       if (h3) {
         imports.push(`import { tracingPlugin as h3Tracing } from "h3/tracing";`);
-        setup.push(`  h3Tracing()(nitroApp.h3);`);
+        setup.push(`  h3Tracing()(fastnodeApp.h3);`);
       }
 
       return [
         ...imports,
         `export const tracingSrvxPlugins = [${srvx ? "srvxTracing()" : ""}];`,
-        `export default function tracing(nitroApp) {`,
+        `export default function tracing(fastnodeApp) {`,
         ...setup,
         `};`,
       ].join("\n");

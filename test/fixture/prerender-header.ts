@@ -1,4 +1,4 @@
-import { defineHandler } from "nitro/h3";
+import { defineHandler } from "fastnode/h3";
 
 export default defineHandler((event) => {
   const type = event.context.params!.type!;
@@ -9,7 +9,7 @@ export default defineHandler((event) => {
     status: type.startsWith("error-") ? 500 : 200,
     headers: {
       "content-type": isJSON ? "application/json" : type === "text" ? "text/plain" : "text/html",
-      "x-nitro-prerender": `/api/param/header-${type}`,
+      "x-fastnode-prerender": `/api/param/header-${type}`,
     },
   });
 });

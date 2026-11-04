@@ -1,5 +1,5 @@
-import "#nitro/virtual/polyfills";
+import "#fastnode/virtual/polyfills";
 import { toNodeHandler } from "srvx/node";
-import { useNitroApp } from "nitro/app";
+import { useFastnodeApp } from "fastnode/app";
 
-export default toNodeHandler(useNitroApp().fetch);
+export default toNodeHandler(useFastnodeApp().fetch);

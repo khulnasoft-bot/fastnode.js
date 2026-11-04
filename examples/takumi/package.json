@@ -6,7 +6,7 @@
     "preview": "node .output/server/index.mjs"
   },
   "devDependencies": {
-    "nitro": "latest",
+    "fastnode": "latest",
     "takumi-js": "^2.18.2",
     "vite": "latest"
   }

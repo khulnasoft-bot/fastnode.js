@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { PublicAssetDir } from "nitro/types";
+import type { PublicAssetDir } from "fastnode/types";
 import { getPublicAssetRoutes } from "../../src/presets/vercel/utils.ts";
 
 const asset = (dir: Partial<PublicAssetDir>): PublicAssetDir =>

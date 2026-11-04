@@ -1,12 +1,12 @@
-import "#nitro/virtual/polyfills";
+import "#fastnode/virtual/polyfills";
 import { handleLambdaEvent } from "srvx/aws-lambda";
-import { useNitroApp } from "nitro/app";
+import { useFastnodeApp } from "fastnode/app";
 
 import type { AwsLambdaEvent } from "srvx/aws-lambda";
 import type { Context } from "aws-lambda";
 
-const nitroApp = useNitroApp();
+const fastnodeApp = useFastnodeApp();
 
 export async function handler(event: AwsLambdaEvent, context: Context) {
-  return handleLambdaEvent(nitroApp.fetch, event, context);
+  return handleLambdaEvent(fastnodeApp.fetch, event, context);
 }

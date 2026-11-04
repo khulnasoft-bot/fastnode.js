@@ -1,18 +1,18 @@
 import { fileURLToPath } from "node:url";
-import type { Nitro, NitroBuildConfig } from "nitro/types";
+import type { Fastnode, FastnodeBuildConfig } from "fastnode/types";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { nitro } from "../../src/vite.ts";
+import { fastnode } from "../../src/vite.ts";
 
 const { resolveConfig } = (await import(
-  process.env.NITRO_VITE_PKG || "vite"
+  process.env.FASTNODE_VITE_PKG || "vite"
 )) as typeof import("vite");
 
 const rootDir = fileURLToPath(new URL("./app-fixture", import.meta.url));
 
-// #1382: hooks with the same name from `nitro()` options and the `nitro` key of the Vite config
+// #1382: hooks with the same name from `fastnode()` options and the `fastnode` key of the Vite config
 // must both run instead of overriding each other.
 describe("vite: plugin and user config hooks", () => {
-  let instance: Nitro | undefined;
+  let instance: Fastnode | undefined;
 
   afterEach(async () => {
     await instance?.close();
@@ -25,7 +25,7 @@ describe("vite: plugin and user config hooks", () => {
       {
         root: rootDir,
         configFile: false,
-        nitro: {
+        fastnode: {
           hooks: {
             compiled: () => {
               calls.push("config:compiled");
@@ -38,7 +38,7 @@ describe("vite: plugin and user config hooks", () => {
           },
         },
         plugins: [
-          nitro({
+          fastnode({
             serverDir: "./",
             hooks: {
               compiled: () => {
@@ -50,10 +50,10 @@ describe("vite: plugin and user config hooks", () => {
             },
           }),
           {
-            name: "capture-nitro",
-            nitro: {
-              setup(nitro) {
-                instance = nitro;
+            name: "capture-fastnode",
+            fastnode: {
+              setup(fastnode) {
+                instance = fastnode;
               },
             },
           },
@@ -75,30 +75,30 @@ describe("vite: plugin and user config hooks", () => {
   });
 
   test("calls deprecated `rollup:before` hooks with the bundler config", async () => {
-    let buildConfig: NitroBuildConfig | undefined;
+    let buildConfig: FastnodeBuildConfig | undefined;
     let legacyConfig: unknown;
     await resolveConfig(
       {
         root: rootDir,
         configFile: false,
         plugins: [
-          nitro({
+          fastnode({
             serverDir: "./",
             hooks: {
-              "build:config": (_nitro, config) => {
+              "build:config": (_fastnode, config) => {
                 buildConfig = config;
               },
-              "rollup:before": (_nitro, config) => {
+              "rollup:before": (_fastnode, config) => {
                 legacyConfig = config;
               },
             },
           }),
           {
-            name: "capture-nitro",
-            nitro: {
-              setup(nitro) {
-                instance = nitro;
-                vi.spyOn(nitro.logger, "warn").mockImplementation(() => {});
+            name: "capture-fastnode",
+            fastnode: {
+              setup(fastnode) {
+                instance = fastnode;
+                vi.spyOn(fastnode.logger, "warn").mockImplementation(() => {});
               },
             },
           },

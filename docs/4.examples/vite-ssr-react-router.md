@@ -6,7 +6,7 @@ icon: i-logos-react
 
 # SSR with React Router
 
-> Server-side rendering with React Router in Nitro using Vite.
+> Server-side rendering with React Router in Fastnode using Vite.
 
 <!-- automd:ui-code-tree src="../../examples/vite-ssr-react-router" default="server/ssr.ts" ignore="README.md,favicon.ico,logos" expandAll -->
 
@@ -36,7 +36,7 @@ icon: i-logos-react
     "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "nitro": "latest",
+    "fastnode": "latest",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "vite": "latest"
@@ -57,7 +57,7 @@ export default {
 
 ```json [tsconfig.json]
 {
-  "extends": "nitro/tsconfig",
+  "extends": "fastnode/tsconfig",
   "include": ["**/*", "**/.server/**/*", "**/.client/**/*", ".react-router/types/**/*"],
   "compilerOptions": {
     "types": ["node", "vite/client"],
@@ -74,7 +74,7 @@ export default {
 import { reactRouter } from "@react-router/dev/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
 import reactRouterConfig from "./react-router.config";
 
@@ -82,7 +82,7 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     reactRouter(),
-    nitro({
+    fastnode({
       serverDir: "./server",
       output: {
         dir: reactRouterConfig.buildDirectory,
@@ -216,12 +216,12 @@ export default {
 import type { Route } from "./+types/home";
 import logoDark from "../logos/logo-dark.svg";
 import logoLight from "../logos/logo-light.svg";
-import nitroLogo from "../logos/nitro.svg";
+import fastnodeLogo from "../logos/fastnode.svg";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
-    { title: "Nitro + React Router" },
-    { name: "description", content: "React Router SSR powered by Nitro." },
+    { title: "Fastnode + React Router" },
+    { name: "description", content: "React Router SSR powered by Fastnode." },
   ];
 }
 
@@ -229,8 +229,8 @@ export default function Home() {
   return (
     <main className="mx-auto flex max-w-5xl flex-col items-center px-6 py-16 text-center sm:py-24">
       <h1 className="flex items-center gap-5 sm:gap-8">
-        <span className="sr-only">Nitro + React Router</span>
-        <img className="size-16 sm:size-24" src={nitroLogo} alt="" aria-hidden />
+        <span className="sr-only">Fastnode + React Router</span>
+        <img className="size-16 sm:size-24" src={fastnodeLogo} alt="" aria-hidden />
         <span
           className="text-4xl font-light text-gray-300 sm:text-6xl dark:text-gray-600"
           aria-hidden
@@ -243,17 +243,17 @@ export default function Home() {
         </picture>
       </h1>
       <p className="mt-6 max-w-2xl text-lg leading-8 text-gray-600 dark:text-gray-300">
-        Full-stack React Router, powered by Nitro.
+        Full-stack React Router, powered by Fastnode.
       </p>
 
       <div className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2">
         <a
           className="text-sm font-medium text-gray-700 underline decoration-gray-300 underline-offset-4 transition-colors hover:text-gray-950 hover:decoration-gray-500 dark:text-gray-300 dark:decoration-gray-700 dark:hover:text-white dark:hover:decoration-gray-500"
-          href="https://nitro.build"
+          href="https://fastnode.khulnasoft.com"
           target="_blank"
           rel="noreferrer"
         >
-          Nitro Docs ↗
+          Fastnode Docs ↗
         </a>
         <a
           className="text-sm font-medium text-gray-700 underline decoration-gray-300 underline-offset-4 transition-colors hover:text-gray-950 hover:decoration-gray-500 dark:text-gray-300 dark:decoration-gray-700 dark:hover:text-white dark:hover:decoration-gray-500"
@@ -297,11 +297,11 @@ const features = [
   },
   {
     title: "One Vite lifecycle",
-    description: "Develop and build the React Router frontend and Nitro backend together.",
+    description: "Develop and build the React Router frontend and Fastnode backend together.",
   },
   {
     title: "In-process requests",
-    description: "Call Nitro routes from loaders without an origin or network round trip.",
+    description: "Call Fastnode routes from loaders without an origin or network round trip.",
   },
   {
     title: "Routing without glue",
@@ -311,7 +311,7 @@ const features = [
 ```
 
 ```ts [server/routes/health.get.ts]
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 
 export default defineHandler(() => {
   return { status: "OK" };
@@ -324,25 +324,25 @@ export default defineHandler(() => {
 
 <!-- automd:file src="../../examples/vite-ssr-react-router/README.md" -->
 
-Set up React Router framework mode with Vite and Nitro. This setup uses Nitro to run the React Router server build in development and production.
+Set up React Router framework mode with Vite and Fastnode. This setup uses Fastnode to run the React Router server build in development and production.
 
 ## Overview
 
-1. Add the React Router and Nitro plugins to your Vite config
-2. Configure Nitro to emit its server alongside React Router's client build
+1. Add the React Router and Fastnode plugins to your Vite config
+2. Configure Fastnode to emit its server alongside React Router's client build
 3. Create an SSR handler using React Router's request handler
-4. Add Nitro server routes
+4. Add Fastnode server routes
 5. Define routes using React Router's route configuration
 
 ## 1. Configure Vite
 
-Add the React Router, Tailwind CSS, and Nitro plugins to your Vite config:
+Add the React Router, Tailwind CSS, and Fastnode plugins to your Vite config:
 
 ```ts [vite.config.ts]
 import { reactRouter } from "@react-router/dev/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
 import reactRouterConfig from "./react-router.config";
 
@@ -350,7 +350,7 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     reactRouter(),
-    nitro({
+    fastnode({
       serverDir: "./server",
       output: {
         dir: reactRouterConfig.buildDirectory,
@@ -368,11 +368,11 @@ export default defineConfig({
 });
 ```
 
-React Router creates the `ssr` environment and builds browser assets into `build/client`. The custom input points to the fetch-compatible handler in `server/ssr.ts`. Nitro scans `server/` for its own routes, then emits the production server into `build/server`.
+React Router creates the `ssr` environment and builds browser assets into `build/client`. The custom input points to the fetch-compatible handler in `server/ssr.ts`. Fastnode scans `server/` for its own routes, then emits the production server into `build/server`.
 
 ## 2. Configure React Router
 
-Enable SSR and keep the build directory in sync with the Nitro output configuration:
+Enable SSR and keep the build directory in sync with the Fastnode output configuration:
 
 ```ts [react-router.config.ts]
 import type { Config } from "@react-router/dev/config";
@@ -400,21 +400,21 @@ export default {
 };
 ```
 
-Nitro invokes the exported Web `fetch` handler through the Vite `ssr` service in development and production. The request handler loads React Router's generated server build and renders the matched route.
+Fastnode invokes the exported Web `fetch` handler through the Vite `ssr` service in development and production. The request handler loads React Router's generated server build and renders the matched route.
 
-## 4. Add Nitro Server Routes
+## 4. Add Fastnode Server Routes
 
 Add API and other server routes under `server/routes/`:
 
 ```ts [server/routes/health.get.ts]
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 
 export default defineHandler(() => {
   return { status: "OK" };
 });
 ```
 
-This route is available at `/health` and is handled by Nitro before requests fall through to the React Router SSR service.
+This route is available at `/health` and is handled by Fastnode before requests fall through to the React Router SSR service.
 
 ## 5. Define React Router Routes
 

@@ -1,6 +1,6 @@
 import type { RunnerName } from "env-runner";
 import type { MiniflareEnvRunnerOptions } from "env-runner/runners/miniflare";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 
 import { pathToFileURL } from "node:url";
 import { resolveModulePath } from "exsolve";
@@ -29,17 +29,17 @@ type MiniflareRunnerDeps = Pick<
  * optional import (or a degraded mode).
  */
 export async function resolveRunnerDeps(
-  nitro: Nitro,
+  fastnode: Fastnode,
   runner: RunnerName
 ): Promise<Record<string, unknown>> {
   switch (runner) {
     case "miniflare": {
-      return resolveMiniflareDeps(nitro);
+      return resolveMiniflareDeps(fastnode);
     }
     case "netlify": {
       // `@netlify/runtime` is instantiated inside the worker thread, so it can
       // only be handed over as a specifier, never as an imported module.
-      return { netlifyRuntime: _resolve("@netlify/runtime", nitro.options.rootDir) };
+      return { netlifyRuntime: _resolve("@netlify/runtime", fastnode.options.rootDir) };
     }
     default: {
       return {};
@@ -47,14 +47,14 @@ export async function resolveRunnerDeps(
   }
 }
 
-async function resolveMiniflareDeps(nitro: Nitro): Promise<MiniflareRunnerDeps> {
-  const { rootDir } = nitro.options;
+async function resolveMiniflareDeps(fastnode: Fastnode): Promise<MiniflareRunnerDeps> {
+  const { rootDir } = fastnode.options;
   const miniflare = await ensureDep({
     id: "miniflare",
     dir: rootDir,
-    deps: nitro.options.deps,
+    deps: fastnode.options.deps,
   });
-  const inline = nitro.options.cloudflare?.wrangler;
+  const inline = fastnode.options.cloudflare?.wrangler;
   const configPath = await findNearestFile(["wrangler.json", "wrangler.jsonc", "wrangler.toml"], {
     startingFrom: rootDir,
   }).catch(() => undefined);
@@ -65,7 +65,7 @@ async function resolveMiniflareDeps(nitro: Nitro): Promise<MiniflareRunnerDeps> 
     wranglerModule: _resolve("wrangler", rootDir),
     wrangler: inline && Object.keys(inline).length > 0 ? inline : Boolean(configPath),
     wranglerConfigPath: configPath,
-    wranglerEnv: nitro.options.cloudflare?.wranglerEnv,
+    wranglerEnv: fastnode.options.cloudflare?.wranglerEnv,
     // The dev bundle imports Node.js built-ins that workerd only provides at recent dates
     compatibilityDate: "latest",
     miniflareOptions: {

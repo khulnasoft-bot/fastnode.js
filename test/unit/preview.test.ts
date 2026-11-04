@@ -14,8 +14,8 @@ describe("preview", () => {
   let rootDir: string;
 
   beforeEach(async () => {
-    rootDir = await mkdtemp(join(tmpdir(), "nitro-preview-"));
-    await writeFile(join(rootDir, "nitro.config.mjs"), "export default {};");
+    rootDir = await mkdtemp(join(tmpdir(), "fastnode-preview-"));
+    await writeFile(join(rootDir, "fastnode.config.mjs"), "export default {};");
     vi.spyOn(consola, "box").mockImplementation(() => {});
   });
 
@@ -28,8 +28,8 @@ describe("preview", () => {
   async function writeBuild(date: Date) {
     await mkdir(join(rootDir, ".output"), { recursive: true });
     await writeFile(
-      join(rootDir, ".output/nitro.json"),
-      JSON.stringify({ date: date.toJSON(), preset: "node-server", versions: { nitro: "3" } })
+      join(rootDir, ".output/fastnode.json"),
+      JSON.stringify({ date: date.toJSON(), preset: "node-server", versions: { fastnode: "3" } })
     );
   }
 
@@ -61,7 +61,9 @@ describe("preview", () => {
     const warn = vi.spyOn(consola, "warn").mockImplementation(() => {});
     const preview = await startPreview({ rootDir });
     await preview.close();
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining("`nitro.config.mjs` changed after"));
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("`fastnode.config.mjs` changed after")
+    );
   });
 
   it("does not warn for a build newer than the config", async () => {

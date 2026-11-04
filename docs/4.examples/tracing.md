@@ -7,12 +7,12 @@ icon: i-lucide-activity
 
 > Instrument the request lifecycle with diagnostics channels and the built-in tracing logger.
 
-<!-- automd:ui-code-tree src="../../examples/tracing" default="nitro.config.ts" ignore="README.md,GUIDE.md" expandAll -->
+<!-- automd:ui-code-tree src="../../examples/tracing" default="fastnode.config.ts" ignore="README.md,GUIDE.md" expandAll -->
 
-::code-tree{defaultValue="nitro.config.ts" expandAll}
+::code-tree{defaultValue="fastnode.config.ts" expandAll}
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   serverDir: true,
@@ -31,15 +31,15 @@ export default defineConfig({
 {
   "type": "module",
   "scripts": {
-    "build": "nitro build",
-    "dev": "nitro dev",
+    "build": "fastnode build",
+    "dev": "fastnode dev",
     "preview": "node .output/server/index.mjs"
   },
   "dependencies": {
     "unstorage": "^2.0.0-beta.0"
   },
   "devDependencies": {
-    "nitro": "latest",
+    "fastnode": "latest",
     "rolldown": "latest"
   }
 }
@@ -47,12 +47,12 @@ export default defineConfig({
 
 ```json [tsconfig.json]
 {
-  "extends": "nitro/tsconfig"
+  "extends": "fastnode/tsconfig"
 }
 ```
 
 ```ts [server/middleware/timing.ts]
-import { defineMiddleware } from "nitro";
+import { defineMiddleware } from "fastnode";
 
 // A trivial middleware — each request produces its own `middleware` span.
 export default defineMiddleware((event) => {
@@ -61,8 +61,8 @@ export default defineMiddleware((event) => {
 ```
 
 ```ts [server/routes/index.ts]
-import { defineHandler } from "nitro";
-import { useKV } from "nitro/kv";
+import { defineHandler } from "fastnode";
+import { useKV } from "fastnode/kv";
 
 // Reads and writes storage so the request emits `unstorage.*` spans (CLIENT)
 // alongside the `srvx.request`, `middleware` and route (`h3.request`) spans.
@@ -70,12 +70,12 @@ export default defineHandler(async () => {
   const storage = useKV();
   const hits = ((await storage.getItem<number>("hits")) ?? 0) + 1;
   await storage.setItem("hits", hits);
-  return { message: "Hello from the Nitro tracing demo", hits };
+  return { message: "Hello from the Fastnode tracing demo", hits };
 });
 ```
 
 ```ts [server/routes/users/[id].ts]
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 
 // A dynamic route — spans are named by the matched route template
 // (`GET /users/:id`), not the concrete path, to keep cardinality low.
@@ -90,12 +90,12 @@ export default defineHandler((event) => ({
 
 <!-- automd:file src="../../examples/tracing/README.md" -->
 
-Nitro can instrument its request lifecycle through Node [diagnostics channels](https://nodejs.org/api/diagnostics_channel.html) — no OpenTelemetry SDK required. This example turns instrumentation on and enables the built-in console logger, which groups every h3, srvx, unstorage and db0 span into a per-request timeline (waterfall).
+Fastnode can instrument its request lifecycle through Node [diagnostics channels](https://nodejs.org/api/diagnostics_channel.html) — no OpenTelemetry SDK required. This example turns instrumentation on and enables the built-in console logger, which groups every h3, srvx, unstorage and db0 span into a per-request timeline (waterfall).
 
 ## Enabling tracing
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   // Instrument the h3, srvx, unstorage and db0 tracing channels.
@@ -131,7 +131,7 @@ Each request prints a timeline of its spans to the console — the middleware, t
 
 The header line (`▶`) is the request itself — its method, path and total time; the rows below are the spans that ran within it. Note the dynamic route is named by its matched template — `GET /users/:id`, not `/users/42` — keeping span names low-cardinality per the OpenTelemetry HTTP conventions.
 
-The request boundary comes from Nitro's `request`/`response` runtime hooks, so grouping works identically in `vite dev` and in a production build. Spans are grouped per request via async context, so timelines for concurrent requests stay separate, and a failed span is marked `✖` with its error message.
+The request boundary comes from Fastnode's `request`/`response` runtime hooks, so grouping works identically in `vite dev` and in a production build. Spans are grouped per request via async context, so timelines for concurrent requests stay separate, and a failed span is marked `✖` with its error message.
 
 ## What gets traced
 

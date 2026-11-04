@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
-import { nitroAssetsImport } from "../../src/build/vite/_assets.ts";
-import type { NitroPluginContext } from "../../src/build/vite/types.ts";
+import { fastnodeAssetsImport } from "../../src/build/builders/vite/_assets.ts";
+import type { FastnodePluginContext } from "../../src/build/builders/vite/types.ts";
 
 vi.mock("@hiogawa/vite-plugin-fullstack/assets", () => ({
   default: () => [null, { name: "fullstack:test", transform: () => "export const value = 1" }],
 }));
 
-describe("nitroAssetsImport", () => {
+describe("fastnodeAssetsImport", () => {
   it("ignores falsy plugins returned by the fullstack assets plugin", () => {
-    const plugins = nitroAssetsImport({} as NitroPluginContext);
+    const plugins = fastnodeAssetsImport({} as FastnodePluginContext);
     expect(plugins).toHaveLength(1);
     expect(plugins[0]!.name).toBe("fullstack:test");
   });

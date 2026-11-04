@@ -1,11 +1,11 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 
-export default function runtimeConfig(nitro: Nitro) {
+export default function runtimeConfig(fastnode: Fastnode) {
   return {
-    id: "#nitro/virtual/runtime-config",
+    id: "#fastnode/virtual/runtime-config",
     template: () => {
       return /* js */ `export const runtimeConfig = ${JSON.stringify(
-        nitro.options.runtimeConfig || {}
+        fastnode.options.runtimeConfig || {}
       )};`;
     },
   };

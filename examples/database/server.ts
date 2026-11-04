@@ -1,5 +1,5 @@
-import { defineHandler } from "nitro";
-import { useDatabase } from "nitro/database";
+import { defineHandler } from "fastnode";
+import { useDatabase } from "fastnode/database";
 
 export default defineHandler(async () => {
   const db = useDatabase();

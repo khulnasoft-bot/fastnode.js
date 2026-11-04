@@ -1,8 +1,8 @@
-import { definePlugin } from "nitro";
-import { useNitroHooks } from "nitro/app";
+import { definePlugin } from "fastnode";
+import { useFastnodeHooks } from "fastnode/app";
 
 export default definePlugin(() => {
-  const hooks = useNitroHooks();
+  const hooks = useFastnodeHooks();
   hooks.hook("response", (res) => {
     res.headers.set("content-type", "html; charset=utf-8");
   });

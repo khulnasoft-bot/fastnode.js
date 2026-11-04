@@ -1,15 +1,20 @@
 import { describe, expect, it } from "vitest";
-import type { Nitro, NitroEventHandler, NormalizedRouteRules, PrerenderRoute } from "nitro/types";
+import type {
+  Fastnode,
+  FastnodeEventHandler,
+  NormalizedRouteRules,
+  PrerenderRoute,
+} from "fastnode/types";
 
 import { getObservabilityRoutes } from "../../src/presets/vercel/utils.ts";
 
-function createNitroStub(opts: {
+function createFastnodeStub(opts: {
   compatibilityDate?: string;
-  handlers?: NitroEventHandler[];
+  handlers?: FastnodeEventHandler[];
   ssrRoutes?: string[];
   prerenderedRoutes?: PrerenderRoute[];
   routeRules?: Record<string, NormalizedRouteRules>;
-}): Nitro {
+}): Fastnode {
   return {
     scannedHandlers: opts.handlers || [],
     _prerenderedRoutes: opts.prerenderedRoutes,
@@ -19,16 +24,16 @@ function createNitroStub(opts: {
       ssrRoutes: opts.ssrRoutes || [],
       routeRules: opts.routeRules || {},
     },
-  } as unknown as Nitro;
+  } as unknown as Fastnode;
 }
 
-const dests = (nitro: Nitro) => getObservabilityRoutes(nitro).map((route) => route.dest);
+const dests = (fastnode: Fastnode) => getObservabilityRoutes(fastnode).map((route) => route.dest);
 
 describe("getObservabilityRoutes", () => {
   it("creates routes regardless of the compatibility date", () => {
     expect(
       dests(
-        createNitroStub({
+        createFastnodeStub({
           compatibilityDate: "2024-04-03",
           handlers: [{ route: "/foo", handler: "foo.ts" }],
         })
@@ -39,7 +44,7 @@ describe("getObservabilityRoutes", () => {
   it("creates a route per handler, most specific first", () => {
     expect(
       getObservabilityRoutes(
-        createNitroStub({
+        createFastnodeStub({
           handlers: [
             { route: "/**", handler: "catch-all.ts" },
             { route: "/blog/:slug", handler: "blog.ts" },
@@ -61,7 +66,7 @@ describe("getObservabilityRoutes", () => {
 
   it("maps a `*` catch-all segment to a catch-all dest", () => {
     expect(
-      dests(createNitroStub({ handlers: [{ route: "/api/test/*/foo", handler: "hello.ts" }] }))
+      dests(createFastnodeStub({ handlers: [{ route: "/api/test/*/foo", handler: "hello.ts" }] }))
     ).toEqual(["api/test/[...]/foo"]);
   });
 
@@ -71,7 +76,7 @@ describe("getObservabilityRoutes", () => {
   it("skips routes served by a prerendered file", () => {
     expect(
       dests(
-        createNitroStub({
+        createFastnodeStub({
           handlers: [
             { route: "/prerendered", handler: "prerendered.ts" },
             { route: "/dynamic", handler: "dynamic.ts" },
@@ -85,7 +90,7 @@ describe("getObservabilityRoutes", () => {
   it("skips prerendered ssrRoutes and explicit handlers alike", () => {
     expect(
       dests(
-        createNitroStub({
+        createFastnodeStub({
           ssrRoutes: ["/from-ssr-routes"],
           handlers: [{ route: "/from-handlers", handler: "handler.ts" }],
           prerenderedRoutes: [
@@ -102,7 +107,7 @@ describe("getObservabilityRoutes", () => {
   it("matches prerendered routes regardless of a trailing slash", () => {
     expect(
       dests(
-        createNitroStub({
+        createFastnodeStub({
           handlers: [{ route: "/slash", handler: "slash.ts" }],
           prerenderedRoutes: [{ route: "/slash/", fileName: "/slash/index.html" }],
         })
@@ -110,7 +115,7 @@ describe("getObservabilityRoutes", () => {
     ).toEqual([]);
     expect(
       dests(
-        createNitroStub({
+        createFastnodeStub({
           handlers: [{ route: "/slash/", handler: "slash.ts" }],
           prerenderedRoutes: [{ route: "/slash", fileName: "/slash.html" }],
         })
@@ -122,7 +127,7 @@ describe("getObservabilityRoutes", () => {
   it("skips the root route when it is prerendered", () => {
     expect(
       dests(
-        createNitroStub({
+        createFastnodeStub({
           handlers: [{ route: "/", handler: "index.ts" }],
           prerenderedRoutes: [{ route: "/", fileName: "/index.html" }],
         })
@@ -135,7 +140,7 @@ describe("getObservabilityRoutes", () => {
   it("keeps dynamic routes with prerendered leaves", () => {
     expect(
       dests(
-        createNitroStub({
+        createFastnodeStub({
           handlers: [
             { route: "/blog/:slug", handler: "blog.ts" },
             { route: "/docs/**", handler: "docs.ts" },
@@ -152,7 +157,7 @@ describe("getObservabilityRoutes", () => {
   it("keeps routes whose prerendered file was not written", () => {
     expect(
       dests(
-        createNitroStub({
+        createFastnodeStub({
           handlers: [{ route: "/failed", handler: "failed.ts" }],
           prerenderedRoutes: [{ route: "/failed" }],
         })
@@ -161,17 +166,17 @@ describe("getObservabilityRoutes", () => {
   });
 
   it("keeps routes without prerendering", () => {
-    expect(dests(createNitroStub({ handlers: [{ route: "/foo", handler: "foo.ts" }] }))).toEqual([
-      "foo",
-    ]);
+    expect(dests(createFastnodeStub({ handlers: [{ route: "/foo", handler: "foo.ts" }] }))).toEqual(
+      ["foo"]
+    );
   });
 
-  // https://github.com/nitrojs/nitro/issues/4447
+  // https://github.com/khulnasoft/fastnode/issues/4447
   describe("ISR route rules", () => {
     it("skips static, dynamic and catch-all routes with an ISR rule", () => {
       expect(
         dests(
-          createNitroStub({
+          createFastnodeStub({
             handlers: [
               { route: "/schedule", handler: "schedule.ts" },
               { route: "/users/:id", handler: "user.ts" },
@@ -190,7 +195,7 @@ describe("getObservabilityRoutes", () => {
     it("skips routes covered by a wildcard ISR rule", () => {
       expect(
         dests(
-          createNitroStub({
+          createFastnodeStub({
             handlers: [{ route: "/users/:id", handler: "user.ts" }],
             routeRules: { "/users/**": { isr: 60 } },
           })
@@ -201,7 +206,7 @@ describe("getObservabilityRoutes", () => {
     it("keeps routes only partly covered by an ISR rule", () => {
       expect(
         dests(
-          createNitroStub({
+          createFastnodeStub({
             handlers: [{ route: "/users/**", handler: "users.ts" }],
             routeRules: { "/users/:id": { isr: 60 } },
           })
@@ -212,7 +217,7 @@ describe("getObservabilityRoutes", () => {
     it("keeps routes whose rules do not enable ISR", () => {
       expect(
         dests(
-          createNitroStub({
+          createFastnodeStub({
             handlers: [
               { route: "/users/:id", handler: "user.ts" },
               { route: "/plain", handler: "plain.ts" },

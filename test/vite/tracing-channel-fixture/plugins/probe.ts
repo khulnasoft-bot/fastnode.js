@@ -1,5 +1,5 @@
 import { subscribe } from "node:diagnostics_channel";
-import { definePlugin } from "nitro";
+import { definePlugin } from "fastnode";
 
 const state = ((globalThis as any).__tracingProbe ??= { counts: {}, subscribed: false });
 

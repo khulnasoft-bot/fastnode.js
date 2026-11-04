@@ -3,21 +3,27 @@ import { readFile } from "node:fs/promises";
 import { defu } from "defu";
 import { writeFile } from "../_utils/fs.ts";
 import { importDep } from "../../utils/dep.ts";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import { resolve } from "pathe";
 
-export async function writeIISFiles(nitro: Nitro) {
-  await writeFile(resolve(nitro.options.output.dir, "web.config"), await iisXmlTemplate(nitro));
+export async function writeIISFiles(fastnode: Fastnode) {
+  await writeFile(
+    resolve(fastnode.options.output.dir, "web.config"),
+    await iisXmlTemplate(fastnode)
+  );
 }
 
-export async function writeIISNodeFiles(nitro: Nitro) {
-  await writeFile(resolve(nitro.options.output.dir, "web.config"), await iisnodeXmlTemplate(nitro));
+export async function writeIISNodeFiles(fastnode: Fastnode) {
+  await writeFile(
+    resolve(fastnode.options.output.dir, "web.config"),
+    await iisnodeXmlTemplate(fastnode)
+  );
 
   await writeFile(
-    resolve(nitro.options.output.dir, "index.js"),
+    resolve(fastnode.options.output.dir, "index.js"),
     /*js */ `
     if (process.env.PORT.startsWith('\\\\')) {
-      process.env.NITRO_UNIX_SOCKET = process.env.PORT
+      process.env.FASTNODE_UNIX_SOCKET = process.env.PORT
       delete process.env.PORT
     }
     import('./server/index.mjs');
@@ -25,8 +31,8 @@ export async function writeIISNodeFiles(nitro: Nitro) {
   );
 }
 
-async function iisnodeXmlTemplate(nitro: Nitro) {
-  const path = resolve(nitro.options.rootDir, "web.config");
+async function iisnodeXmlTemplate(fastnode: Fastnode) {
+  const path = resolve(fastnode.options.rootDir, "web.config");
   const originalString = /* xml */ `<?xml version="1.0" encoding="utf-8"?>
   <!--
        This configuration file is required if iisnode is used to run node processes behind
@@ -94,21 +100,21 @@ async function iisnodeXmlTemplate(nitro: Nitro) {
 `;
   if (existsSync(path)) {
     const fileString = await readFile(path, "utf8");
-    const originalWebConfig: Record<string, unknown> = await parseXmlDoc(originalString, nitro);
-    const fileWebConfig: Record<string, unknown> = await parseXmlDoc(fileString, nitro);
+    const originalWebConfig: Record<string, unknown> = await parseXmlDoc(originalString, fastnode);
+    const fileWebConfig: Record<string, unknown> = await parseXmlDoc(fileString, fastnode);
 
-    if (nitro.options.iis?.mergeConfig && !nitro.options.iis.overrideConfig) {
-      return buildNewXmlDoc(defu(fileWebConfig, originalWebConfig), nitro);
+    if (fastnode.options.iis?.mergeConfig && !fastnode.options.iis.overrideConfig) {
+      return buildNewXmlDoc(defu(fileWebConfig, originalWebConfig), fastnode);
     }
-    if (nitro.options.iis?.overrideConfig) {
-      return buildNewXmlDoc({ ...fileWebConfig }, nitro);
+    if (fastnode.options.iis?.overrideConfig) {
+      return buildNewXmlDoc({ ...fileWebConfig }, fastnode);
     }
   }
   return originalString;
 }
 
-async function iisXmlTemplate(nitro: Nitro) {
-  const path = resolve(nitro.options.rootDir, "web.config");
+async function iisXmlTemplate(fastnode: Fastnode) {
+  const path = resolve(fastnode.options.rootDir, "web.config");
   const originalString = /* xml */ `<?xml version="1.0" encoding="UTF-8"?>
 <configuration>
   <system.webServer>
@@ -126,33 +132,33 @@ async function iisXmlTemplate(nitro: Nitro) {
 `;
   if (existsSync(path)) {
     const fileString = await readFile(path, "utf8");
-    const originalWebConfig: Record<string, unknown> = await parseXmlDoc(originalString, nitro);
-    const fileWebConfig: Record<string, unknown> = await parseXmlDoc(fileString, nitro);
+    const originalWebConfig: Record<string, unknown> = await parseXmlDoc(originalString, fastnode);
+    const fileWebConfig: Record<string, unknown> = await parseXmlDoc(fileString, fastnode);
 
-    if (nitro.options.iis?.mergeConfig && !nitro.options.iis.overrideConfig) {
-      return buildNewXmlDoc(defu(fileWebConfig, originalWebConfig), nitro);
+    if (fastnode.options.iis?.mergeConfig && !fastnode.options.iis.overrideConfig) {
+      return buildNewXmlDoc(defu(fileWebConfig, originalWebConfig), fastnode);
     }
-    if (nitro.options.iis?.overrideConfig) {
-      return buildNewXmlDoc({ ...fileWebConfig }, nitro);
+    if (fastnode.options.iis?.overrideConfig) {
+      return buildNewXmlDoc({ ...fileWebConfig }, fastnode);
     }
   }
   return originalString;
 }
 
 //  XML Helpers
-function importXml2js(nitro: Nitro) {
+function importXml2js(fastnode: Fastnode) {
   return importDep({
     id: "xml2js",
-    dir: nitro.options.rootDir,
-    deps: nitro.options.deps,
+    dir: fastnode.options.rootDir,
+    deps: fastnode.options.deps,
   });
 }
 
-async function parseXmlDoc(xml: string, nitro: Nitro): Promise<Record<string, unknown>> {
+async function parseXmlDoc(xml: string, fastnode: Fastnode): Promise<Record<string, unknown>> {
   if (xml === undefined || !xml) {
     return {};
   }
-  const { Parser } = await importXml2js(nitro);
+  const { Parser } = await importXml2js(fastnode);
   const parser = new Parser({ explicitArray: false });
   let parsedRecord: Record<string, unknown> = {};
   parser.parseString(xml, (_, r) => {
@@ -161,8 +167,11 @@ async function parseXmlDoc(xml: string, nitro: Nitro): Promise<Record<string, un
   return parsedRecord;
 }
 
-async function buildNewXmlDoc(xmlObj: Record<string, unknown>, nitro: Nitro): Promise<string> {
-  const { Builder } = await importXml2js(nitro);
+async function buildNewXmlDoc(
+  xmlObj: Record<string, unknown>,
+  fastnode: Fastnode
+): Promise<string> {
+  const { Builder } = await importXml2js(fastnode);
   const builder = new Builder();
   return builder.buildObject({ ...xmlObj });
 }

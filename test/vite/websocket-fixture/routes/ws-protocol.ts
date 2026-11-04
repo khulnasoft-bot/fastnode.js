@@ -1,4 +1,4 @@
-import { defineWebSocketHandler } from "nitro";
+import { defineWebSocketHandler } from "fastnode";
 
 export default defineWebSocketHandler({
   upgrade(request) {
@@ -6,6 +6,7 @@ export default defineWebSocketHandler({
     if (offered.some((protocol) => protocol.trim() === "graphql-transport-ws")) {
       return { protocol: "graphql-transport-ws" };
     }
+    return undefined;
   },
   open(peer) {
     peer.send("ready");

@@ -1,4 +1,4 @@
-import { useKV } from "nitro/kv";
+import { useKV } from "fastnode/kv";
 
 export default () => {
   const storage = useKV();

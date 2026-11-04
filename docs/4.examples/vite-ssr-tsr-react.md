@@ -6,7 +6,7 @@ icon: i-simple-icons-tanstack
 
 # SSR with TanStack Router
 
-> Client-side routing with TanStack Router in Nitro using Vite.
+> Client-side routing with TanStack Router in Fastnode using Vite.
 
 <!-- automd:ui-code-tree src="../../examples/vite-ssr-tsr-react" default="src/main.tsx" ignore="README.md,GUIDE.md" expandAll -->
 
@@ -18,7 +18,7 @@ icon: i-simple-icons-tanstack
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nitro + TanStack Router + React</title>
+    <title>Fastnode + TanStack Router + React</title>
   </head>
 
   <body>
@@ -43,7 +43,7 @@ icon: i-simple-icons-tanstack
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
-    "nitro": "latest",
+    "fastnode": "latest",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "vite": "latest"
@@ -53,7 +53,7 @@ icon: i-simple-icons-tanstack
 
 ```json [tsconfig.json]
 {
-  "extends": "nitro/tsconfig",
+  "extends": "fastnode/tsconfig",
   "compilerOptions": {
     "baseUrl": ".",
     "jsx": "react-jsx",
@@ -66,12 +66,12 @@ icon: i-simple-icons-tanstack
 
 ```js [vite.config.mjs]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 import react from "@vitejs/plugin-react";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 
 export default defineConfig({
-  plugins: [tanstackRouter({ target: "react", autoCodeSplitting: true }), react(), nitro()],
+  plugins: [tanstackRouter({ target: "react", autoCodeSplitting: true }), react(), fastnode()],
 });
 ```
 
@@ -314,27 +314,27 @@ function Index() {
 
 <!-- automd:file src="../../examples/vite-ssr-tsr-react/README.md" -->
 
-Set up TanStack Router with React, Vite, and Nitro. This setup provides file-based routing with type-safe navigation and automatic code splitting.
+Set up TanStack Router with React, Vite, and Fastnode. This setup provides file-based routing with type-safe navigation and automatic code splitting.
 
 ## Overview
 
-1. Add the Nitro Vite plugin to your Vite config
+1. Add the Fastnode Vite plugin to your Vite config
 2. Create an HTML template with your app entry
 3. Create a main entry that initializes the router
 4. Define routes using file-based routing
 
 ## 1. Configure Vite
 
-Add the Nitro, React, and TanStack Router plugins to your Vite config:
+Add the Fastnode, React, and TanStack Router plugins to your Vite config:
 
 ```js [vite.config.mjs]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 import react from "@vitejs/plugin-react";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 
 export default defineConfig({
-  plugins: [tanstackRouter({ target: "react", autoCodeSplitting: true }), react(), nitro()],
+  plugins: [tanstackRouter({ target: "react", autoCodeSplitting: true }), react(), fastnode()],
 });
 ```
 
@@ -350,7 +350,7 @@ Create an HTML file that serves as your app shell:
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nitro + TanStack Router + React</title>
+    <title>Fastnode + TanStack Router + React</title>
   </head>
 
   <body>

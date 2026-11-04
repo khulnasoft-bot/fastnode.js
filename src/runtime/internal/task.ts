@@ -1,8 +1,8 @@
 import { Cron } from "croner";
 import { HTTPError } from "h3";
-import type { Task, TaskContext, TaskEvent, TaskPayload, TaskResult } from "nitro/types";
-import { useNitroApp, useNitroHooks } from "./app.ts";
-import { scheduledTasks, scheduleRunner, tasks } from "#nitro/virtual/tasks";
+import type { Task, TaskContext, TaskEvent, TaskPayload, TaskResult } from "fastnode/types";
+import { useFastnodeApp, useFastnodeHooks } from "./app.ts";
+import { scheduledTasks, scheduleRunner, tasks } from "#fastnode/virtual/tasks";
 
 /** @experimental */
 export function defineTask<RT = unknown>(def: Task<RT>): Task<RT> {
@@ -32,14 +32,14 @@ export async function runTask<RT = unknown>(
     });
   }
 
-  if (!tasks[name].resolve) {
+  if (!tasks[name]!.resolve) {
     throw new HTTPError({
       message: `Task \`${name}\` is not implemented!`,
       status: 501,
     });
   }
 
-  const handler = (await tasks[name].resolve!()) as Task<RT>;
+  const handler = (await tasks[name]!.resolve!()) as Task<RT>;
   const taskEvent: TaskEvent = { name, payload, context };
   __runningTasks__[name] = handler.run(taskEvent);
 
@@ -66,7 +66,7 @@ export function startScheduleRunner({
   };
 
   const cronJobs: Cron[] = [];
-  useNitroHooks().hook("close", () => {
+  useFastnodeHooks().hook("close", () => {
     for (const job of cronJobs) {
       try {
         job.stop();
@@ -80,7 +80,7 @@ export function startScheduleRunner({
     cronJobs.push(
       new Cron(schedule.cron, async () => {
         try {
-          await useNitroApp().ready;
+          await useFastnodeApp().ready;
         } catch {
           // Plugin initialization failed and was already reported
           return;
@@ -110,6 +110,6 @@ export async function runCronTasks(
   cron: string,
   ctx: { payload?: TaskPayload; context?: TaskContext }
 ): Promise<TaskResult[]> {
-  await useNitroApp().ready;
+  await useFastnodeApp().ready;
   return Promise.all(getCronTasks(cron).map((name) => runTask(name, ctx)));
 }

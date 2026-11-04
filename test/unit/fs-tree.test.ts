@@ -21,7 +21,7 @@ describe("generateFSTree", () => {
 
   beforeEach(async () => {
     gzipSize.mockClear();
-    dir = await realpath(await mkdtemp(join(tmpdir(), "nitro-fs-tree-")));
+    dir = await realpath(await mkdtemp(join(tmpdir(), "fastnode-fs-tree-")));
     await writeFile(join(dir, "index.mjs"), "a".repeat(1000));
   });
 

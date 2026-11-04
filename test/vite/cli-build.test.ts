@@ -6,23 +6,23 @@ import { join } from "pathe";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import buildCommand from "../../src/cli/commands/build.ts";
 
-// `nitro build` with the vite builder must copy public assets and prerender only once,
+// `fastnode build` with the vite builder must copy public assets and prerender only once,
 // from the vite `buildApp` hook (after the client build), not also from the CLI.
-describe("vite: nitro build CLI", () => {
+describe("vite: fastnode build CLI", () => {
   const rootDir = fileURLToPath(new URL("./cli-build-fixture", import.meta.url));
   let tmpDir: string;
   let logFile: string;
 
   beforeAll(async () => {
-    tmpDir = mkdtempSync(join(tmpdir(), "nitro-cli-build-"));
+    tmpDir = mkdtempSync(join(tmpdir(), "fastnode-cli-build-"));
     logFile = join(tmpDir, "build.log");
     writeFileSync(logFile, "");
-    process.env.NITRO_TEST_CLI_BUILD_LOG = logFile;
+    process.env.FASTNODE_TEST_CLI_BUILD_LOG = logFile;
     await runCommand(buildCommand, { rawArgs: ["--dir", rootDir] });
   }, 60_000);
 
   afterAll(() => {
-    delete process.env.NITRO_TEST_CLI_BUILD_LOG;
+    delete process.env.FASTNODE_TEST_CLI_BUILD_LOG;
     rmSync(tmpDir, { recursive: true, force: true });
     rmSync(join(rootDir, ".output"), { recursive: true, force: true });
   });

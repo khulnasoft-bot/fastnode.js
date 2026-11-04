@@ -46,13 +46,13 @@ export default defineBuildConfig({
       minifyLibs: true,
       dts: { entry: "src/runtime/**/*.ts", generator: "oxc" },
       rolldown: {
-        // Keep side-effect imports of virtual modules (e.g. `import "#nitro/virtual/polyfills"`)
+        // Keep side-effect imports of virtual modules (e.g. `import "#fastnode/virtual/polyfills"`)
         treeshake: {
           moduleSideEffects: (id, external) => (external ? id.startsWith("#") : undefined),
         },
         plugins: [
           {
-            name: "nitro:runtime-chunks",
+            name: "fastnode:runtime-chunks",
             outputOptions: (o) => ({
               ...o,
               chunkFileNames: (chunk) =>
@@ -61,10 +61,11 @@ export default defineBuildConfig({
             // Polyfills are always imported first in source, but rolldown hoists chunk and other
             // external imports above them. Move them back so they still evaluate first.
             renderChunk(code) {
-              const polyfillsImport = `import "#nitro/virtual/polyfills";\n`;
+              const polyfillsImport = `import "#fastnode/virtual/polyfills";\n`;
               if (code.includes(polyfillsImport)) {
                 return polyfillsImport + code.replace(polyfillsImport, "");
               }
+              return undefined;
             },
           },
         ],
@@ -107,8 +108,8 @@ export default defineBuildConfig({
 
       config.external ??= [];
       (config.external as (string | RegExp)[]).push(
-        "nitro",
-        ...Object.keys(pkg.exports || {}).map((key) => key.replace(/^./, "nitro")),
+        "fastnode",
+        ...Object.keys(pkg.exports || {}).map((key) => key.replace(/^./, "fastnode")),
         ...Object.keys(pkg.dependencies),
         ...optionalDeps,
         "typescript",
@@ -148,13 +149,17 @@ export default defineBuildConfig({
         if (chunk.moduleIds.every((id) => /src[/\\]cli[/\\]/.test(id))) {
           return `cli/_chunks/[name].mjs`;
         }
-        if (chunk.moduleIds.every((id) => /build[/\\]vite[/\\]/.test(id))) {
+        if (chunk.moduleIds.every((id) => /build[/\\]builders[/\\]vite[/\\]/.test(id))) {
           return `_build/vite.[name].mjs`;
         }
-        if (chunk.moduleIds.every((id) => /build[/\\]rolldown[/\\]/.test(id))) {
+        if (chunk.moduleIds.every((id) => /build[/\\]builders[/\\]rolldown[/\\]/.test(id))) {
           return `_build/rolldown.mjs`;
         }
-        if (chunk.moduleIds.every((id) => /build[/\\]rollup[/\\]|build[/\\]plugins/.test(id))) {
+        if (
+          chunk.moduleIds.every((id) =>
+            /build[/\\]builders[/\\]rollup[/\\]|build[/\\]plugins/.test(id)
+          )
+        ) {
           return `_build/rollup.mjs`;
         }
         if (chunk.moduleIds.every((id) => /src[/\\]dev[/\\]|src[/\\]runtime/.test(id))) {
@@ -171,7 +176,7 @@ export default defineBuildConfig({
         if (chunk.moduleIds.every((id) => /src[/\\](runner|dev|runtime)/.test(id))) {
           return `_chunks/dev.mjs`;
         }
-        return "_chunks/nitro.mjs";
+        return "_chunks/fastnode.mjs";
       };
     },
     async end() {
@@ -203,7 +208,7 @@ export default defineBuildConfig({
       // Vite types
       await writeFile(
         "dist/vite.d.mts",
-        `import "vite/client";\nimport "nitro/vite/types";\n${await readFile("dist/vite.d.mts", "utf8")}`
+        `import "vite/client";\nimport "fastnode/vite/types";\n${await readFile("dist/vite.d.mts", "utf8")}`
       );
     },
   },

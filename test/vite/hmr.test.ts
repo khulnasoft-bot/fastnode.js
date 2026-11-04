@@ -5,7 +5,7 @@ import type { ViteDevServer } from "vite";
 import { describe, test, expect, beforeAll, afterEach, afterAll } from "vitest";
 
 const { createServer } = (await import(
-  process.env.NITRO_VITE_PKG || "vite"
+  process.env.FASTNODE_VITE_PKG || "vite"
 )) as typeof import("vite");
 
 describe("vite:hmr", { concurrent: false }, () => {
@@ -108,36 +108,36 @@ describe("vite:hmr", { concurrent: false }, () => {
     expect(wsMessages).toMatchObject([{ type: "full-reload" }]);
   });
 
-  // Regression test for reload scoping: a `full-reload` sent for the nitro
+  // Regression test for reload scoping: a `full-reload` sent for the fastnode
   // environment must not re-evaluate the ssr runner's modules, which would
   // reset all module state (framework singletons, caches) of an environment
   // that has nothing stale to re-evaluate.
-  test("editing a nitro-only file keeps ssr module state", async () => {
+  test("editing a fastnode-only file keeps ssr module state", async () => {
     const evalsBefore = await ssrEvals();
 
     files.api.update((content) =>
-      content.replace("({ state })", '({ state: state + " (nitro only)" })')
+      content.replace("({ state })", '({ state: state + " (fastnode only)" })')
     );
-    await pollResponse(`${serverURL}/api/state`, /nitro only/);
+    await pollResponse(`${serverURL}/api/state`, /fastnode only/);
 
     expect(await ssrEvals()).toBe(evalsBefore);
     expect(wsMessages).toMatchObject([{ type: "full-reload" }]);
   });
 
   // Regression test for reload scoping within one environment: only the
-  // changed file and its importers may be re-evaluated. `nitro-state.ts` is
+  // changed file and its importers may be re-evaluated. `fastnode-state.ts` is
   // imported by `api/evals.ts` alone, so an edit to `api/state.ts` cannot
   // affect it — dropping the whole module graph on reload would reset it,
   // along with every runtime singleton (storage, caches, plugin state).
-  test("editing a nitro file keeps unrelated nitro module state", async () => {
-    const evalsBefore = await nitroEvals();
+  test("editing a fastnode file keeps unrelated fastnode module state", async () => {
+    const evalsBefore = await fastnodeEvals();
 
     files.api.update((content) =>
       content.replace("({ state })", '({ state: state + " (unrelated)" })')
     );
     await pollResponse(`${serverURL}/api/state`, /unrelated/);
 
-    expect(await nitroEvals()).toBe(evalsBefore);
+    expect(await fastnodeEvals()).toBe(evalsBefore);
   });
 
   // Regression test for the dev worker reusing stale evaluations across
@@ -173,10 +173,10 @@ describe("vite:hmr", { concurrent: false }, () => {
     return matchCounter(await fetch(serverURL).then((r) => r.text()), /\[SSR\] evals: (\d+)/);
   }
 
-  async function nitroEvals(): Promise<number> {
+  async function fastnodeEvals(): Promise<number> {
     return matchCounter(
       await fetch(`${serverURL}/api/evals`).then((r) => r.text()),
-      /"nitroEvals":\s*(\d+)/
+      /"fastnodeEvals":\s*(\d+)/
     );
   }
 
@@ -200,7 +200,7 @@ describe("vite:hmr", { concurrent: false }, () => {
     let last = "";
     let stable = 0;
     for (let i = 0; i < 30; i++) {
-      const current = `${await ssrEvals()}/${await nitroEvals()}`;
+      const current = `${await ssrEvals()}/${await fastnodeEvals()}`;
       stable = current === last ? stable + 1 : 0;
       last = current;
       if (stable === 2) {

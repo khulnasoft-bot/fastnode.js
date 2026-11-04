@@ -1,5 +1,5 @@
-import { defineHandler } from "nitro/h3";
-import { useKV } from "nitro/kv";
+import { defineHandler } from "fastnode/h3";
+import { useKV } from "fastnode/kv";
 
 export default defineHandler(async (event) => {
   const base = event.url.searchParams.get("base") || "";

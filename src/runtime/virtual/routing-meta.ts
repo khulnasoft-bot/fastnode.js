@@ -1,8 +1,8 @@
 import "./_runtime_warn.ts";
-import type { NitroRouteMeta } from "nitro/types";
+import type { FastnodeRouteMeta } from "fastnode/types";
 
 export const handlersMeta: {
   route?: string;
   method?: string;
-  meta?: NitroRouteMeta;
+  meta?: FastnodeRouteMeta;
 }[] = [];

@@ -5,8 +5,8 @@
     "moduleResolution": "NodeNext",
     "allowSyntheticDefaultImports": true,
     "erasableSyntaxOnly": true,
-    "noUncheckedIndexedAccess": false,
-    "noImplicitReturns": false,
+    "strict": true,
+    "noImplicitReturns": true,
     "jsx": "preserve",
     "lib": ["es2022", "webworker", "dom.iterable"],
     "types": ["node", "@cloudflare/workers-types/experimental"]

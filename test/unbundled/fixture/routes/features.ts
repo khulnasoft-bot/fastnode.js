@@ -1,5 +1,5 @@
-import { defineHandler, defineLazyEventHandler } from "nitro/h3";
-import { useRequest } from "nitro/context";
+import { defineHandler, defineLazyEventHandler } from "fastnode/h3";
+import { useRequest } from "fastnode/context";
 import { Color } from "~lib/color";
 import note from "../assets/note.txt" with { type: "text" };
 // @ts-ignore

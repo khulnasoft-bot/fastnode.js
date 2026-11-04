@@ -1,20 +1,20 @@
-Test your server routes with [Vitest](https://vitest.dev). Vitest picks up the `nitro()` plugin from `vite.config.ts`, so test files run with the same routes, runtime config and storage as your server, without starting a dev server.
+Test your server routes with [Vitest](https://vitest.dev). Vitest picks up the `fastnode()` plugin from `vite.config.ts`, so test files run with the same routes, runtime config and storage as your server, without starting a dev server.
 
 ## Routes
 
 ```ts [api/hello.ts]
-import { defineHandler } from "nitro";
-import { useRuntimeConfig } from "nitro/runtime-config";
+import { defineHandler } from "fastnode";
+import { useRuntimeConfig } from "fastnode/runtime-config";
 
 export default defineHandler(() => {
   const { greeting } = useRuntimeConfig();
-  return { message: `${greeting} from Nitro!` };
+  return { message: `${greeting} from Fastnode!` };
 });
 ```
 
 ```ts [api/visits.ts]
-import { defineHandler } from "nitro";
-import { useKV } from "nitro/kv";
+import { defineHandler } from "fastnode";
+import { useKV } from "fastnode/kv";
 
 export default defineHandler(async () => {
   const kv = useKV<number>();
@@ -28,8 +28,8 @@ export default defineHandler(async () => {
 
 ```ts [test/api.test.ts]
 import { beforeEach, expect, test } from "vitest";
-import { serverFetch } from "nitro";
-import { useKV } from "nitro/kv";
+import { serverFetch } from "fastnode";
+import { useKV } from "fastnode/kv";
 
 beforeEach(async () => {
   await useKV().removeItem("visits");
@@ -38,7 +38,7 @@ beforeEach(async () => {
 test("GET /api/hello", async () => {
   const res = await serverFetch("/api/hello");
   expect(res.status).toBe(200);
-  expect(await res.json()).toEqual({ message: "Hello from Nitro!" });
+  expect(await res.json()).toEqual({ message: "Hello from Fastnode!" });
 });
 
 test("GET /api/visits", async () => {
@@ -49,6 +49,6 @@ test("GET /api/visits", async () => {
 });
 ```
 
-`serverFetch` sends a request through your Nitro app in-process. Runtime utilities like `useKV` work in tests too, so you can prepare or inspect state directly.
+`serverFetch` sends a request through your Fastnode app in-process. Runtime utilities like `useKV` work in tests too, so you can prepare or inspect state directly.
 
 Run the tests with `vitest`, or `vitest run` for a single run.

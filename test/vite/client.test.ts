@@ -1,10 +1,10 @@
 import { fileURLToPath } from "node:url";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 import { parseSync } from "rolldown/utils";
 import { describe, expect, test } from "vitest";
 
 const { createServer, version } = (await import(
-  process.env.NITRO_VITE_PKG || "vite"
+  process.env.FASTNODE_VITE_PKG || "vite"
 )) as typeof import("vite");
 
 describe.each([false, true])("vite:client (bundledDev=%s)", (bundledDev) => {
@@ -30,9 +30,9 @@ describe.each([false, true])("vite:client (bundledDev=%s)", (bundledDev) => {
           },
         },
         plugins: [
-          nitro({
+          fastnode({
             renderer: false,
-            vite: { path: import.meta.resolve(process.env.NITRO_VITE_PKG || "vite") },
+            vite: { path: import.meta.resolve(process.env.FASTNODE_VITE_PKG || "vite") },
           }),
         ],
       });

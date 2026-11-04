@@ -1,9 +1,9 @@
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import type { Plugin } from "rollup";
 import type { Plugin as VitePlugin } from "vite";
 import type * as ESTree from "oxbox";
 import MagicString from "magic-string";
-import { viteDepPaths } from "../vite/_import.ts";
+import { viteDepPaths } from "../builders/vite/_import.ts";
 import { importOXC, walkAST } from "../../utils/oxc.ts";
 import { RESOLVED_RE as RAW_RE } from "./raw.ts";
 
@@ -29,17 +29,17 @@ type TypedImport = {
 type Comment = { start: number; end: number };
 
 export async function importAttributes(
-  nitro: Nitro
+  fastnode: Fastnode
 ): Promise<Plugin & Pick<VitePlugin, "perEnvironmentStartEndDuringDev">> {
-  let oxc = await importOXC({ dir: nitro.options.rootDir, paths: viteDepPaths(nitro) });
+  let oxc = await importOXC({ dir: fastnode.options.rootDir, paths: viteDepPaths(fastnode) });
 
   return {
-    name: "nitro:import-attributes",
-    // With `nitro/vite`, the running `vite` is only known once its config is resolved
+    name: "fastnode:import-attributes",
+    // With `fastnode/vite`, the running `vite` is only known once its config is resolved
     // (Vite only runs `buildStart` of the `client` environment in dev by default)
     perEnvironmentStartEndDuringDev: true,
     async buildStart() {
-      oxc = await importOXC({ dir: nitro.options.rootDir, paths: viteDepPaths(nitro) });
+      oxc = await importOXC({ dir: fastnode.options.rootDir, paths: viteDepPaths(fastnode) });
     },
     transform: {
       order: "pre",
@@ -129,6 +129,7 @@ function clauseEnd(code: string, from: number, comments: Comment[]): number | un
       return i + 1;
     }
   }
+  return undefined;
 }
 
 function attributesType(attributes: ESTree.ImportAttribute[]): ImportType | undefined {
@@ -138,6 +139,7 @@ function attributesType(attributes: ESTree.ImportAttribute[]): ImportType | unde
       return attr.value.value;
     }
   }
+  return undefined;
 }
 
 function optionsType(options: ESTree.ObjectExpression): ImportType | undefined {
@@ -149,6 +151,7 @@ function optionsType(options: ESTree.ObjectExpression): ImportType | undefined {
   if (type && isStringLiteral(type) && isImportType(type.value)) {
     return type.value;
   }
+  return undefined;
 }
 
 function findProperty(node: ESTree.ObjectExpression, name: string): ESTree.Expression | undefined {
@@ -166,6 +169,7 @@ function findProperty(node: ESTree.ObjectExpression, name: string): ESTree.Expre
       return prop.value;
     }
   }
+  return undefined;
 }
 
 function isStringLiteral(node: ESTree.Node): node is ESTree.StringLiteral {

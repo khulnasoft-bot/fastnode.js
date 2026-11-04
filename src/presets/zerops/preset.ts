@@ -1,6 +1,6 @@
-import { defineNitroPreset } from "../_utils/preset.ts";
+import { defineFastnodePreset } from "../_utils/preset.ts";
 
-const zerops = defineNitroPreset(
+const zerops = defineFastnodePreset(
   {
     extends: "node-server",
     serveStatic: true,
@@ -10,7 +10,7 @@ const zerops = defineNitroPreset(
   }
 );
 
-const zeropsStatic = defineNitroPreset(
+const zeropsStatic = defineFastnodePreset(
   {
     extends: "static",
     output: {

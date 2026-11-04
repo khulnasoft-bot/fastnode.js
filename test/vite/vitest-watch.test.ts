@@ -8,12 +8,12 @@ import { afterAll, describe, expect, test } from "vitest";
 // Vitest watch mode reruns tests on server changes it does not track itself.
 describe("vite: vitest watch", () => {
   const rootDir = fileURLToPath(new URL("./vitest-watch-fixture", import.meta.url));
-  const tmpDir = mkdtempSync(join(tmpdir(), "nitro-vitest-watch-"));
+  const tmpDir = mkdtempSync(join(tmpdir(), "fastnode-vitest-watch-"));
   const logFile = join(tmpDir, "watch.log");
   const routeFile = join(rootDir, "routes/hello.ts");
   const addedRouteFile = join(rootDir, "routes/added.ts");
   const utilFile = join(rootDir, "utils/version.ts");
-  const configFile = join(rootDir, "nitro.config.ts");
+  const configFile = join(rootDir, "fastnode.config.ts");
   const originals = new Map(
     [routeFile, utilFile, configFile].map((file) => [file, readFileSync(file, "utf8")])
   );
@@ -44,13 +44,13 @@ describe("vite: vitest watch", () => {
     }
   };
 
-  test("reruns tests on route, scan dir and nitro config changes", async () => {
+  test("reruns tests on route, scan dir and fastnode config changes", async () => {
     const child = execa(
       process.execPath,
       [fileURLToPath(new URL("vitest.mjs", import.meta.resolve("vitest/package.json"))), "watch"],
       {
         cwd: rootDir,
-        env: { ...env, NITRO_TEST_WATCH_LOG: logFile },
+        env: { ...env, FASTNODE_TEST_WATCH_LOG: logFile },
         extendEnv: false,
         reject: false,
         all: true,
@@ -80,12 +80,12 @@ describe("vite: vitest watch", () => {
         () =>
           writeFileSync(
             addedRouteFile,
-            `import { defineHandler } from "nitro";\nexport default defineHandler(() => "added");\n`
+            `import { defineHandler } from "fastnode";\nexport default defineHandler(() => "added");\n`
           ),
         { added: 200 }
       );
       await step(() => rmSync(addedRouteFile), { added: 404 });
-      // Nitro config (restarts Vitest), then route edits still rerun
+      // Fastnode config (restarts Vitest), then route edits still rerun
       await step(edit(configFile, `"hello"`, `"hola"`), { greeting: "hola" });
       await step(edit(routeFile, "`hi", "`hey"), { hello: "hey v2" });
       // No late duplicate runs
@@ -118,8 +118,8 @@ describe("vite: vitest watch", () => {
       cwd: rootDir,
       env: {
         ...env,
-        NITRO_TEST_WATCH_LOG: logFile,
-        NITRO_TEST_WATCH_FILTERED_LOG: filteredLogFile,
+        FASTNODE_TEST_WATCH_LOG: logFile,
+        FASTNODE_TEST_WATCH_FILTERED_LOG: filteredLogFile,
       },
       extendEnv: false,
       reject: false,
@@ -134,7 +134,7 @@ describe("vite: vitest watch", () => {
       const appRuns = runs().length;
       writeFileSync(
         addedRouteFile,
-        `import { defineHandler } from "nitro";\nexport default defineHandler(() => "added");\n`
+        `import { defineHandler } from "fastnode";\nexport default defineHandler(() => "added");\n`
       );
       await waitFor(() => runs().length > appRuns);
       expect(runs().at(-1), output).toMatchObject({ added: 200 });

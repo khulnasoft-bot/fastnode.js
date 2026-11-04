@@ -1,6 +1,6 @@
 import { defineCommand } from "citty";
 import type { DateString } from "compatx";
-import { build, copyPublicAssets, createNitro, prepare, prerender } from "nitro/builder";
+import { build, copyPublicAssets, createFastnode, prepare, prerender } from "fastnode/builder";
 import { resolve } from "pathe";
 import { commonArgs } from "../common.ts";
 
@@ -13,16 +13,17 @@ export const buildArgs = {
   },
   preset: {
     type: "string",
-    description: "The build preset to use (you can also use `NITRO_PRESET` environment variable).",
+    description:
+      "The build preset to use (you can also use `FASTNODE_PRESET` environment variable).",
   },
   builder: {
     type: "string",
-    description: "The builder to use (you can also use `NITRO_BUILDER` environment variable).",
+    description: "The builder to use (you can also use `FASTNODE_BUILDER` environment variable).",
   },
   compatibilityDate: {
     type: "string",
     description:
-      "The date to use for preset compatibility (you can also use `NITRO_COMPATIBILITY_DATE` environment variable).",
+      "The date to use for preset compatibility (you can also use `FASTNODE_COMPATIBILITY_DATE` environment variable).",
   },
   envName: {
     type: "string",
@@ -34,12 +35,12 @@ export const buildArgs = {
 export default defineCommand({
   meta: {
     name: "build",
-    description: "Build nitro project for production",
+    description: "Build fastnode project for production",
   },
   args: buildArgs,
   async run({ args }) {
     const rootDir = resolve((args.dir || args._dir || ".") as string);
-    const nitro = await createNitro(
+    const fastnode = await createFastnode(
       {
         rootDir,
         dev: false,
@@ -52,13 +53,13 @@ export default defineCommand({
         c12: { envName: args.envName },
       }
     );
-    await prepare(nitro);
+    await prepare(fastnode);
     // The vite builder copies public assets and prerenders after building the client
-    if (nitro.options.builder !== "vite") {
-      await copyPublicAssets(nitro);
-      await prerender(nitro);
+    if (fastnode.options.builder !== "vite") {
+      await copyPublicAssets(fastnode);
+      await prerender(fastnode);
     }
-    await build(nitro);
-    await nitro.close();
+    await build(fastnode);
+    await fastnode.close();
   },
 });

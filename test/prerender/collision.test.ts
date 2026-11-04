@@ -1,7 +1,7 @@
 import { mkdir, readFile, rm } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { join } from "pathe";
-import { build, copyPublicAssets, createNitro, prepare, prerender } from "nitro/builder";
+import { build, copyPublicAssets, createFastnode, prepare, prerender } from "fastnode/builder";
 import { afterAll, describe, expect, it } from "vitest";
 import { isCaseInsensitiveFS } from "../../src/utils/fs.ts";
 
@@ -16,7 +16,7 @@ describe("prerender output collision", () => {
   it("keeps the first route's output and warns instead of overwriting it", async () => {
     // the first two resolve to `other/index.html`, `/another` does not, and the
     // `/shell` pair resolves to one file with the same contents
-    const { nitro, warnings, outDir } = await prerenderRoutes("output", [
+    const { fastnode, warnings, outDir } = await prerenderRoutes("output", [
       "/other",
       "/other/index.html",
       "/another",
@@ -30,16 +30,16 @@ describe("prerender output collision", () => {
     expect(collisionWarnings[0]).toContain("/other/index.html");
 
     // only one of the two routes may claim the file, and it is the one rendered first
-    const written = nitro._prerenderedRoutes!.filter((r) => r.fileName === "/other/index.html");
+    const written = fastnode._prerenderedRoutes!.filter((r) => r.fileName === "/other/index.html");
     expect(written).toHaveLength(1);
     expect(written[0].route).toBe("/other");
 
     // a route resolving to its own file is untouched
-    expect(nitro._prerenderedRoutes!.map((r) => r.fileName)).toContain("/another/index.html");
+    expect(fastnode._prerenderedRoutes!.map((r) => r.fileName)).toContain("/another/index.html");
 
     // routes rendering the same output to one file do not warn, and both count as written
     expect(warnings.filter((w) => w.includes("/shell"))).toHaveLength(0);
-    const shell = nitro._prerenderedRoutes!.filter((r) => r.fileName === "/shell/index.html");
+    const shell = fastnode._prerenderedRoutes!.filter((r) => r.fileName === "/shell/index.html");
     expect(shell.map((r) => r.route)).toEqual(["/shell", "/shell/index.html"]);
     expect(await readFile(join(outDir, "public/shell/index.html"), "utf8")).toBe(
       `<!DOCTYPE html><html><body>shell</body></html>`
@@ -51,9 +51,9 @@ describe("prerender output collision", () => {
   }, 120_000);
 
   it("treats routes differing only in case as one file on a case-insensitive filesystem", async () => {
-    const { nitro, warnings, outDir } = await prerenderRoutes("output-case", ["/Case", "/case"]);
+    const { fastnode, warnings, outDir } = await prerenderRoutes("output-case", ["/Case", "/case"]);
     const collisionWarnings = warnings.filter((w) => w.includes("both prerender to"));
-    const written = nitro._prerenderedRoutes!.map((r) => r.route);
+    const written = fastnode._prerenderedRoutes!.map((r) => r.route);
 
     if (await isCaseInsensitiveFS(outDir)) {
       expect(collisionWarnings).toHaveLength(1);
@@ -73,7 +73,7 @@ async function prerenderRoutes(name: string, routes: string[]) {
   await rm(outDir, { recursive: true, force: true });
   await mkdir(outDir, { recursive: true });
 
-  const nitro = await createNitro({
+  const fastnode = await createFastnode({
     rootDir: fixtureDir,
     preset: "static",
     output: { dir: outDir },
@@ -86,18 +86,18 @@ async function prerenderRoutes(name: string, routes: string[]) {
   });
 
   const warnings: string[] = [];
-  nitro.logger.warn = ((...args: unknown[]) => {
+  fastnode.logger.warn = ((...args: unknown[]) => {
     warnings.push(args.map(String).join(" "));
-  }) as typeof nitro.logger.warn;
+  }) as typeof fastnode.logger.warn;
 
   try {
-    await prepare(nitro);
-    await copyPublicAssets(nitro);
-    await prerender(nitro);
-    await build(nitro);
+    await prepare(fastnode);
+    await copyPublicAssets(fastnode);
+    await prerender(fastnode);
+    await build(fastnode);
   } finally {
-    await nitro.close();
+    await fastnode.close();
   }
 
-  return { nitro, warnings, outDir };
+  return { fastnode, warnings, outDir };
 }

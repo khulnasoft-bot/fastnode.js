@@ -1,28 +1,32 @@
-import type { Nitro } from "./nitro.ts";
+import type { Fastnode } from "./fastnode.ts";
 
 /**
- * Accepted input formats for Nitro modules.
+ * Accepted input formats for Fastnode modules.
  *
- * Can be a module path string, a {@link NitroModule} object, a bare setup
- * function, or an object with a `nitro` key containing a {@link NitroModule}.
+ * Can be a module path string, a {@link FastnodeModule} object, a bare setup
+ * function, or an object with a `fastnode` key containing a {@link FastnodeModule}.
  *
- * @see https://nitro.build/config/features#modules
+ * @see https://fastnode.khulnasoft.com/config/features#modules
  */
-export type NitroModuleInput = string | NitroModule | NitroModule["setup"] | { nitro: NitroModule };
+export type FastnodeModuleInput =
+  | string
+  | FastnodeModule
+  | FastnodeModule["setup"]
+  | { fastnode: FastnodeModule };
 
 /**
- * A Nitro module that extends behavior during initialization.
+ * A Fastnode module that extends behavior during initialization.
  *
- * Modules receive the {@link Nitro} instance and can register hooks,
+ * Modules receive the {@link Fastnode} instance and can register hooks,
  * add handlers, modify options, or perform other setup tasks.
  *
  * @example
  * ```ts
  * export default {
  *   name: "my-module",
- *   nitro: {
- *     setup(nitro) {
- *       nitro.hooks.hook("compiled", () => {
+ *   fastnode: {
+ *     setup(fastnode) {
+ *       fastnode.hooks.hook("compiled", () => {
  *         console.log("Build complete!");
  *       });
  *     },
@@ -30,9 +34,9 @@ export type NitroModuleInput = string | NitroModule | NitroModule["setup"] | { n
  * };
  * ```
  *
- * @see https://nitro.build/config/features#modules
+ * @see https://fastnode.khulnasoft.com/config/features#modules
  */
-export interface NitroModule {
+export interface FastnodeModule {
   name?: string;
-  setup: (this: void, nitro: Nitro) => void | Promise<void>;
+  setup: (this: void, fastnode: Fastnode) => void | Promise<void>;
 }

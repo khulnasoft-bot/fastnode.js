@@ -43,7 +43,7 @@ export function findArgsError(
     const name = flags.get(negated ? flag.slice(3) : flag);
     if (!name) {
       const suggestion = suggestFlag(flag, [...flags.keys()]);
-      return `Unknown option \`${arg}\`.${suggestion ? ` Did you mean \`${suggestion}\`?` : ""} Run \`nitro create --help\` to see all options.`;
+      return `Unknown option \`${arg}\`.${suggestion ? ` Did you mean \`${suggestion}\`?` : ""} Run \`fastnode create --help\` to see all options.`;
     }
     if (argsDef[name]!.type !== "string" || negated) {
       const next = rawArgs[i + 1];
@@ -64,6 +64,7 @@ export function findArgsError(
   if (positionals.length > maxPositionals) {
     return `Unexpected argument \`${positionals[maxPositionals]}\`. Only one directory can be created at a time.`;
   }
+  return undefined;
 }
 
 function splitOnce(str: string, separator: string): [string, string | undefined] {

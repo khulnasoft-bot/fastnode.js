@@ -10,7 +10,7 @@ import type {
 } from "../../../types/openapi-ts.ts";
 import { joinURL } from "ufo";
 import { defu } from "defu";
-import { handlersMeta } from "#nitro/virtual/routing-meta";
+import { handlersMeta } from "#fastnode/virtual/routing-meta";
 import { useRuntimeConfig } from "../runtime-config.ts";
 
 // Served as /_openapi.json
@@ -21,8 +21,8 @@ export default defineHandler((event) => {
   const url = joinURL(getRequestURL(event).origin, base);
 
   const meta = {
-    title: "Nitro Server Routes",
-    ...runtimeConfig.nitro?.openAPI?.meta,
+    title: "Fastnode Server Routes",
+    ...runtimeConfig.fastnode?.openAPI?.meta,
   };
 
   const {

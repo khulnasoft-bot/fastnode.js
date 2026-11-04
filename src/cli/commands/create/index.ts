@@ -20,7 +20,7 @@ import {
   shellQuote,
 } from "./_utils.ts";
 
-const DEFAULT_DIR = "nitro-app";
+const DEFAULT_DIR = "fastnode-app";
 
 const templateNames = projectTemplates.map((t) => t.name);
 
@@ -48,7 +48,7 @@ const argsDef = {
   packageManager: {
     type: "string",
     alias: "p",
-    description: `Package manager to use: ${pmNames.join(", ")} (default: the one running \`nitro\`, or npm)`,
+    description: `Package manager to use: ${pmNames.join(", ")} (default: the one running \`fastnode\`, or npm)`,
   },
   gitInit: {
     type: "boolean",
@@ -60,7 +60,7 @@ const argsDef = {
 export default defineCommand({
   meta: {
     name: "create",
-    description: "Create a new Nitro project",
+    description: "Create a new Fastnode project",
   },
   args: argsDef,
   async run({ args, rawArgs, cmd }) {
@@ -71,9 +71,9 @@ export default defineCommand({
       return fail(argsError);
     }
     if (isAgent && !args.dir && !args.template) {
-      await showUsage(cmd, { meta: { name: "nitro" } });
+      await showUsage(cmd, { meta: { name: "fastnode" } });
       return fail(
-        `No directory given. Pick the options above and pass a directory, for example: \`nitro create ${DEFAULT_DIR} --template ${templateNames[0]}\`.`
+        `No directory given. Pick the options above and pass a directory, for example: \`fastnode create ${DEFAULT_DIR} --template ${templateNames[0]}\`.`
       );
     }
     const interactive = hasTTY && !isAgent;
@@ -94,7 +94,7 @@ export default defineCommand({
       args.dir ||
         (interactive
           ? await consola
-              .prompt("Where would you like to create your Nitro project?", {
+              .prompt("Where would you like to create your Fastnode project?", {
                 type: "text",
                 placeholder: `./${DEFAULT_DIR}`,
                 default: DEFAULT_DIR,
@@ -159,7 +159,7 @@ export default defineCommand({
     const { overwritten } = await createProject(dir, { template, force });
     const dirPath = displayPath(dir);
     consola.success(
-      `Created a new Nitro project in ${dirPath === "." ? "the current directory" : colors.cyan(dirPath)}.`
+      `Created a new Fastnode project in ${dirPath === "." ? "the current directory" : colors.cyan(dirPath)}.`
     );
     if (overwritten.length > 0) {
       consola.warn(`Overwrote existing files: ${overwritten.join(", ")}.`);
@@ -208,7 +208,7 @@ export default defineCommand({
           `Failed to install dependencies: ${notFound ? `\`${packageManager}\` is not installed (or not in PATH).` : (error as Error).message}`
         );
         consola.info(
-          `The project files were created: install dependencies in the project directory with an available package manager (see the next steps), rather than running \`nitro create\` again.`
+          `The project files were created: install dependencies in the project directory with an available package manager (see the next steps), rather than running \`fastnode create\` again.`
         );
       }
     }
@@ -276,9 +276,9 @@ export default defineCommand({
       `\nSummary:\n${summary.map(([label, value]) => `  ${`${label}:`.padEnd(17)} ${value}`).join("\n")}`
     );
     const agentHint = isAgent
-      ? "\n\nAgents: read AGENTS.md, and test routes with `npx nitro fetch /api/hello` (no build or running server needed)."
+      ? "\n\nAgents: read AGENTS.md, and test routes with `npx fastnode fetch /api/hello` (no build or running server needed)."
       : "";
-    const nextStepsText = `Next steps:\n\n${nextSteps.map((step) => `  ${step}`).join("\n")}${agentHint}\n\nNitro v3 docs: https://nitro.build/docs`;
+    const nextStepsText = `Next steps:\n\n${nextSteps.map((step) => `  ${step}`).join("\n")}${agentHint}\n\nFastnode v1 docs: https://fastnode.khulnasoft.com/docs`;
     if (interactive) {
       consola.box(nextStepsText);
     } else {

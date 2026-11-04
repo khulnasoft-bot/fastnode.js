@@ -2,8 +2,8 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { join } from "pathe";
-import { copyPublicAssets, createNitro, prepare, prerender } from "nitro/builder";
-import type { NitroConfig, PrerenderRoute } from "nitro/types";
+import { copyPublicAssets, createFastnode, prepare, prerender } from "fastnode/builder";
+import type { FastnodeConfig, PrerenderRoute } from "fastnode/types";
 import { describe, expect, it } from "vitest";
 
 const fixtureDir = fileURLToPath(new URL("./status-fixture", import.meta.url));
@@ -15,12 +15,12 @@ describe("prerender failOnError", () => {
   }, 120_000);
 
   it("does not fail the build for errors with an ignored status code", async () => {
-    const { error, nitro, failedRoutes } = await prerenderRoutes(["/", "/status/404"], {
+    const { error, fastnode, failedRoutes } = await prerenderRoutes(["/", "/status/404"], {
       failOnError: true,
       ignoreStatusCodes: [404],
     });
     expect(error).toBeUndefined();
-    expect(nitro._prerenderedRoutes!.map((r) => r.route)).toEqual(["/"]);
+    expect(fastnode._prerenderedRoutes!.map((r) => r.route)).toEqual(["/"]);
     // the route is still reported as failed and not written
     expect(failedRoutes.map((r) => [r.route, r.error?.status])).toEqual([["/status/404", 404]]);
   }, 120_000);
@@ -40,10 +40,10 @@ describe("prerender failOnError", () => {
   }, 120_000);
 });
 
-async function prerenderRoutes(routes: string[], options: NitroConfig["prerender"]) {
-  const outDir = await mkdtemp(join(tmpdir(), "nitro-prerender-errors-"));
+async function prerenderRoutes(routes: string[], options: FastnodeConfig["prerender"]) {
+  const outDir = await mkdtemp(join(tmpdir(), "fastnode-prerender-errors-"));
 
-  const nitro = await createNitro({
+  const fastnode = await createFastnode({
     rootDir: fixtureDir,
     preset: "static",
     output: { dir: outDir },
@@ -51,26 +51,26 @@ async function prerenderRoutes(routes: string[], options: NitroConfig["prerender
   });
 
   const logs: string[] = [];
-  nitro.logger.log = ((...args: unknown[]) => {
+  fastnode.logger.log = ((...args: unknown[]) => {
     logs.push(args.map(String).join(" "));
-  }) as typeof nitro.logger.log;
+  }) as typeof fastnode.logger.log;
 
   let failedRoutes: PrerenderRoute[] = [];
-  nitro.hooks.hook("prerender:done", (result) => {
+  fastnode.hooks.hook("prerender:done", (result) => {
     failedRoutes = result.failedRoutes;
   });
 
   let error: unknown;
   try {
-    await prepare(nitro);
-    await copyPublicAssets(nitro);
-    await prerender(nitro);
+    await prepare(fastnode);
+    await copyPublicAssets(fastnode);
+    await prerender(fastnode);
   } catch (error_) {
     error = error_;
   } finally {
-    await nitro.close();
+    await fastnode.close();
     await rm(outDir, { recursive: true, force: true });
   }
 
-  return { nitro, logs, failedRoutes, error };
+  return { fastnode, logs, failedRoutes, error };
 }

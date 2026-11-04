@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { H3Core } from "h3";
-import type { NitroApp } from "nitro/types";
-import { afterNitroReady, initAsyncPlugins } from "../../src/runtime/internal/async-plugins.ts";
+import type { FastnodeApp } from "fastnode/types";
+import { afterFastnodeReady, initAsyncPlugins } from "../../src/runtime/internal/async-plugins.ts";
 
 describe("runtime: async plugins", () => {
   it("holds requests until all plugins resolve, then restores onRequest", async () => {
@@ -88,20 +88,20 @@ describe("runtime: async plugins", () => {
     expect(unhandled).toEqual([error]);
   });
 
-  it("afterNitroReady() defers until ready", async () => {
+  it("afterFastnodeReady() defers until ready", async () => {
     const app = createApp({});
-    expect(afterNitroReady(app, () => 1)).toBe(1);
+    expect(afterFastnodeReady(app, () => 1)).toBe(1);
 
     const pending = createDeferred();
     initAsyncPlugins(app, pending.promise, []);
-    const result = afterNitroReady(app, () => 2);
+    const result = afterFastnodeReady(app, () => 2);
     expect(result).toBeInstanceOf(Promise);
     pending.resolve();
     expect(await result).toBe(2);
   });
 });
 
-function createApp(config: H3Core["config"]): NitroApp {
+function createApp(config: H3Core["config"]): FastnodeApp {
   const h3 = new H3Core(config);
   h3["~findRoute"] = () => ({ data: { handler: () => "ok" } }) as any;
   return { h3, fetch: (req) => h3.fetch(req) };

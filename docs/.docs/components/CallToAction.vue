@@ -4,7 +4,7 @@ import PmX from 'undocs/src/app/components/global/Pm-x.vue'
 import Reveal from './Reveal.vue'
 
 defineProps<{
-  /** Rendered as a package-manager tabbed `x` command, e.g. `create-nitro-app`. */
+  /** Rendered as a package-manager tabbed `x` command, e.g. `create-fastnode-app`. */
   command?: string
 }>()
 </script>

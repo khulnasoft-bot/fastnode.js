@@ -3,7 +3,7 @@ import type { ViteDevServer } from "vite";
 import { describe, test, expect, beforeAll, afterAll } from "vitest";
 
 const { createServer } = (await import(
-  process.env.NITRO_VITE_PKG || "vite"
+  process.env.FASTNODE_VITE_PKG || "vite"
 )) as typeof import("vite");
 
 describe("openapi", () => {

@@ -1,5 +1,5 @@
-import type { Nitro, NitroImportMeta } from "nitro/types";
-import { pkgDir } from "#nitro/meta";
+import type { Fastnode, FastnodeImportMeta } from "fastnode/types";
+import { pkgDir } from "#fastnode/meta";
 import { pathRegExp, toPathRegExp } from "../utils/regex.ts";
 import { BUILD_EXTENSIONS } from "./_extensions.ts";
 import { resolveBuildEnv } from "./env.ts";
@@ -9,23 +9,23 @@ export type BaseBuildConfig = Awaited<ReturnType<typeof baseBuildConfig>>;
 
 const ROOT_ALIAS = "@";
 
-export async function baseBuildConfig(nitro: Nitro) {
+export async function baseBuildConfig(fastnode: Fastnode) {
   const extensions: string[] = [...BUILD_EXTENSIONS];
 
-  const isNodeless = nitro.options.node === false;
+  const isNodeless = fastnode.options.node === false;
 
-  const importMetaInjections: NitroImportMeta = {
-    dev: nitro.options.dev,
-    envName: nitro.options.envName,
-    preset: nitro.options.preset,
-    prerender: nitro.options.preset === "nitro-prerender",
-    nitro: true,
+  const importMetaInjections: FastnodeImportMeta = {
+    dev: fastnode.options.dev,
+    envName: fastnode.options.envName,
+    preset: fastnode.options.preset,
+    prerender: fastnode.options.preset === "fastnode-prerender",
+    fastnode: true,
     server: true,
     client: false,
-    baseURL: nitro.options.baseURL,
-    _asyncContext: nitro.options.experimental.asyncContext,
-    _tasks: nitro.options.experimental.tasks,
-    _websocket: nitro.options.features.websocket ?? nitro.options.experimental.websocket,
+    baseURL: fastnode.options.baseURL,
+    _asyncContext: fastnode.options.experimental.asyncContext,
+    _tasks: fastnode.options.experimental.tasks,
+    _websocket: fastnode.options.features.websocket ?? fastnode.options.experimental.websocket,
   };
 
   const replacements = {
@@ -35,17 +35,17 @@ export async function baseBuildConfig(nitro: Nitro) {
         JSON.stringify(val),
       ])
     ),
-    ...nitro.options.replace,
+    ...fastnode.options.replace,
   };
 
-  const env = await resolveBuildEnv(nitro);
+  const env = await resolveBuildEnv(fastnode);
 
-  // Aliases to `unenv` polyfills are resolved on demand by the `nitro:unenv` plugin
+  // Aliases to `unenv` polyfills are resolved on demand by the `fastnode:unenv` plugin
   const aliases = resolveAliases(
     Object.fromEntries(Object.entries(env.alias).filter(([, to]) => !isUnenvId(to)))
   );
 
-  const noExternal: RegExp[] = getNoExternals(nitro);
+  const noExternal: RegExp[] = getNoExternals(fastnode);
 
   const ignoreWarningCodes = new Set([
     "EVAL",
@@ -68,26 +68,26 @@ export async function baseBuildConfig(nitro: Nitro) {
   };
 }
 
-function getNoExternals(nitro: Nitro): RegExp[] {
+function getNoExternals(fastnode: Fastnode): RegExp[] {
   const noExternal: RegExp[] = [
     /\.[mc]?tsx?$/,
     /^(?:[\0#~.]|virtual:)/,
     new RegExp("^" + pathRegExp(pkgDir) + "(?!.*node_modules)"),
     ...[
-      nitro.options.rootDir,
-      ...[nitro.options.buildDir, ...nitro.options.scanDirs].filter(
-        (dir) => dir.includes("node_modules") || !dir.startsWith(nitro.options.rootDir)
+      fastnode.options.rootDir,
+      ...[fastnode.options.buildDir, ...fastnode.options.scanDirs].filter(
+        (dir) => dir.includes("node_modules") || !dir.startsWith(fastnode.options.rootDir)
       ),
     ].map((dir) => new RegExp("^" + pathRegExp(dir) + "(?!.*node_modules)")),
   ];
 
-  if (nitro.options.wasm !== false) {
+  if (fastnode.options.wasm !== false) {
     noExternal.push(/\.wasm$/);
   }
 
-  if (Array.isArray(nitro.options.noExternals)) {
+  if (Array.isArray(fastnode.options.noExternals)) {
     noExternal.push(
-      ...nitro.options.noExternals
+      ...fastnode.options.noExternals
         .filter(Boolean)
         .map((item) => toPathRegExp(item as string | RegExp))
     );
@@ -106,18 +106,20 @@ export function resolveAliases(_aliases: Record<string, string>) {
   const resolvableAliases = Object.keys(aliases).filter(isResolvableAliasKey);
   // Resolve alias values in relation to each other
   for (const key in aliases) {
-    if (!isResolvableAliasValue(aliases[key])) {
+    let resolved = aliases[key]!;
+    if (!isResolvableAliasValue(resolved)) {
       continue;
     }
     for (const alias of resolvableAliases) {
-      if (alias === ROOT_ALIAS && !aliases[key].startsWith(`${ROOT_ALIAS}/`)) {
+      if (alias === ROOT_ALIAS && !resolved.startsWith(`${ROOT_ALIAS}/`)) {
         continue;
       } // Don't resolve @foo/bar
 
-      if (aliases[key].startsWith(alias)) {
-        aliases[key] = aliases[alias] + aliases[key].slice(alias.length);
+      if (resolved.startsWith(alias)) {
+        resolved = aliases[alias]! + resolved.slice(alias.length);
       }
     }
+    aliases[key] = resolved;
   }
   return aliases;
 }

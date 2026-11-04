@@ -12,8 +12,8 @@ icon: i-lucide-database
 
 ::code-tree{defaultValue="server.ts" expandAll}
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({
   experimental: {
@@ -30,22 +30,22 @@ export default defineConfig({
 {
   "type": "module",
   "scripts": {
-    "dev": "nitro dev",
-    "build": "nitro build"
+    "dev": "fastnode dev",
+    "build": "fastnode build"
   },
   "dependencies": {
     "db0": "^0.4.2"
   },
   "devDependencies": {
-    "nitro": "latest",
+    "fastnode": "latest",
     "rolldown": "latest"
   }
 }
 ```
 
 ```ts [server.ts]
-import { defineHandler } from "nitro";
-import { useDatabase } from "nitro/database";
+import { defineHandler } from "fastnode";
+import { useDatabase } from "fastnode/database";
 
 export default defineHandler(async () => {
   const db = useDatabase();
@@ -69,20 +69,20 @@ export default defineHandler(async () => {
 
 ```json [tsconfig.json]
 {
-  "extends": "nitro/tsconfig"
+  "extends": "fastnode/tsconfig"
 }
 ```
 
 ```ts [vite.config.ts]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
-export default defineConfig({ plugins: [nitro()] });
+export default defineConfig({ plugins: [fastnode()] });
 ```
 
 ```ts [tasks/db/migrate.ts]
-import { defineTask } from "nitro/task";
-import { useDatabase } from "nitro/database";
+import { defineTask } from "fastnode/task";
+import { useDatabase } from "fastnode/database";
 
 export default defineTask({
   meta: {
@@ -110,13 +110,13 @@ export default defineTask({
 
 <!-- automd:file src="../../examples/database/README.md" -->
 
-Nitro provides a built-in database layer that uses SQL template literals for safe, parameterized queries. This example creates a users table, inserts a record, and queries it back.
+Fastnode provides a built-in database layer that uses SQL template literals for safe, parameterized queries. This example creates a users table, inserts a record, and queries it back.
 
 ## Querying the Database
 
 ```ts [server.ts]
-import { defineHandler } from "nitro";
-import { useDatabase } from "nitro/database";
+import { defineHandler } from "fastnode";
+import { useDatabase } from "fastnode/database";
 
 export default defineHandler(async () => {
   const db = useDatabase();
@@ -142,11 +142,11 @@ Retrieve the database instance using `useDatabase()`. The database can be querie
 
 ## Running Migrations with Tasks
 
-Nitro tasks let you run operations outside of request handlers. For database migrations, create a task file in `tasks/` and run it via the CLI. This keeps schema changes separate from your application code.
+Fastnode tasks let you run operations outside of request handlers. For database migrations, create a task file in `tasks/` and run it via the CLI. This keeps schema changes separate from your application code.
 
 ```ts [tasks/db/migrate.ts]
-import { defineTask } from "nitro/task";
-import { useDatabase } from "nitro/database";
+import { defineTask } from "fastnode/task";
+import { useDatabase } from "fastnode/database";
 
 export default defineTask({
   meta: {

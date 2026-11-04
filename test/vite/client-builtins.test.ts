@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { nitro } from "../../src/build/vite/plugin.ts";
+import { fastnode } from "../../src/build/builders/vite/plugin.ts";
 import { createServer, resolveConfig } from "vite";
 
 describe("vite: client builtin aliases (#4853)", () => {
@@ -8,7 +8,7 @@ describe("vite: client builtin aliases (#4853)", () => {
     async (preset) => {
       const config = await resolveConfig(
         {
-          plugins: [nitro({ preset })],
+          plugins: [fastnode({ preset })],
           logLevel: "silent",
         },
         "build"
@@ -35,16 +35,16 @@ describe("vite: client builtin aliases (#4853)", () => {
 
   it("resolves node: aliases in server environments", async () => {
     const server = await createServer({
-      plugins: [nitro({ preset: "cloudflare-module" })],
+      plugins: [fastnode({ preset: "cloudflare-module" })],
       logLevel: "silent",
     });
     try {
-      const nitroEnv = server.environments.nitro;
-      const resolved = await nitroEnv.pluginContainer.resolveId("events");
+      const fastnodeEnv = server.environments.fastnode;
+      const resolved = await fastnodeEnv.pluginContainer.resolveId("events");
       expect(resolved?.id).toBe("node:events");
       expect(resolved?.external).toBe(true);
 
-      const bufferResolved = await nitroEnv.pluginContainer.resolveId("buffer/");
+      const bufferResolved = await fastnodeEnv.pluginContainer.resolveId("buffer/");
       expect(bufferResolved?.id).toBe("node:buffer");
       expect(bufferResolved?.external).toBe(true);
     } finally {
@@ -56,7 +56,7 @@ describe("vite: client builtin aliases (#4853)", () => {
     const config = await resolveConfig(
       {
         plugins: [
-          nitro({
+          fastnode({
             preset: "cloudflare-module",
             alias: {
               "~/custom": "/path/to/custom",

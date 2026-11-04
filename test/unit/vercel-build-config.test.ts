@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "pathe";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import type { Nitro, NitroOptions } from "nitro/types";
+import type { Fastnode, FastnodeOptions } from "fastnode/types";
 
 import { generateStaticFiles } from "../../src/presets/vercel/utils.ts";
 
@@ -22,15 +22,15 @@ afterAll(async () => {
   await Promise.all(dirs.map((dir) => rm(dir, { recursive: true, force: true })));
 });
 
-async function buildRoutes(options: Partial<NitroOptions>): Promise<Route[]> {
-  const dir = await mkdtemp(join(tmpdir(), "nitro-vercel-build-config-"));
+async function buildRoutes(options: Partial<FastnodeOptions>): Promise<Route[]> {
+  const dir = await mkdtemp(join(tmpdir(), "fastnode-vercel-build-config-"));
   dirs.push(dir);
-  const nitro = {
+  const fastnode = {
     _prerenderedRoutes: [],
     options: {
       baseURL: "/",
       static: false,
-      framework: { name: "nitro", version: "3.x" },
+      framework: { name: "fastnode", version: "3.x" },
       experimental: {},
       publicAssets: [],
       output: { dir, serverDir: join(dir, "functions/__server.func") },
@@ -38,8 +38,8 @@ async function buildRoutes(options: Partial<NitroOptions>): Promise<Route[]> {
       vercel: {},
       ...options,
     },
-  } as unknown as Nitro;
-  await generateStaticFiles(nitro);
+  } as unknown as Fastnode;
+  await generateStaticFiles(fastnode);
   return JSON.parse(await readFile(join(dir, "config.json"), "utf8")).routes;
 }
 
@@ -65,7 +65,7 @@ describe("vercel config with a baseURL", () => {
           "/fn/special": { maxDuration: 20 },
         },
       },
-    } as Partial<NitroOptions>);
+    } as Partial<FastnodeOptions>);
   });
 
   // Route rule keys are relative to the baseURL, as at runtime
@@ -109,7 +109,7 @@ describe("vercel config with `**` in the query of a target", () => {
         "/r/path/**": { redirect: { to: "/p/**?keep=1", status: 301 } },
         "/r/proxy/**": { proxy: { to: "https://example.com/search?q=**" } },
       },
-    } as Partial<NitroOptions>);
+    } as Partial<FastnodeOptions>);
   });
 
   it("leaves query redirects to the server function", () => {
@@ -164,7 +164,7 @@ describe("vercel config with `redirect: false`", () => {
         "/café/keep": { redirect: false },
       },
       publicAssets: [{ dir: "/public/scoped/assets", baseURL: "/scoped/assets", maxAge: 3600 }],
-    } as Partial<NitroOptions>);
+    } as Partial<FastnodeOptions>);
   });
 
   it("keeps the opted out path from the broader redirect", () => {
@@ -239,7 +239,7 @@ describe("vercel config with method-scoped rules", () => {
         "HEAD /hg": { redirect: { to: "/h", status: 307 } },
         "GET /hg": { redirect: { to: "/g", status: 307 } },
       },
-    } as Partial<NitroOptions>);
+    } as Partial<FastnodeOptions>);
   });
 
   const matches = (path: string, method: string) =>

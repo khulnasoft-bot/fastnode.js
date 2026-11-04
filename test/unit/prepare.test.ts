@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "pathe";
 import { afterEach, describe, expect, it } from "vitest";
 import { prepare } from "../../src/build/prepare.ts";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 
 const temporaryDirs: string[] = [];
 afterEach(async () => {
@@ -14,13 +14,13 @@ afterEach(async () => {
 
 describe("prepare", () => {
   it("does not delete a public asset source inside the output directory", async () => {
-    const root = await mkdtemp(join(tmpdir(), "nitro-prepare-"));
+    const root = await mkdtemp(join(tmpdir(), "fastnode-prepare-"));
     temporaryDirs.push(root);
     const outputDir = join(root, "dist");
     const sourceDir = join(outputDir, "client");
     await mkdir(sourceDir, { recursive: true });
     await writeFile(join(sourceDir, "app.js"), "important client asset");
-    const nitro = {
+    const fastnode = {
       options: {
         output: {
           dir: outputDir,
@@ -31,14 +31,14 @@ describe("prepare", () => {
         noPublicDir: false,
         static: false,
       },
-    } as Nitro;
+    } as Fastnode;
 
-    await expect(prepare(nitro)).rejects.toThrow(/publicAssets.*dist/);
+    await expect(prepare(fastnode)).rejects.toThrow(/publicAssets.*dist/);
     expect(await readFile(join(sourceDir, "app.js"), "utf8")).toBe("important client asset");
   });
 
   it("rejects an external symlink pointing to assets inside output", async () => {
-    const root = await mkdtemp(join(tmpdir(), "nitro-prepare-"));
+    const root = await mkdtemp(join(tmpdir(), "fastnode-prepare-"));
     temporaryDirs.push(root);
     const outputDir = join(root, "dist");
     const sourceDir = join(outputDir, "client");
@@ -46,7 +46,7 @@ describe("prepare", () => {
     await mkdir(sourceDir, { recursive: true });
     await writeFile(join(sourceDir, "app.js"), "important client asset");
     await symlink(sourceDir, aliasDir, "dir");
-    const nitro = {
+    const fastnode = {
       options: {
         output: {
           dir: outputDir,
@@ -57,14 +57,14 @@ describe("prepare", () => {
         noPublicDir: false,
         static: false,
       },
-    } as Nitro;
+    } as Fastnode;
 
-    await expect(prepare(nitro)).rejects.toThrow(/dist.*publicAssets/);
+    await expect(prepare(fastnode)).rejects.toThrow(/dist.*publicAssets/);
     expect(await readFile(join(aliasDir, "app.js"), "utf8")).toBe("important client asset");
   });
 
   it("rejects a symlink inside output pointing to assets outside it", async () => {
-    const root = await mkdtemp(join(tmpdir(), "nitro-prepare-"));
+    const root = await mkdtemp(join(tmpdir(), "fastnode-prepare-"));
     temporaryDirs.push(root);
     const outputDir = join(root, "dist");
     const assetsDir = join(root, "assets");
@@ -73,7 +73,7 @@ describe("prepare", () => {
     await mkdir(assetsDir, { recursive: true });
     await writeFile(join(assetsDir, "app.js"), "important client asset");
     await symlink(assetsDir, linkDir, "dir");
-    const nitro = {
+    const fastnode = {
       options: {
         output: {
           dir: outputDir,
@@ -84,14 +84,14 @@ describe("prepare", () => {
         noPublicDir: false,
         static: false,
       },
-    } as Nitro;
+    } as Fastnode;
 
-    await expect(prepare(nitro)).rejects.toThrow(/dist.*publicAssets/);
+    await expect(prepare(fastnode)).rejects.toThrow(/dist.*publicAssets/);
     expect(await readFile(join(linkDir, "app.js"), "utf8")).toBe("important client asset");
   });
 
   it("cleans output when the public asset source is outside it", async () => {
-    const root = await mkdtemp(join(tmpdir(), "nitro-prepare-"));
+    const root = await mkdtemp(join(tmpdir(), "fastnode-prepare-"));
     temporaryDirs.push(root);
     const outputDir = join(root, "dist");
     const sourceDir = join(root, "public");
@@ -99,7 +99,7 @@ describe("prepare", () => {
     await mkdir(sourceDir, { recursive: true });
     await writeFile(join(outputDir, "stale.js"), "stale output");
     await writeFile(join(sourceDir, "app.js"), "important client asset");
-    const nitro = {
+    const fastnode = {
       options: {
         output: {
           dir: outputDir,
@@ -110,15 +110,15 @@ describe("prepare", () => {
         noPublicDir: false,
         static: false,
       },
-    } as Nitro;
+    } as Fastnode;
 
-    await prepare(nitro);
+    await prepare(fastnode);
     await expect(readFile(join(outputDir, "stale.js"), "utf8")).rejects.toThrow();
     expect(await readFile(join(sourceDir, "app.js"), "utf8")).toBe("important client asset");
   });
 
   it("does not clean another output directory before rejecting an overlapping asset", async () => {
-    const root = await mkdtemp(join(tmpdir(), "nitro-prepare-"));
+    const root = await mkdtemp(join(tmpdir(), "fastnode-prepare-"));
     temporaryDirs.push(root);
     const outputDir = join(root, "dist");
     const sourceDir = join(root, "other", "client");
@@ -126,7 +126,7 @@ describe("prepare", () => {
     await mkdir(sourceDir, { recursive: true });
     await writeFile(join(outputDir, "stale.js"), "keep until validation succeeds");
     await writeFile(join(sourceDir, "app.js"), "important client asset");
-    const nitro = {
+    const fastnode = {
       options: {
         output: {
           dir: outputDir,
@@ -137,9 +137,9 @@ describe("prepare", () => {
         noPublicDir: false,
         static: false,
       },
-    } as Nitro;
+    } as Fastnode;
 
-    await expect(prepare(nitro)).rejects.toThrow(/publicAssets.*other/);
+    await expect(prepare(fastnode)).rejects.toThrow(/publicAssets.*other/);
     expect(await readFile(join(outputDir, "stale.js"), "utf8")).toBe(
       "keep until validation succeeds"
     );
@@ -147,10 +147,10 @@ describe("prepare", () => {
   });
 
   it("allows an output asset directory that has not been generated yet", async () => {
-    const root = await mkdtemp(join(tmpdir(), "nitro-prepare-"));
+    const root = await mkdtemp(join(tmpdir(), "fastnode-prepare-"));
     temporaryDirs.push(root);
     const outputDir = join(root, "dist");
-    const nitro = {
+    const fastnode = {
       options: {
         output: {
           dir: outputDir,
@@ -161,18 +161,18 @@ describe("prepare", () => {
         noPublicDir: false,
         static: false,
       },
-    } as Nitro;
+    } as Fastnode;
 
-    await expect(prepare(nitro)).resolves.toBeUndefined();
+    await expect(prepare(fastnode)).resolves.toBeUndefined();
   });
 
   it("cleans a generated asset directory left by a previous build", async () => {
-    const root = await mkdtemp(join(tmpdir(), "nitro-prepare-"));
+    const root = await mkdtemp(join(tmpdir(), "fastnode-prepare-"));
     temporaryDirs.push(root);
     const outputDir = join(root, "dist");
     await mkdir(outputDir, { recursive: true });
     await writeFile(join(outputDir, "stale.js"), "stale output");
-    const nitro = {
+    const fastnode = {
       options: {
         output: {
           dir: outputDir,
@@ -183,9 +183,9 @@ describe("prepare", () => {
         noPublicDir: false,
         static: false,
       },
-    } as Nitro;
+    } as Fastnode;
 
-    await prepare(nitro, { generatedAssetDirs: [outputDir] });
+    await prepare(fastnode, { generatedAssetDirs: [outputDir] });
     await expect(readFile(join(outputDir, "stale.js"), "utf8")).rejects.toThrow();
   });
 });

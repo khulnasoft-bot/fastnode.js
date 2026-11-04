@@ -1,10 +1,10 @@
-import "#nitro/virtual/polyfills";
+import "#fastnode/virtual/polyfills";
 import type * as CF from "@cloudflare/workers-types";
 import type { ServerRequest, ServerRuntimeContext } from "srvx";
 
-import { runCronTasks } from "#nitro/runtime/task";
-import { afterNitroReady } from "#nitro/runtime/async-plugins";
-import { useNitroApp, useNitroHooks } from "nitro/app";
+import { runCronTasks } from "#fastnode/runtime/task";
+import { afterFastnodeReady } from "#fastnode/runtime/async-plugins";
+import { useFastnodeApp, useFastnodeHooks } from "fastnode/app";
 
 type MaybePromise<T> = T | Promise<T>;
 
@@ -17,8 +17,8 @@ export function createHandler<Env>(hooks: {
     ]
   ) => MaybePromise<Response | CF.Response | undefined>;
 }) {
-  const nitroApp = useNitroApp();
-  const nitroHooks = useNitroHooks();
+  const fastnodeApp = useFastnodeApp();
+  const fastnodeHooks = useFastnodeHooks();
 
   return {
     async fetch(request, env, context) {
@@ -36,14 +36,14 @@ export function createHandler<Env>(hooks: {
         }
       }
 
-      return (await nitroApp.fetch(request as any)) as any;
+      return (await fastnodeApp.fetch(request as any)) as any;
     },
 
     scheduled(controller, env, context) {
       (globalThis as any).__env__ = env;
       context.waitUntil(
-        afterNitroReady(nitroApp, () =>
-          nitroHooks.callHook("cloudflare:scheduled", {
+        afterFastnodeReady(fastnodeApp, () =>
+          fastnodeHooks.callHook("cloudflare:scheduled", {
             controller,
             env,
             context,
@@ -68,8 +68,8 @@ export function createHandler<Env>(hooks: {
     email(message, env, context) {
       (globalThis as any).__env__ = env;
       context.waitUntil(
-        afterNitroReady(nitroApp, () =>
-          nitroHooks.callHook("cloudflare:email", {
+        afterFastnodeReady(fastnodeApp, () =>
+          fastnodeHooks.callHook("cloudflare:email", {
             message: message as any,
             env,
             context,
@@ -81,8 +81,8 @@ export function createHandler<Env>(hooks: {
     queue(batch, env, context) {
       (globalThis as any).__env__ = env;
       context.waitUntil(
-        afterNitroReady(nitroApp, () =>
-          nitroHooks.callHook("cloudflare:queue", {
+        afterFastnodeReady(fastnodeApp, () =>
+          fastnodeHooks.callHook("cloudflare:queue", {
             batch,
             env,
             context,
@@ -94,8 +94,8 @@ export function createHandler<Env>(hooks: {
     tail(traces, env, context) {
       (globalThis as any).__env__ = env;
       context.waitUntil(
-        afterNitroReady(nitroApp, () =>
-          nitroHooks.callHook("cloudflare:tail", {
+        afterFastnodeReady(fastnodeApp, () =>
+          fastnodeHooks.callHook("cloudflare:tail", {
             traces,
             env,
             context,
@@ -107,8 +107,8 @@ export function createHandler<Env>(hooks: {
     trace(traces, env, context) {
       (globalThis as any).__env__ = env;
       context.waitUntil(
-        afterNitroReady(nitroApp, () =>
-          nitroHooks.callHook("cloudflare:trace", {
+        afterFastnodeReady(fastnodeApp, () =>
+          fastnodeHooks.callHook("cloudflare:trace", {
             traces,
             env,
             context,

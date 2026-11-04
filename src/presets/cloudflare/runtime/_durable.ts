@@ -2,15 +2,15 @@ import { DurableObject } from "cloudflare:workers";
 import wsAdapter from "crossws/adapters/cloudflare";
 import { augmentReq } from "./_module-handler.ts";
 
-import { useNitroApp, useNitroHooks } from "nitro/app";
-import { afterNitroReady } from "#nitro/runtime/async-plugins";
-import { resolveWebsocketHooks } from "#nitro/runtime/app";
+import { useFastnodeApp, useFastnodeHooks } from "fastnode/app";
+import { afterFastnodeReady } from "#fastnode/runtime/async-plugins";
+import { resolveWebsocketHooks } from "#fastnode/runtime/app";
 
 const DURABLE_BINDING = "$DurableObject";
 const DURABLE_INSTANCE = "server";
 
-const nitroApp = useNitroApp();
-const nitroHooks = useNitroHooks();
+const fastnodeApp = useFastnodeApp();
+const fastnodeHooks = useFastnodeHooks();
 
 // Upgrades are forwarded to the Durable Object when its binding is declared
 // https://crossws.h3.dev/adapters/cloudflare#durable-objects
@@ -26,8 +26,8 @@ export class $DurableObject extends DurableObject {
   constructor(state: DurableObjectState, env: Record<string, any>) {
     super(state, env);
     state.waitUntil(
-      afterNitroReady(nitroApp, () =>
-        nitroHooks.callHook("cloudflare:durable:init", this, {
+      afterFastnodeReady(fastnodeApp, () =>
+        fastnodeHooks.callHook("cloudflare:durable:init", this, {
           state,
           env,
         })
@@ -48,13 +48,14 @@ export class $DurableObject extends DurableObject {
       return ws!.handleDurableUpgrade(this, request);
     }
 
-    return nitroApp.fetch(request);
+    return fastnodeApp.fetch(request);
   }
 
   override alarm(): void | Promise<void> {
     this.ctx.waitUntil(
-      afterNitroReady(nitroApp, () => nitroHooks.callHook("cloudflare:durable:alarm", this)) ||
-        Promise.resolve()
+      afterFastnodeReady(fastnodeApp, () =>
+        fastnodeHooks.callHook("cloudflare:durable:alarm", this)
+      ) || Promise.resolve()
     );
   }
 

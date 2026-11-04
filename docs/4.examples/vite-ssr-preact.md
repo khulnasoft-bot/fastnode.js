@@ -6,7 +6,7 @@ icon: i-logos-preact
 
 # SSR with Preact
 
-> Server-side rendering with Preact in Nitro using Vite.
+> Server-side rendering with Preact in Fastnode using Vite.
 
 <!-- automd:ui-code-tree src="../../examples/vite-ssr-preact" default="src/entry-server.tsx" ignore="README.md,GUIDE.md" expandAll -->
 
@@ -23,7 +23,7 @@ icon: i-logos-preact
   "devDependencies": {
     "@preact/preset-vite": "^2.10.6",
     "@tailwindcss/vite": "^4.3.3",
-    "nitro": "latest",
+    "fastnode": "latest",
     "preact": "^11.1.0",
     "preact-render-to-string": "^6.8.2",
     "tailwindcss": "^4.3.3",
@@ -34,7 +34,7 @@ icon: i-logos-preact
 
 ```json [tsconfig.json]
 {
-  "extends": "nitro/tsconfig",
+  "extends": "fastnode/tsconfig",
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "preact"
@@ -44,11 +44,11 @@ icon: i-logos-preact
 
 ```js [vite.config.mjs]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 import preact from "@preact/preset-vite";
 
 export default defineConfig({
-  plugins: [nitro(), preact()],
+  plugins: [fastnode(), preact()],
   environments: {
     client: {
       build: {
@@ -114,7 +114,7 @@ function Root(props: { url: URL }) {
         <script type="module" src={assets.entry} />
       </head>
       <body>
-        <h1 className="hero">Nitro + Vite + Preact</h1>
+        <h1 className="hero">Fastnode + Vite + Preact</h1>
         <p>URL: {props.url.href}</p>
         <div id="app">
           <App />
@@ -141,26 +141,26 @@ button {
 
 <!-- automd:file src="../../examples/vite-ssr-preact/README.md" -->
 
-Set up server-side rendering (SSR) with Preact, Vite, and Nitro. This setup enables streaming HTML responses, automatic asset management, and client hydration.
+Set up server-side rendering (SSR) with Preact, Vite, and Fastnode. This setup enables streaming HTML responses, automatic asset management, and client hydration.
 
 ## Overview
 
-1. Add the Nitro Vite plugin to your Vite config
+1. Add the Fastnode Vite plugin to your Vite config
 2. Configure client and server entry points
 3. Create a server entry that renders your app to HTML
 4. Create a client entry that hydrates the server-rendered HTML
 
 ## 1. Configure Vite
 
-Add the Nitro and Preact plugins to your Vite config. Define the `client` environment with your client entry point:
+Add the Fastnode and Preact plugins to your Vite config. Define the `client` environment with your client entry point:
 
 ```js [vite.config.mjs]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 import preact from "@preact/preset-vite";
 
 export default defineConfig({
-  plugins: [nitro(), preact()],
+  plugins: [fastnode(), preact()],
   environments: {
     client: {
       build: {
@@ -173,7 +173,7 @@ export default defineConfig({
 });
 ```
 
-The `environments.client` configuration tells Vite which file to use as the browser entry point. Nitro automatically detects the SSR entry from a file named `entry-server` in `app/`, `src/`, or the project root.
+The `environments.client` configuration tells Vite which file to use as the browser entry point. Fastnode automatically detects the SSR entry from a file named `entry-server` in `app/`, `src/`, or the project root.
 
 ## 2. Create the App Component
 
@@ -225,7 +225,7 @@ function Root(props: { url: URL }) {
         <script type="module" src={assets.entry} />
       </head>
       <body>
-        <h1 className="hero">Nitro + Vite + Preact</h1>
+        <h1 className="hero">Fastnode + Vite + Preact</h1>
         <p>URL: {props.url.href}</p>
         <div id="app">
           <App />
@@ -236,7 +236,7 @@ function Root(props: { url: URL }) {
 }
 ```
 
-Import assets using the `?assets=client` and `?assets=ssr` query parameters. Nitro collects CSS and JS assets from each entry point, and `merge()` combines them into a single manifest. The `assets` object provides arrays of stylesheet and script attributes, plus the client entry URL. Use `renderToReadableStream` to stream HTML as Preact renders, improving time-to-first-byte.
+Import assets using the `?assets=client` and `?assets=ssr` query parameters. Fastnode collects CSS and JS assets from each entry point, and `merge()` combines them into a single manifest. The `assets` object provides arrays of stylesheet and script attributes, plus the client entry URL. Use `renderToReadableStream` to stream HTML as Preact renders, improving time-to-first-byte.
 
 ## 4. Create the Client Entry
 

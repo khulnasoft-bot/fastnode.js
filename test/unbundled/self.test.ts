@@ -1,14 +1,14 @@
 import type { EnvRunner } from "env-runner";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 import { loadRunner } from "env-runner";
-import { pkgDir } from "#nitro/meta";
+import { pkgDir } from "#fastnode/meta";
 import { fileURLToPath } from "node:url";
 import { join } from "pathe";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { createNitro } from "../../src/nitro.ts";
-import { scanHandlers } from "../../src/scan.ts";
-import { prepareUnbundledApp } from "../../src/build/unbundled/entry.ts";
-import { unbundledPlugins } from "../../src/build/unbundled/plugins.ts";
+import { createFastnode } from "../../src/core/application/fastnode.ts";
+import { scanHandlers } from "../../src/core/application/scan.ts";
+import { prepareUnbundledApp } from "../../src/build/builders/unbundled/entry.ts";
+import { unbundledPlugins } from "../../src/build/builders/unbundled/plugins.ts";
 
 const missingDeps = new Set<string>();
 
@@ -24,25 +24,25 @@ const rootDir = fileURLToPath(new URL("fixture", import.meta.url));
 
 // The self runner runs the plugins in synchronous loader hooks of this process
 describe("builder: false (self runner)", () => {
-  let nitro: Nitro;
+  let fastnode: Fastnode;
   let runner: EnvRunner;
 
   beforeAll(async () => {
-    nitro = await createNitro({ rootDir, preset: "nitro-serve", builder: false });
-    await scanHandlers(nitro);
-    nitro.routing.sync();
-    const { entry, virtual } = await prepareUnbundledApp(nitro);
+    fastnode = await createFastnode({ rootDir, preset: "fastnode-serve", builder: false });
+    await scanHandlers(fastnode);
+    fastnode.routing.sync();
+    const { entry, virtual } = await prepareUnbundledApp(fastnode);
     runner = await loadRunner("self", {
-      name: "nitro-self-test",
+      name: "fastnode-self-test",
       data: { entry, virtual },
-      plugins: await unbundledPlugins(nitro, { sync: true }),
+      plugins: await unbundledPlugins(fastnode, { sync: true }),
     });
     await runner.waitForReady();
   });
 
   afterAll(async () => {
     await runner?.close();
-    await nitro?.close();
+    await fastnode?.close();
   });
 
   const fetchJSON = (path: string) =>
@@ -50,7 +50,7 @@ describe("builder: false (self runner)", () => {
 
   it("runs TypeScript sources and virtual modules", async () => {
     const res = await runner.fetch(new Request("http://localhost/"));
-    expect(await res.text()).toBe("Hello, nitro!");
+    expect(await res.text()).toBe("Hello, fastnode!");
     expect(await fetchJSON("/api/42")).toEqual({ id: "42", hasRuntimeConfig: true });
   });
 
@@ -74,9 +74,9 @@ describe("builder: false (self runner)", () => {
 
 describe("unbundled plugins (sync)", () => {
   it("fails to resolve missing optional runtime dependencies instead of installing them", async () => {
-    const nitro = await createNitro({ rootDir });
-    const plugin = (await unbundledPlugins(nitro, { sync: true })).find(
-      (p) => p.name === "nitro:runtime-deps"
+    const fastnode = await createFastnode({ rootDir });
+    const plugin = (await unbundledPlugins(fastnode, { sync: true })).find(
+      (p) => p.name === "fastnode:runtime-deps"
     );
     const { handler } = plugin!.resolveId as { handler: (...args: any[]) => unknown };
     const resolve = vi.fn(() => ({ id: "/resolved", external: false }));
@@ -94,6 +94,6 @@ describe("unbundled plugins (sync)", () => {
     } finally {
       missingDeps.delete("db0");
     }
-    await nitro.close();
+    await fastnode.close();
   });
 });

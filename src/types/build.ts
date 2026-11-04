@@ -24,40 +24,40 @@ import type { TransformOptions as OXCTransformOptions } from "oxbox";
  * supported by all builders (`builder: false` runs plugins in env-runner, which supports only
  * these).
  */
-export interface NitroBuildPlugin {
+export interface FastnodeBuildPlugin {
   name: string;
   /** Run before (`"pre"`) or after (`"post"`) the other plugins. */
   enforce?: "pre" | "post";
-  resolveId?: NitroBuildPluginHook<
+  resolveId?: FastnodeBuildPluginHook<
     (this: any, source: string, importer: string | undefined, options: any) => any
   >;
-  load?: NitroBuildPluginHook<(this: any, id: string, options?: any) => any>;
-  transform?: NitroBuildPluginHook<(this: any, code: string, id: string, options?: any) => any>;
+  load?: FastnodeBuildPluginHook<(this: any, id: string, options?: any) => any>;
+  transform?: FastnodeBuildPluginHook<(this: any, code: string, id: string, options?: any) => any>;
   /** Builder-specific hooks and options. */
   [key: string]: any;
 }
 
-export type NitroBuildPluginHook<Handler> =
+export type FastnodeBuildPluginHook<Handler> =
   | Handler
   | {
       order?: "pre" | "post" | null;
-      filter?: NitroBuildPluginHookFilter | readonly unknown[];
+      filter?: FastnodeBuildPluginHookFilter | readonly unknown[];
       handler: Handler;
     };
 
-export interface NitroBuildPluginHookFilter {
-  id?: NitroBuildPluginStringFilter;
-  code?: NitroBuildPluginStringFilter;
-  moduleType?: NitroBuildPluginStringFilter;
+export interface FastnodeBuildPluginHookFilter {
+  id?: FastnodeBuildPluginStringFilter;
+  code?: FastnodeBuildPluginStringFilter;
+  moduleType?: FastnodeBuildPluginStringFilter;
 }
 
-export type NitroBuildPluginStringFilter =
+export type FastnodeBuildPluginStringFilter =
   | MaybeArray<string | RegExp>
   | { include?: MaybeArray<string | RegExp>; exclude?: MaybeArray<string | RegExp> };
 
 /** `buildPlugins` entries: nested arrays and promises are resolved, falsy ones skipped. */
-export type NitroBuildPluginOption = MaybePromise<
-  NitroBuildPlugin | false | null | undefined | NitroBuildPluginOption[]
+export type FastnodeBuildPluginOption = MaybePromise<
+  FastnodeBuildPlugin | false | null | undefined | FastnodeBuildPluginOption[]
 >;
 
 export type RollupConfig = OptionalDepType<
@@ -68,14 +68,14 @@ export type RollupConfig = OptionalDepType<
   // `rollupConfig` is also reused for the `rolldown` builder (see `build/vite/bundler.ts`),
   // so it accepts a mix of Rollup, Rolldown and Vite plugins.
   plugins?: (
-    | OptionalDepType<RollupInputPluginOption, NitroBuildPluginOption>
-    | OptionalDepType<RolldownPluginOption, NitroBuildPluginOption>
+    | OptionalDepType<RollupInputPluginOption, FastnodeBuildPluginOption>
+    | OptionalDepType<RolldownPluginOption, FastnodeBuildPluginOption>
   )[];
 };
 
 export type RolldownConfig = OptionalDepType<
   RolldownInputOptions,
-  BundlerInputOptions & { plugins?: NitroBuildPluginOption[] }
+  BundlerInputOptions & { plugins?: FastnodeBuildPluginOption[] }
 > & {
   output?: OptionalDepType<RolldownOutputOptions, BundlerOutputOptions>;
 };
@@ -85,7 +85,7 @@ export type RolldownConfig = OptionalDepType<
  *
  * The `vite` builder passes a Rollup or Rolldown config, depending on the Vite version.
  */
-export type NitroBuildConfig =
+export type FastnodeBuildConfig =
   | { builder: "rollup" | "vite"; rollup: RollupConfig; rolldown?: never }
   | { builder: "rolldown" | "vite"; rolldown: RolldownConfig; rollup?: never };
 

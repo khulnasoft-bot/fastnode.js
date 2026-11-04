@@ -4,7 +4,7 @@ export default async () => {
     envName: import.meta.envName,
     preset: import.meta.preset,
     prerender: import.meta.prerender,
-    nitro: import.meta.nitro,
+    fastnode: import.meta.fastnode,
     server: import.meta.server,
     client: import.meta.client,
     baseURL: import.meta.baseURL,

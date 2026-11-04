@@ -1,4 +1,4 @@
-import { definePlugin } from "nitro";
+import { definePlugin } from "fastnode";
 
 export const allErrors: { error: Error; context: any }[] = [];
 

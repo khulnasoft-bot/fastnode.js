@@ -34,7 +34,7 @@ describe("replace plugin", () => {
     const result = await handler.call(
       ctx,
       'export default "import.meta.dev"',
-      "\0virtual:nitro:raw:/src/file.txt.js"
+      "\0virtual:fastnode:raw:/src/file.txt.js"
     );
     expect(result).toBeNull();
   });

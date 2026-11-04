@@ -1,16 +1,16 @@
-import { defineNitroPreset } from "../_utils/preset.ts";
-import type { Nitro } from "nitro/types";
+import { defineFastnodePreset } from "../_utils/preset.ts";
+import type { Fastnode } from "fastnode/types";
 import { writeIISFiles, writeIISNodeFiles } from "./utils.ts";
 
 export type { IisOptions as PresetOptions } from "./types.ts";
 
-const iisHandler = defineNitroPreset(
+const iisHandler = defineFastnodePreset(
   {
     extends: "node-server",
     serveStatic: true,
     hooks: {
-      async compiled(nitro: Nitro) {
-        await writeIISFiles(nitro);
+      async compiled(fastnode: Fastnode) {
+        await writeIISFiles(fastnode);
       },
     },
   },
@@ -19,13 +19,13 @@ const iisHandler = defineNitroPreset(
   }
 );
 
-const iisNode = defineNitroPreset(
+const iisNode = defineFastnodePreset(
   {
     extends: "node-server",
     serveStatic: true,
     hooks: {
-      async compiled(nitro: Nitro) {
-        await writeIISNodeFiles(nitro);
+      async compiled(fastnode: Fastnode) {
+        await writeIISNodeFiles(fastnode);
       },
     },
   },

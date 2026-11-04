@@ -2,14 +2,14 @@
 
 <!-- https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/setting-guidelines-for-repository-contributors -->
 
-> All contributors lead the growth of Nitro - including you!
+> All contributors lead the growth of Fastnode - including you!
 
 ## Discussions
 
 You can involve in discussions using:
 
 - [GitHub Discussions](discussions)
-- [Nitro Discord](https://discord.nitro.build)
+- [Fastnode Discord](https://discord.fastnode.khulnasoft.com)
 
 ## Contribute to the Code
 
@@ -18,18 +18,18 @@ You can involve in discussions using:
 
 ### Local Development
 
-- Clone the [`nitrojs/nitro`](https://github.com/nitrojs/nitro) git repository.
+- Clone the [`khulnasoft/fastnode`](https://github.com/khulnasoft/fastnode) git repository.
 - Install the latest LTS version of [Node.js](https://nodejs.org/en/) (v22+).
 - Enable [corepack](https://github.com/nodejs/corepack) using `corepack enable` (run `npm i -g corepack` if it's not available).
 - Install dependencies using `pnpm install`.
 - Build the project in stub mode using `pnpm build --stub`.
-- Run the playground with `pnpm nitro dev ./playground` to verify changes.
+- Run the playground with `pnpm fastnode dev ./playground` to verify changes.
 - Add, modify, and run tests using `pnpm test`.
   - Tip: Run `pnpm vitest test/presets/node.test.ts` for quick testing.
 
 ## Reporting Issues
 
-You might encounter a bug while using Nitro.
+You might encounter a bug while using Fastnode.
 
 Although we aim to resolve all known issues, new bugs can emerge over time. Your bug report helps us find and fix them faster — even if you're unable to fix the underlying code yourself.
 
@@ -37,24 +37,24 @@ Here’s how to report a bug effectively:
 
 ### Ensure It's a Bug
 
-Sometimes what seems like a bug may actually be expected behavior or a missing feature. Make sure you’re reporting an actual bug by creating a minimal nitro project and reducing scope.
+Sometimes what seems like a bug may actually be expected behavior or a missing feature. Make sure you’re reporting an actual bug by creating a minimal fastnode project and reducing scope.
 
 ### Create a Minimal Reproduction
 
-Please create a minimal reproduction using the Nitro starter templates.
+Please create a minimal reproduction using the Fastnode starter templates.
 
-Sometimes, bugs originate from another layer — not Nitro itself. A minimal reproduction helps identify the source and speeds up debugging.
+Sometimes, bugs originate from another layer — not Fastnode itself. A minimal reproduction helps identify the source and speeds up debugging.
 
 Use one of the following templates to reproduce the issue:
 
-- [Stackblitz Template](https://stackblitz.com/fork/github/nitrojs/starter)
-- [Nitro Starter Repo](https://github.com/nitrojs/starter)
+- [Stackblitz Template](https://stackblitz.com/fork/github/khulnasoft/starter)
+- [Fastnode Starter Repo](https://github.com/khulnasoft/starter)
 
-If your bug involves a higher-level framework like [Nuxt](https://nuxt.com), please report it there. Maintainers will help narrow it down to a Nitro-level issue if needed.
+If your bug involves a higher-level framework like [Nuxt](https://nuxt.com), please report it there. Maintainers will help narrow it down to a Fastnode-level issue if needed.
 
 ### Search Existing Issues and Discussions
 
-Before creating a new issue, search existing [issues](https://github.com/nitrojs/nitro/issues) and [discussions](https://github.com/nitrojs/nitro/discussions) to see if your bug has already been reported.
+Before creating a new issue, search existing [issues](https://github.com/khulnasoft/fastnode/issues) and [discussions](https://github.com/khulnasoft/fastnode/discussions) to see if your bug has already been reported.
 
 If it has already been reported:
 - Add a 👍 reaction to the original post (instead of commenting "me too" or "when will it be fixed").

@@ -58,7 +58,7 @@ export interface CloudflareOptions {
 
   pages?: {
     /**
-     * Nitro will automatically generate a `_routes.json` that controls which files get served statically and
+     * Fastnode will automatically generate a `_routes.json` that controls which files get served statically and
      * which get served by the Worker. Using this config will override the automatic `_routes.json`. Or, if the
      * `merge` options is set, it will merge the user-set routes with the auto-generated ones, giving priority
      * to the user routes.
@@ -79,7 +79,7 @@ export interface CloudflareOptions {
      */
     routes?: CloudflarePagesRoutes;
     /**
-     * If set to `false`, nitro will disable the automatically generated `_routes.json` and instead use the user-set only ones.
+     * If set to `false`, fastnode will disable the automatically generated `_routes.json` and instead use the user-set only ones.
      *
      * @default true
      */
@@ -87,8 +87,8 @@ export interface CloudflareOptions {
   };
 }
 
-declare module "nitro/types" {
-  export interface NitroRuntimeHooks {
+declare module "fastnode/types" {
+  export interface FastnodeRuntimeHooks {
     // https://developers.cloudflare.com/workers/runtime-apis/handlers/scheduled/
     "cloudflare:scheduled": (_: {
       controller: ScheduledController;

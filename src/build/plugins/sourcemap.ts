@@ -1,18 +1,18 @@
 import type { ExistingRawSourceMap, Plugin } from "rollup";
-import type { Nitro } from "nitro/types";
+import type { Fastnode } from "fastnode/types";
 
 // Ids of virtual modules already namespaced by their own plugins
 const VIRTUAL_PREFIX_RE = /(?:^|\/)(virtual:.+)$/;
 
 /**
- * Whether `nitro:sourcemap` runs and removes `sourcesContent`, so the bundler can skip
+ * Whether `fastnode:sourcemap` runs and removes `sourcesContent`, so the bundler can skip
  * generating it. Same conditions as the plugin's registration and its `minify` option.
  */
-export function excludeSourcemapSources(nitro: Nitro): boolean {
+export function excludeSourcemapSources(fastnode: Fastnode): boolean {
   return (
-    !!nitro.options.sourcemap &&
-    !nitro.options.dev &&
-    nitro.options.experimental.sourcemapMinify !== false
+    !!fastnode.options.sourcemap &&
+    !fastnode.options.dev &&
+    fastnode.options.experimental.sourcemapMinify !== false
   );
 }
 
@@ -20,7 +20,7 @@ export function sourcemap(opts: { virtualIds: Iterable<string>; minify: boolean 
   const virtualIds = [...opts.virtualIds];
 
   return {
-    name: "nitro:sourcemap",
+    name: "fastnode:sourcemap",
     generateBundle(_options, bundle) {
       for (const [key, asset] of Object.entries(bundle)) {
         // Only process sourcemaps

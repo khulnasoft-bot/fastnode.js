@@ -1,5 +1,5 @@
 // Core
-export { createNitro } from "./nitro.ts";
+export { createFastnode } from "./core/application/fastnode.ts";
 
 // Config loader
 export { loadOptions } from "./config/loader.ts";
@@ -14,7 +14,7 @@ export type { GetBuildInfoOptions } from "./build/info.ts";
 
 // Dev server
 export { createDevServer } from "./dev/server.ts";
-export type { NitroDevServer } from "./dev/server.ts";
+export type { FastnodeDevServer } from "./dev/server.ts";
 
 // Preview
 export { startPreview } from "./preview.ts";

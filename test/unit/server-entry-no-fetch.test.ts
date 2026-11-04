@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "pathe";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { build, createNitro, prepare } from "nitro/builder";
+import { build, createFastnode, prepare } from "fastnode/builder";
 
 // A server entry can be used for startup logic only, without a `fetch` handler
 const entries = {
@@ -22,14 +22,14 @@ describe("server entry without fetch", () => {
         const warnings: string[] = [];
 
         beforeAll(async () => {
-          rootDir = await realpath(await mkdtemp(join(tmpdir(), "nitro-server-entry-")));
+          rootDir = await realpath(await mkdtemp(join(tmpdir(), "fastnode-server-entry-")));
           await mkdir(join(rootDir, "routes"));
           await writeFile(join(rootDir, "server.ts"), code);
           await writeFile(join(rootDir, "routes/hello.ts"), `export default () => "hello";`);
           const warn = vi.spyOn(console, "warn").mockImplementation((msg) => {
             warnings.push(String(msg));
           });
-          const nitro = await createNitro({
+          const fastnode = await createFastnode({
             rootDir,
             serverDir: "./",
             preset: "standard",
@@ -37,10 +37,10 @@ describe("server entry without fetch", () => {
             logLevel: 0,
           });
           try {
-            await prepare(nitro);
-            await build(nitro);
+            await prepare(fastnode);
+            await build(fastnode);
           } finally {
-            await nitro.close();
+            await fastnode.close();
             warn.mockRestore();
           }
           delete (globalThis as any).__serverEntryStarted;

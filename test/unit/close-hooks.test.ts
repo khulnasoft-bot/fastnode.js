@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const callHook = vi.hoisted(() => vi.fn());
 
 vi.mock("../../src/runtime/internal/app.ts", () => ({
-  useNitroHooks: () => ({ callHook }),
+  useFastnodeHooks: () => ({ callHook }),
 }));
 
 const { setupCloseHooks } = await import("../../src/runtime/internal/shutdown.ts");

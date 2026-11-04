@@ -1,4 +1,4 @@
-import type { Nitro, NitroCacheConfig, NitroCacheDefaults } from "nitro/types";
+import type { Fastnode, FastnodeCacheConfig, FastnodeCacheDefaults } from "fastnode/types";
 
 const functionDefaultKeys = ["maxAge", "swr", "staleMaxAge", "maxResolveTime", "base"] as const;
 
@@ -13,11 +13,11 @@ const handlerDefaultKeys = [
   "maxBodySize",
 ] as const;
 
-export default function cache(nitro: Nitro) {
+export default function cache(fastnode: Fastnode) {
   return {
-    id: "#nitro/virtual/cache",
+    id: "#fastnode/virtual/cache",
     template: () => {
-      const config = nitro.options.cache || {};
+      const config = fastnode.options.cache || {};
       const defaults = config.defaults || {};
       return /* js */ `
 ${genStorage(config)}
@@ -30,13 +30,13 @@ export const cacheHandlerDefaults = ${genValue(pickDefined(defaults, handlerDefa
   };
 }
 
-function genStorage(config: NitroCacheConfig): string {
+function genStorage(config: FastnodeCacheConfig): string {
   switch (config.driver) {
     case "kv": {
-      return /* js */ `export { createKVCacheStorage as createCacheStorage } from "#nitro/runtime/cache-kv";`;
+      return /* js */ `export { createKVCacheStorage as createCacheStorage } from "#fastnode/runtime/cache-kv";`;
     }
     case "fs": {
-      return /* js */ `import { createFSCacheStorage } from "#nitro/runtime/cache-fs";
+      return /* js */ `import { createFSCacheStorage } from "#fastnode/runtime/cache-fs";
 export const createCacheStorage = () => createFSCacheStorage(${genValue({ dir: config.fs?.dir })});`;
     }
     default: {
@@ -46,7 +46,10 @@ export const createCacheStorage = () => createMemoryStorage(${genValue(config.me
   }
 }
 
-function pickDefined(config: NitroCacheDefaults, keys: readonly (keyof NitroCacheDefaults)[]) {
+function pickDefined(
+  config: FastnodeCacheDefaults,
+  keys: readonly (keyof FastnodeCacheDefaults)[]
+) {
   return Object.fromEntries(
     keys.filter((key) => config[key] !== undefined).map((key) => [key, config[key]])
   );

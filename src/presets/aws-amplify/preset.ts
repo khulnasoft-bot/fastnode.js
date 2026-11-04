@@ -1,9 +1,9 @@
-import { defineNitroPreset } from "../_utils/preset.ts";
+import { defineFastnodePreset } from "../_utils/preset.ts";
 import { writeAmplifyFiles } from "./utils.ts";
 
 export type { AwsAmplifyOptions as PresetOptions } from "./types.ts";
 
-const awsAmplify = defineNitroPreset(
+const awsAmplify = defineFastnodePreset(
   {
     entry: "./aws-amplify/runtime/aws-amplify",
     manifest: {
@@ -20,8 +20,8 @@ const awsAmplify = defineNitroPreset(
       preview: "node ./compute/default/server.js",
     },
     hooks: {
-      async compiled(nitro) {
-        await writeAmplifyFiles(nitro);
+      async compiled(fastnode) {
+        await writeAmplifyFiles(fastnode);
       },
     },
   },

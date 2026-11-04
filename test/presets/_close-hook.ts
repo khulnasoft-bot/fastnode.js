@@ -35,10 +35,10 @@ export function testCloseHook(
       const env: Record<string, string | undefined> = {
         ...process.env,
         ...opts.env,
-        NITRO_PORT: String(port),
+        FASTNODE_PORT: String(port),
         PORT: String(port),
-        NITRO_HOST: "127.0.0.1",
-        NITRO_TEST_CLOSE_HOOK: "true",
+        FASTNODE_HOST: "127.0.0.1",
+        FASTNODE_TEST_CLOSE_HOOK: "true",
       };
       delete env.CI;
       delete env.TEST;

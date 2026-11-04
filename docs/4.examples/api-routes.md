@@ -12,6 +12,14 @@ icon: i-lucide-route
 
 ::code-tree{defaultValue="api/hello.ts" expandAll}
 
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
+
+export default defineConfig({
+  serverDir: "./",
+});
+```
+
 ```html [index.html]
 <!doctype html>
 <html lang="en">
@@ -31,23 +39,15 @@ icon: i-lucide-route
 </html>
 ```
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
-
-export default defineConfig({
-  serverDir: "./",
-});
-```
-
 ```json [package.json]
 {
   "type": "module",
   "scripts": {
-    "dev": "nitro dev",
-    "build": "nitro build"
+    "dev": "fastnode dev",
+    "build": "fastnode build"
   },
   "devDependencies": {
-    "nitro": "latest",
+    "fastnode": "latest",
     "rolldown": "latest"
   }
 }
@@ -55,31 +55,31 @@ export default defineConfig({
 
 ```json [tsconfig.json]
 {
-  "extends": "nitro/tsconfig"
+  "extends": "fastnode/tsconfig"
 }
 ```
 
 ```ts [vite.config.ts]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
-export default defineConfig({ plugins: [nitro()] });
+export default defineConfig({ plugins: [fastnode()] });
 ```
 
 ```ts [api/hello.ts]
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 
-export default defineHandler(() => "Nitro is amazing!");
+export default defineHandler(() => "Fastnode is amazing!");
 ```
 
 ```ts [api/test.get.ts]
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 
 export default defineHandler(() => "Test get handler");
 ```
 
 ```ts [api/test.post.ts]
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 
 export default defineHandler(async (event) => {
   const body = await event.req.json();
@@ -91,7 +91,7 @@ export default defineHandler(async (event) => {
 ```
 
 ```ts [api/hello/[name].ts]
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 
 export default defineHandler((event) => `Hello (param: ${event.context.params!.name})!`);
 ```
@@ -102,16 +102,16 @@ export default defineHandler((event) => `Hello (param: ${event.context.params!.n
 
 <!-- automd:file src="../../examples/api-routes/README.md" -->
 
-Nitro supports file-based routing in the `api/` or `routes/` directory. Each file becomes an API endpoint based on its path.
+Fastnode supports file-based routing in the `api/` or `routes/` directory. Each file becomes an API endpoint based on its path.
 
 ## Basic Route
 
 Create a file in the `api/` directory to define a route. The file path becomes the URL path:
 
 ```ts [api/hello.ts]
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 
-export default defineHandler(() => "Nitro is amazing!");
+export default defineHandler(() => "Fastnode is amazing!");
 ```
 
 This creates a `GET /api/hello` endpoint.
@@ -121,7 +121,7 @@ This creates a `GET /api/hello` endpoint.
 Use square brackets `[param]` for dynamic URL segments. Access params via `event.context.params`:
 
 ```ts [api/hello/[name].ts]
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 
 export default defineHandler((event) => `Hello (param: ${event.context.params!.name})!`);
 ```
@@ -135,7 +135,7 @@ Suffix your file with the HTTP method (`.get.ts`, `.post.ts`, `.put.ts`, `.delet
 ### GET Handler
 
 ```ts [api/test.get.ts]
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 
 export default defineHandler(() => "Test get handler");
 ```
@@ -143,7 +143,7 @@ export default defineHandler(() => "Test get handler");
 ### POST Handler
 
 ```ts [api/test.post.ts]
-import { defineHandler } from "nitro";
+import { defineHandler } from "fastnode";
 
 export default defineHandler(async (event) => {
   const body = await event.req.json();

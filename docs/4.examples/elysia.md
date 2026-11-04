@@ -6,14 +6,14 @@ icon: i-skill-icons-elysia-dark
 
 # Elysia
 
-> Integrate Elysia with Nitro using the server entry.
+> Integrate Elysia with Fastnode using the server entry.
 
 <!-- automd:ui-code-tree src="../../examples/elysia" default="server.ts" ignore="README.md,GUIDE.md" expandAll -->
 
 ::code-tree{defaultValue="server.ts" expandAll}
 
-```ts [nitro.config.ts]
-import { defineConfig } from "nitro";
+```ts [fastnode.config.ts]
+import { defineConfig } from "fastnode";
 
 export default defineConfig({});
 ```
@@ -22,12 +22,12 @@ export default defineConfig({});
 {
   "type": "module",
   "scripts": {
-    "build": "nitro build",
-    "dev": "nitro dev"
+    "build": "fastnode build",
+    "dev": "fastnode dev"
   },
   "devDependencies": {
     "elysia": "^1.4.30",
-    "nitro": "latest",
+    "fastnode": "latest",
     "rolldown": "latest"
   }
 }
@@ -38,22 +38,22 @@ import { Elysia } from "elysia";
 
 const app = new Elysia();
 
-app.get("/", () => "Hello, Elysia with Nitro!");
+app.get("/", () => "Hello, Elysia with Fastnode!");
 
 export default app.compile();
 ```
 
 ```json [tsconfig.json]
 {
-  "extends": "nitro/tsconfig"
+  "extends": "fastnode/tsconfig"
 }
 ```
 
 ```ts [vite.config.ts]
 import { defineConfig } from "vite";
-import { nitro } from "nitro/vite";
+import { fastnode } from "fastnode/vite";
 
-export default defineConfig({ plugins: [nitro()] });
+export default defineConfig({ plugins: [fastnode()] });
 ```
 
 ::
@@ -69,12 +69,12 @@ import { Elysia } from "elysia";
 
 const app = new Elysia();
 
-app.get("/", () => "Hello, Elysia with Nitro!");
+app.get("/", () => "Hello, Elysia with Fastnode!");
 
 export default app.compile();
 ```
 
-Nitro auto-detects `server.ts` in your project root and uses it as the server entry. The Elysia app handles all incoming requests, giving you full control over routing and middleware.
+Fastnode auto-detects `server.ts` in your project root and uses it as the server entry. The Elysia app handles all incoming requests, giving you full control over routing and middleware.
 
 Call `app.compile()` before exporting to optimize the router for production.
 
