@@ -3,6 +3,7 @@ import type { FastnodeApp } from "fastnode/types";
 import type { ServerRequest } from "srvx";
 import { H3Core } from "h3";
 import errorHandler from "#fastnode/virtual/error-handler";
+import { captureFastnodeError, ensureFastnodeErrors } from "#fastnode/runtime/compatibility/h3";
 
 export function createFastnodeApp(): FastnodeApp {
   const h3App = new H3Core({
@@ -12,16 +13,12 @@ export function createFastnodeApp(): FastnodeApp {
   });
   const captureError: NonNullable<FastnodeApp["captureError"]> = (error, errorCtx) => {
     if (errorCtx?.event) {
-      const errors = errorCtx.event.req.context?.fastnode?.errors;
-      if (errors) {
-        errors.push({ error, context: errorCtx });
-      }
+      captureFastnodeError(errorCtx.event.req as ServerRequest, error, errorCtx);
     }
   };
   return {
     fetch: (req: ServerRequest) => {
-      req.context ||= {};
-      req.context.fastnode = req.context.fastnode || { errors: [] };
+      ensureFastnodeErrors(req);
       return h3App.fetch(req);
     },
     h3: h3App,

@@ -99,7 +99,7 @@ function serializeHandler(
   h: MaybeArray<FastnodeEventHandler & { _importHash: string }>,
   opts: { tracing?: boolean } = {}
 ): string {
-  const meta = Array.isArray(h) ? h[0] : h;
+  const meta = Array.isArray(h) ? (h[0] as NonNullable<(typeof h)[0]>) : h;
   const handler = Array.isArray(h)
     ? `multiHandler(${h.map((handler) => serializeHandlerFn(handler)).join(",")})`
     : serializeHandlerFn(h);

@@ -28,7 +28,7 @@ export async function buildEnvironments(ctx: FastnodePluginContext, builder: Vit
 
   for (const [envName, env] of Object.entries(builder.environments)) {
     // prettier-ignore
-    const fmtName = BuilderNames[envName] || (envName.length <= 3 ? envName.toUpperCase() : envName[0].toUpperCase() + envName.slice(1));
+    const fmtName = BuilderNames[envName] || (envName.length <= 3 ? envName.toUpperCase() : envName[0]!.toUpperCase() + envName.slice(1));
     if (env.isBuilt && ctx.services[envName] && !ctx._entryPoints[envName]) {
       const outDir = resolve(env.config.root, env.config.build.outDir);
       const entry = await readBuiltServiceEntry(outDir);
@@ -124,9 +124,9 @@ export async function buildEnvironments(ctx: FastnodePluginContext, builder: Vit
   if (fastnode.options.static) {
     // Mark as built to opt out of Vite's fallback that builds every environment
     // when a `buildApp` hook left all of them unbuilt.
-    builder.environments.fastnode.isBuilt = true;
+    builder.environments.fastnode!.isBuilt = true;
   } else {
-    output = (await builder.build(builder.environments.fastnode)) as RolldownOutput;
+    output = (await builder.build(builder.environments.fastnode!)) as RolldownOutput;
   }
 
   // Close the Fastnode instance

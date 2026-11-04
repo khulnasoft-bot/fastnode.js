@@ -42,6 +42,7 @@ export async function oxc(
           ...(typeof options.minify === "object" ? options.minify : {}),
         } as Parameters<typeof minifySync>[2]);
       }
+      return undefined;
     },
   };
 }

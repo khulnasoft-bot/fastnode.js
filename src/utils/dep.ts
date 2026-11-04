@@ -330,6 +330,7 @@ function _installedPackage(
     }
     dir = parent;
   }
+  return undefined;
 }
 
 /**

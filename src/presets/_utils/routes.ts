@@ -159,6 +159,7 @@ function unsupportedReason(route: string, file: PlatformRouteFile): string | und
   if (!isSplatExpressible(path, { file })) {
     return "as its path syntax cannot express the pattern";
   }
+  return undefined;
 }
 
 function methodRank(route: string): number {

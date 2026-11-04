@@ -398,7 +398,7 @@ export async function configureViteDevServer(ctx: FastnodePluginContext, server:
     // here only affects the catch-all fallback, never an explicit route.
     res.setHeader("vary", "sec-fetch-dest, accept");
     const fetchDest = req.headers["sec-fetch-dest"];
-    const ext = req.url!.split(/[?#]/, 1)[0].match(/\.([a-z0-9]+)$/i)?.[1];
+    const ext = req.url!.split(/[?#]/, 1)[0]?.match(/\.([a-z0-9]+)$/i)?.[1];
 
     // A known asset extension without `text/html` in `Accept` — the fallback signal when
     // `Sec-Fetch-Dest` is unavailable. The header is absent on plain-HTTP non-loopback origins
@@ -413,7 +413,7 @@ export async function configureViteDevServer(ctx: FastnodePluginContext, server:
     // serve it as a real file under the project root. Mirrors its skip rules (`.html` files
     // are left for Fastnode) — #4230.
     const isAssetByFile = () => {
-      const urlPath = req.url!.split(/[?#]/, 1)[0];
+      const urlPath = req.url!.split(/[?#]/, 1)[0]!;
       // Vite only serves root files under its base; outside it, the probe would only leak existence.
       if (
         !ext ||

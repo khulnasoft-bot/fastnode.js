@@ -293,7 +293,7 @@ export async function prerender(fastnode: Fastnode) {
     if (_route.contentType !== inferredContentType && !claimed) {
       const prerenderMeta = getPrerenderMeta(fastnode);
       prerenderMeta[_route.fileName] ||= {};
-      prerenderMeta[_route.fileName].contentType = _route.contentType;
+      prerenderMeta[_route.fileName]!.contentType = _route.contentType;
     }
 
     // After hook to allow ignoring in `prerender:generate` hook

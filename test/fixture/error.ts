@@ -5,4 +5,5 @@ export default defineErrorHandler(async (error, event, { defaultHandler }) => {
     const res = await defaultHandler(error, event, { json: true });
     return Response.json({ json: res.body });
   }
+  return undefined;
 });

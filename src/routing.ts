@@ -229,10 +229,10 @@ export class Router<T> {
 
     // TODO: Upstream to rou3 compiler
     const onlyWildcard =
-      this.routes.length === 1 && this.routes[0].route === "/**" && this.routes[0].method === "";
+      this.routes.length === 1 && this.routes[0]!.route === "/**" && this.routes[0]!.method === "";
     if (onlyWildcard) {
       // Optimize for single wildcard route
-      const data = (opts?.serialize || JSON.stringify)(this.routes[0].data);
+      const data = (opts?.serialize || JSON.stringify)(this.routes[0]!.data);
       const base = this._baseURL;
       let retCode = `{data,params:w?{"0":w,_:w}:{}}`;
       if (opts?.matchAll) {
@@ -279,7 +279,7 @@ function mergeCatchAll(router: RouterContext<unknown>, baseURL: string) {
     return;
   }
   handlers.splice(0, handlers.length, {
-    ...handlers[0],
+    ...handlers[0]!,
     data: handlers.map((h) => h.data),
   });
 }

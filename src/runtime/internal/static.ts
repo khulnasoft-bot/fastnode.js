@@ -34,10 +34,10 @@ export default defineHandler((event) => {
         const [name, ...parameters] = entry.split(";");
         const quality = parameters
           .map((parameter) => parameter.trim().split("="))
-          .find(([key]) => key.toLowerCase() === "q")?.[1];
+          .find(([key]) => key!.toLowerCase() === "q")?.[1];
         const weight = quality === undefined ? 1 : Number.parseFloat(quality);
         return {
-          ext: EncodingMap[name.trim().toLowerCase() as keyof typeof EncodingMap],
+          ext: EncodingMap[name!.trim().toLowerCase() as keyof typeof EncodingMap],
           // An unparsable weight is an invalid parameter, not a rejection
           weight: Number.isNaN(weight) ? 1 : weight,
         };

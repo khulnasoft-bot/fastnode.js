@@ -106,18 +106,20 @@ export function resolveAliases(_aliases: Record<string, string>) {
   const resolvableAliases = Object.keys(aliases).filter(isResolvableAliasKey);
   // Resolve alias values in relation to each other
   for (const key in aliases) {
-    if (!isResolvableAliasValue(aliases[key])) {
+    let resolved = aliases[key]!;
+    if (!isResolvableAliasValue(resolved)) {
       continue;
     }
     for (const alias of resolvableAliases) {
-      if (alias === ROOT_ALIAS && !aliases[key].startsWith(`${ROOT_ALIAS}/`)) {
+      if (alias === ROOT_ALIAS && !resolved.startsWith(`${ROOT_ALIAS}/`)) {
         continue;
       } // Don't resolve @foo/bar
 
-      if (aliases[key].startsWith(alias)) {
-        aliases[key] = aliases[alias] + aliases[key].slice(alias.length);
+      if (resolved.startsWith(alias)) {
+        resolved = aliases[alias]! + resolved.slice(alias.length);
       }
     }
+    aliases[key] = resolved;
   }
   return aliases;
 }

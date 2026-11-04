@@ -35,8 +35,8 @@ export async function scanAndSyncOptions(fastnode: Fastnode) {
     const scannedTasks = await scanTasks(fastnode);
     for (const scannedTask of scannedTasks) {
       if (scannedTask.name in fastnode.options.tasks) {
-        if (!fastnode.options.tasks[scannedTask.name].handler) {
-          fastnode.options.tasks[scannedTask.name].handler = scannedTask.handler;
+        if (!fastnode.options.tasks[scannedTask.name]!.handler) {
+          fastnode.options.tasks[scannedTask.name]!.handler = scannedTask.handler;
         }
       } else {
         fastnode.options.tasks[scannedTask.name] = {

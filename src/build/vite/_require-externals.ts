@@ -31,6 +31,7 @@ export function fastnodeRequireExternals(): VitePlugin {
         if (resolved?.external) {
           return FACADE_PREFIX + resolved.id;
         }
+        return undefined;
       },
     },
 

@@ -35,6 +35,17 @@ export function serverFetch(
   init?: RequestInit,
   context?: ServerRequestContext | H3EventContext
 ): Promise<Response> {
+  // Locate the running Fastnode app via the global singleton.
+  // Resolution order:
+  //   1. `__fastnode__.default`   — normal runtime app (set by `useFastnodeApp()`)
+  //   2. `__fastnode__.prerender` — prerender runtime app
+  //   3. `__fastnode_builder__`   — build-time `Fastnode` instance (set by
+  //      `registerFastnodeInstance()` in `createFastnode()`)
+  //
+  // This fallback chain exists because `serverFetch()` is called from presets
+  // and user code that may not have an explicit app handle. In single-tenant
+  // serverless isolates this is unambiguous; in concurrent scenarios callers
+  // should use an explicit `FastnodeApp.fetch()` instead.
   const fastnode =
     globalThis.__fastnode__?.default ||
     globalThis.__fastnode__?.prerender ||

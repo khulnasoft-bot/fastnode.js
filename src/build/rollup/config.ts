@@ -74,6 +74,7 @@ export const getRollupConfig = async (fastnode: Fastnode): Promise<RollupConfig>
         if (NODE_MODULES_RE.test(id)) {
           return libChunkName(id);
         }
+        return undefined;
       },
     },
   } satisfies RollupConfig;

@@ -75,7 +75,7 @@ const SURROUNDING_SLASH_RE = /^\/+|\/+$/g;
 const DEFAULT_PUBLIC_ASSET_MAX_AGE = 31_536_000; // 1 year
 
 function getSystemNodeVersion() {
-  const systemNodeVersion = Number.parseInt(process.versions.node.split(".")[0]);
+  const systemNodeVersion = Number.parseInt(process.versions.node.split(".")[0]!);
 
   return Number.isNaN(systemNodeVersion) ? 22 : systemNodeVersion;
 }

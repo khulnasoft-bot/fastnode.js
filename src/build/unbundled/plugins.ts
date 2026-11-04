@@ -131,6 +131,7 @@ function resolvePlugin(fastnode: Fastnode, extensions: string[]): EnvRunnerPlugi
         if (importer && normalize(importer).startsWith(virtualDir)) {
           return this.resolve(source, join(fastnode.options.rootDir, "_"));
         }
+        return undefined;
       },
     },
   };
@@ -231,6 +232,7 @@ function rawVirtualPlugin(fastnode: Fastnode): EnvRunnerPlugin {
         if (type && fastnode.vfs.has(id)) {
           return `${RAW_PREFIX}${type}:${id}.js`;
         }
+        return undefined;
       },
     },
     load: {
@@ -296,6 +298,7 @@ async function aliasPlugin(
         return target + source.slice(key.length);
       }
     }
+    return undefined;
   };
   const plugin: EnvRunnerPlugin = {
     name: "fastnode:alias",
@@ -309,6 +312,7 @@ async function aliasPlugin(
             (resolved) => resolved ?? { id: aliased, external: true }
           );
         }
+        return undefined;
       },
     },
   };
@@ -385,6 +389,7 @@ function resolveFile(base: string, query: string, extensions: string[]): string 
       return candidate + query;
     }
   }
+  return undefined;
 }
 
 function splitQuery(id: string): [path: string, query: string] {

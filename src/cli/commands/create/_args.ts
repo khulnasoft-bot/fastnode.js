@@ -64,6 +64,7 @@ export function findArgsError(
   if (positionals.length > maxPositionals) {
     return `Unexpected argument \`${positionals[maxPositionals]}\`. Only one directory can be created at a time.`;
   }
+  return undefined;
 }
 
 function splitOnce(str: string, separator: string): [string, string | undefined] {

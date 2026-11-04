@@ -133,7 +133,7 @@ export class FastnodeDevApp {
       const proxy = createDevProxy(opts);
       app.all(route, proxy.handleEvent);
       this.#addRoute("", route);
-      if (opts.ws) {
+      if (opts?.ws) {
         this.#wsProxies ??= createRouter();
         addRoute(this.#wsProxies, "", route, proxy);
       }
@@ -209,6 +209,7 @@ function serveStaticDir(
     if (resolved.startsWith(dir)) {
       return resolved;
     }
+    return undefined;
   };
 
   const compress: CompressOptions =

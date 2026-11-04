@@ -32,14 +32,14 @@ export async function runTask<RT = unknown>(
     });
   }
 
-  if (!tasks[name].resolve) {
+  if (!tasks[name]!.resolve) {
     throw new HTTPError({
       message: `Task \`${name}\` is not implemented!`,
       status: 501,
     });
   }
 
-  const handler = (await tasks[name].resolve!()) as Task<RT>;
+  const handler = (await tasks[name]!.resolve!()) as Task<RT>;
   const taskEvent: TaskEvent = { name, payload, context };
   __runningTasks__[name] = handler.run(taskEvent);
 

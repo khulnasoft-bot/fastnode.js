@@ -253,6 +253,7 @@ function catchError(fn: () => unknown): unknown {
   } catch (error) {
     return error;
   }
+  return undefined;
 }
 
 // Missing assets opt out of the immutable `cache-control` route rule (h3js/h3#1612)

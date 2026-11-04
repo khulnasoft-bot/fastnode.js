@@ -163,8 +163,8 @@ function renderTimeline(trace: RequestTrace, end: bigint): string {
     const share = Number(span.end - span.start) / Number(total);
 
     const marker = failed ? MARKER_FAILED : MARKER_OK;
-    const label = renderLabel(prefixes[i], marker, span.name, accent, paint, dim);
-    const bar = renderBar(span, t0, total, track, accent, paint, dim);
+    const label = renderLabel(prefixes[i]!, marker, span.name, accent!, paint, dim);
+    const bar = renderBar(span, t0, total, track, accent!, paint, dim);
     const duration = paint(ms(span.end - span.start).padStart(9), heat(share, 0.25, 0.6));
     const base = ` ${label} ${bar} ${duration}`;
     const basePlainLen = LABEL_WIDTH + track + 12;
@@ -244,14 +244,14 @@ function treePrefixes(spans: CollectedSpan[]): string[] {
   const parent: number[] = [];
   const stack: number[] = [];
   for (let i = 0; i < spans.length; i++) {
-    while (stack.length && spans[stack[stack.length - 1]].end < spans[i].end) stack.pop();
-    parent[i] = stack.length ? stack[stack.length - 1] : -1;
+    while (stack.length && spans[stack[stack.length - 1]!]!.end < spans[i]!.end) stack.pop();
+    parent[i] = stack.length ? stack[stack.length - 1]! : -1;
     stack.push(i);
   }
   const isLast = spans.map((_, i) => !spans.some((__, j) => j > i && parent[j] === parent[i]));
   return spans.map((_, i) => {
     const chain: number[] = [];
-    for (let p = parent[i]; p !== -1; p = parent[p]) chain.unshift(p);
+    for (let p = parent[i]!; p !== -1; p = parent[p]!) chain.unshift(p);
     const bars = chain.map((a) => (isLast[a] ? "  " : "│ ")).join("");
     return bars + (isLast[i] ? "└─" : "├─");
   });

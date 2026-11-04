@@ -30,6 +30,7 @@ export async function runParallel<T>(
       if (inputs.size > 0) {
         return refillQueue();
       }
+      return undefined;
     });
   }
 

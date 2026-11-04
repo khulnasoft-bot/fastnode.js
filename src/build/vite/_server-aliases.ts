@@ -32,6 +32,7 @@ export function fastnodeServerAliases(ctx: FastnodePluginContext): VitePlugin {
           }
         );
       }
+      return undefined;
     },
   };
 }

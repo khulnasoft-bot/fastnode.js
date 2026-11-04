@@ -36,7 +36,7 @@ export function createCronHandler(scheduleTasks: Record<string, string> = {}) {
         ? event.req.headers.get("ce-vssschedulename") || ""
         : "";
     if (Object.hasOwn(scheduleTasks, scheduleName)) {
-      await runTask(scheduleTasks[scheduleName], ctx);
+      await runTask(scheduleTasks[scheduleName]!, ctx);
       return { success: true };
     }
 

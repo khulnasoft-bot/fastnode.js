@@ -49,7 +49,7 @@ export async function writeEdgeOneConfig(fastnode: Fastnode) {
 
   // Phase 1 — rules evaluated before the filesystem handler (headers, redirects).
   const rules = sortRoutes(Object.keys(fastnode.options.routeRules || {})).map(
-    (key) => [parseRouteKey(key), fastnode.options.routeRules[key]] as const
+    (key) => [parseRouteKey(key), fastnode.options.routeRules[key]!] as const
   );
 
   config.routes.push(

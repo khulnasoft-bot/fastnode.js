@@ -11,9 +11,9 @@ export async function writeRedirects(fastnode: Fastnode) {
 
   // Most specific first, as the first matching rule wins
   const routes = sortRoutes(Object.keys(fastnode.options.routeRules));
-  const redirects = routes.filter((key) => fastnode.options.routeRules[key].redirect);
+  const redirects = routes.filter((key) => fastnode.options.routeRules[key]!.redirect);
   for (const key of routes) {
-    const redirect = fastnode.options.routeRules[key].redirect;
+    const redirect = fastnode.options.routeRules[key]!.redirect;
     if (
       !redirect ||
       skipUnsupportedRoute(fastnode, { route: key, file: "_redirects", routes: redirects })
@@ -45,7 +45,7 @@ export async function writeHeaders(fastnode: Fastnode) {
   let contents = "";
 
   for (const path of sortRoutes(Object.keys(fastnode.options.routeRules))) {
-    const routeRules = fastnode.options.routeRules[path];
+    const routeRules = fastnode.options.routeRules[path]!;
     if (
       !hasHeaders(routeRules) ||
       skipUnsupportedRoute(fastnode, { route: path, file: "_headers" })

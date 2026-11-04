@@ -67,14 +67,15 @@ function getIncludePatterns(
   return [
     "**",
     ...(ignorePatterns || []).map((p) => {
-      const [_, negation, pattern] = p.match(NEGATION_RE) || [];
+      const match = p.match(NEGATION_RE);
+      const [_, negation, pattern] = match || [];
       return (
         // Convert ignore to include patterns
         (negation ? "" : "!") +
         // Make non-glob patterns relative to publicAssetDir
-        (pattern.startsWith("*")
-          ? pattern
-          : relative(assetDir, resolve(fastnode.options.rootDir, pattern)))
+        (pattern!.startsWith("*")
+          ? pattern!
+          : relative(assetDir, resolve(fastnode.options.rootDir, pattern!)))
       );
     }),
   ].filter((p) => !PARENT_DIR_GLOB_RE.test(p));

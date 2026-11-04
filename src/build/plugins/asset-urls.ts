@@ -61,6 +61,7 @@ export async function assetUrls(
           fileNames.add(fileName);
           return JSON.stringify(/^\.\.?\//.test(relativePath) ? relativePath : `./${relativePath}`);
         }
+        return undefined;
       },
     },
     generateBundle: opts.dropOtherAssets
@@ -158,6 +159,7 @@ function assetReference(node: ESTree.Node): { node: ESTree.Node; url: string } |
     const url = arg.quasis[0]?.value.cooked;
     return url ? { node: arg, url } : undefined;
   }
+  return undefined;
 }
 
 function resolveAssetPath(url: string, importer: string): string | undefined {

@@ -63,6 +63,7 @@ function attributeValue(value: IAnyValue): string | number | boolean | undefined
   if (value.intValue != null) return value.intValue;
   if (value.doubleValue != null) return value.doubleValue;
   if (value.boolValue != null) return value.boolValue;
+  return undefined;
 }
 
 /**

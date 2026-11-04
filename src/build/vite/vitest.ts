@@ -65,6 +65,7 @@ export function fastnodeVitest(ctx: FastnodePluginContext): VitePlugin {
         if (id === setupPath && this.environment.name !== "fastnode") {
           return "export {};";
         }
+        return undefined;
       },
     },
 
@@ -74,6 +75,7 @@ export function fastnodeVitest(ctx: FastnodePluginContext): VitePlugin {
         if (id === "vitest-environment-fastnode") {
           return envPath;
         }
+        return undefined;
       },
     },
   };

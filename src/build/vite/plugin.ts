@@ -126,6 +126,7 @@ function fastnodeInit(ctx: FastnodePluginContext): VitePlugin {
       if (plugins.length > 0) {
         return plugins;
       }
+      return plugins;
     },
   };
 }
@@ -250,6 +251,7 @@ function fastnodeEnvAliases(_aliases: Record<string, string>, keys: string[]): V
             (await this.resolve(resolved, importer, { ...options, skipSelf: true })) || resolved
           );
         }
+        return undefined;
       },
     },
   };
@@ -315,7 +317,7 @@ function fastnodeMain(ctx: FastnodePluginContext): VitePlugin {
           typeof find === "string" &&
           Object.hasOwn(fastnodeAliases, find) &&
           fastnodeAliases[find] !== replacement &&
-          !fastnodeAliases[find].startsWith("node:")
+          !fastnodeAliases[find]!.startsWith("node:")
         ) {
           scoped.add(find);
         }
@@ -342,7 +344,7 @@ function fastnodeMain(ctx: FastnodePluginContext): VitePlugin {
         let entryFile: string | undefined;
         const serviceEntry =
           isRegisteredService && ctx.services[environment.name]?.entry
-            ? resolve(ctx.services[environment.name].entry)
+            ? resolve(ctx.services[environment.name]!.entry)
             : undefined;
         for (const [_name, file] of Object.entries(bundle)) {
           if (file.type === "chunk" && isRegisteredService && file.isEntry) {
@@ -438,6 +440,7 @@ function fastnodeMain(ctx: FastnodePluginContext): VitePlugin {
         }
         return sharedModules;
       }
+      return [];
     },
   };
 }
@@ -694,6 +697,7 @@ function getEntry(input: InputOption | undefined): string | undefined {
   } else if (input && "index" in input) {
     return input.index as string;
   }
+  return undefined;
 }
 
 // Flatten and filter user plugins with the same semantics Vite uses to resolve them.

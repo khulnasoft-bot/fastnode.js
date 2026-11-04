@@ -11,6 +11,7 @@ export function serverMain(fastnode: Fastnode): Plugin {
           map: null,
         };
       }
+      return undefined;
     },
   };
 }

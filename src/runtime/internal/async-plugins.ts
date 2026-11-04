@@ -1,5 +1,6 @@
 import type { FastnodeApp, FastnodeAppPlugin } from "fastnode/types";
 import type { H3Core } from "h3";
+import { h3ResetDispatcher } from "#fastnode/runtime/compatibility/h3";
 
 /**
  * Continues plugin initialization once `pending` (the result of an async plugin)
@@ -33,7 +34,7 @@ export function initAsyncPlugins(
       if (h3.config.onRequest === gate) {
         h3.config.onRequest = onRequest;
       }
-      h3["~dispatch"] = h3["~composed"] = undefined;
+      h3ResetDispatcher(h3);
       app.ready = undefined;
     },
     (error) => {
@@ -45,7 +46,6 @@ export function initAsyncPlugins(
   ready.then();
   return app;
 }
-
 /**
  * Calls `fn` once async plugins have finished (or right away when the app is ready).
  *

@@ -36,8 +36,8 @@ ${serviceNames
 
   const serviceEntries = serviceNames.map((name) => {
     const entry = ctx._isVitest
-      ? _resolveServiceEntry(ctx, ctx.services[name].entry)
-      : resolve(ctx.fastnode!.options.buildDir, "vite/services", name, ctx._entryPoints[name]);
+      ? _resolveServiceEntry(ctx, ctx.services[name]!.entry)
+      : resolve(ctx.fastnode!.options.buildDir, "vite/services", name, ctx._entryPoints[name]!);
     return [name, entry];
   });
 
@@ -91,6 +91,7 @@ export function fastnodeDevServiceProxy(ctx: FastnodePluginContext): VitePlugin 
         if (id === "fastnode" || id.startsWith("fastnode/")) {
           return { id: FASTNODE_PROXY_PREFIX + id, moduleSideEffects: false };
         }
+        return undefined;
       },
     },
 

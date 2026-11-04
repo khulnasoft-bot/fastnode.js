@@ -22,7 +22,7 @@ export function setupVitestWatch(
   }
   _watchedServers.add(server);
   const fastnode = ctx.fastnode!;
-  const fastnodeEnv = server.environments.fastnode;
+  const fastnodeEnv = server.environments.fastnode!;
   const affectedTests = (modules: Iterable<EnvironmentModuleNode>) =>
     _affectedTests(modules, {
       testFiles: () => fastnodeEnv.moduleGraph.fileToModulesMap.keys(),

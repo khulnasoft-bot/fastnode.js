@@ -112,6 +112,7 @@ function _viteEnvEntry(config: ResolvedConfig): string | undefined {
       return /^[a-z]:\//i.test(path) ? path : `/${path}`;
     }
   }
+  return undefined;
 }
 
 /** Explicit paths are resolved through `ensureDep` too, which checks their version. */

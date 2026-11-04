@@ -151,14 +151,15 @@ async function runPreviewCommand(opts: {
 
   const { getRandomPort, waitForPort } = await import("get-port-please");
   const randomPort = await getRandomPort();
-  const child = spawn(arg0, [...args, "--port", String(randomPort), "--host", "localhost"], {
+  const env = {
+    ...process.env,
+    ...Object.fromEntries(opts.env ?? []),
+    PORT: String(randomPort),
+  };
+  const child = spawn(arg0!, [...args, "--port", String(randomPort), "--host", "localhost"], {
     stdio: "inherit",
     cwd: opts.rootDir,
-    env: {
-      ...process.env,
-      ...Object.fromEntries(opts.env ?? []),
-      PORT: String(randomPort),
-    },
+    env,
   });
 
   const killChild = (signal: NodeJS.Signals) => {

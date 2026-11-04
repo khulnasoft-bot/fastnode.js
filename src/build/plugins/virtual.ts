@@ -41,6 +41,7 @@ export function virtual(input: VirtualModule[]): Plugin {
             moduleSideEffects: mod.module.moduleSideEffects ?? false,
           };
         }
+        return undefined;
       },
     },
     load: {

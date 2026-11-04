@@ -47,9 +47,11 @@ describe("virtual/app template", () => {
     const template = app(
       createFastnodeStub({ routeRules: true, routedMiddleware: true, globalMiddleware: true })
     ).template();
-    const routeRules = template.indexOf("push(createRouteRulesMiddleware())");
-    const global = template.indexOf("push(...globalMiddleware)");
-    const routed = template.indexOf("push(createRoutedMiddleware(findRoutedMiddleware))");
+    const routeRules = template.indexOf("h3PushMiddleware(h3App, [createRouteRulesMiddleware()])");
+    const global = template.indexOf("h3PushMiddleware(h3App, globalMiddleware)");
+    const routed = template.indexOf(
+      "h3PushMiddleware(h3App, [createRoutedMiddleware(findRoutedMiddleware)])"
+    );
     expect(routeRules).toBeGreaterThan(-1);
     expect(global).toBeGreaterThan(routeRules);
     expect(routed).toBeGreaterThan(global);
@@ -59,9 +61,11 @@ describe("virtual/app template", () => {
     const template = app(
       createFastnodeStub({ routeRules: true, routedMiddleware: true, globalMiddleware: true })
     ).template();
-    const routed = template.indexOf("push(createRoutedMiddleware(findRoutedMiddleware))");
-    const cache = template.indexOf("push(createCacheRuleMiddleware())");
-    expect(routed).toBeGreaterThan(template.indexOf("push(...globalMiddleware)"));
+    const routed = template.indexOf(
+      "h3PushMiddleware(h3App, [createRoutedMiddleware(findRoutedMiddleware)])"
+    );
+    const cache = template.indexOf("h3PushMiddleware(h3App, [createCacheRuleMiddleware()])");
+    expect(routed).toBeGreaterThan(template.indexOf("h3PushMiddleware(h3App, globalMiddleware)"));
     expect(cache).toBeGreaterThan(routed);
   });
 
@@ -112,7 +116,7 @@ describe("virtual/app template", () => {
     const template = app(createFastnodeStub({ globalMiddleware: true })).template();
     expect(template).not.toContain("#fastnode/runtime/app");
     expect(template).not.toContain('~findRoute"] = (event) => {\n    event.context.routeRules');
-    expect(template).toContain("push(...globalMiddleware)");
+    expect(template).toContain("h3PushMiddleware(h3App, globalMiddleware)");
   });
 
   it("falls back to `405` matching only when there are method-specific routes", () => {
@@ -129,7 +133,7 @@ describe("virtual/app template", () => {
   });
 
   it("resets h3's cached dispatcher after plugins ran", () => {
-    const reset = 'app.h3["~dispatch"] = app.h3["~composed"] = undefined;';
+    const reset = "h3ResetDispatcher(app.h3);";
     const withPlugins = app(createFastnodeStub({ plugins: true })).template();
     const plugins = withPlugins.indexOf("for (let i = 0; i < plugins.length; i++)");
     expect(plugins).toBeGreaterThan(-1);

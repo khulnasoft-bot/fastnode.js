@@ -68,4 +68,5 @@ function _workerName(config: WranglerConfig, envName?: string): string | undefin
   if (config.name) {
     return envName ? `${config.name}-${envName}` : config.name;
   }
+  return undefined;
 }

@@ -167,8 +167,8 @@ function resolveFastnodeServerEntry(
   );
   if (!match) {
     fastnode.logger.warn(
-      `Could not find the output chunk for Fastnode entry \`${fastnode.options.entry}\`. Using \`${entries[0].fileName}\` as server entry.`
+      `Could not find the output chunk for Fastnode entry \`${fastnode.options.entry}\`. Using \`${entries[0]!.fileName}\` as server entry.`
     );
   }
-  return (match || entries[0]).fileName;
+  return (match || entries[0]!).fileName;
 }

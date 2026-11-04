@@ -1,7 +1,10 @@
+export { useFastnodeApp, useFastnodeHooks, serverFetch, fetch } from "./internal/app.ts";
+export { resolveWebsocketHooks } from "./internal/app.ts";
+
 export {
-  useFastnodeApp,
-  useFastnodeHooks,
-  serverFetch,
   getRouteRules,
-  fetch,
-} from "./internal/app.ts";
+  createRouteRulesMiddleware,
+  createCacheRuleMiddleware,
+  createRoutedMiddleware,
+  createMethodNotAllowedMatcher,
+} from "./internal/middleware.ts";

@@ -65,6 +65,7 @@ export default defineBuildConfig({
               if (code.includes(polyfillsImport)) {
                 return polyfillsImport + code.replace(polyfillsImport, "");
               }
+              return undefined;
             },
           },
         ],

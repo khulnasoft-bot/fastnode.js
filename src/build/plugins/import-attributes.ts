@@ -129,6 +129,7 @@ function clauseEnd(code: string, from: number, comments: Comment[]): number | un
       return i + 1;
     }
   }
+  return undefined;
 }
 
 function attributesType(attributes: ESTree.ImportAttribute[]): ImportType | undefined {
@@ -138,6 +139,7 @@ function attributesType(attributes: ESTree.ImportAttribute[]): ImportType | unde
       return attr.value.value;
     }
   }
+  return undefined;
 }
 
 function optionsType(options: ESTree.ObjectExpression): ImportType | undefined {
@@ -149,6 +151,7 @@ function optionsType(options: ESTree.ObjectExpression): ImportType | undefined {
   if (type && isStringLiteral(type) && isImportType(type.value)) {
     return type.value;
   }
+  return undefined;
 }
 
 function findProperty(node: ESTree.ObjectExpression, name: string): ESTree.Expression | undefined {
@@ -166,6 +169,7 @@ function findProperty(node: ESTree.ObjectExpression, name: string): ESTree.Expre
       return prop.value;
     }
   }
+  return undefined;
 }
 
 function isStringLiteral(node: ESTree.Node): node is ESTree.StringLiteral {

@@ -44,10 +44,16 @@ import type { JsonValue, OptionalDepType, SerializableOptions } from "./_utils.t
  *
  * @see https://fastnode.khulnasoft.com/config
  */
-export interface FastnodeOptions extends PresetOptions {
-  // Internal
+/**
+ * Internal configuration properties populated during config resolution.
+ * Not part of the user-facing {@link FastnodeConfig}.
+ */
+export interface FastnodeInternalOptions {
+  /** The raw user config overrides passed to `loadOptions()`. */
   _config: FastnodeConfig;
+  /** The resolved c12 config result (or watcher). */
   _c12: ResolvedConfig<FastnodeConfig> | ConfigWatcher<FastnodeConfig>;
+  /** CLI-specific metadata (command name, …). */
   _cli?: {
     command?: string;
   };
@@ -60,9 +66,12 @@ export interface FastnodeOptions extends PresetOptions {
    * remote sources). Presets and inline config overrides are not included.
    */
   layers: FastnodeConfigLayer[];
+}
 
-  // General
-
+/**
+ * General framework configuration: preset, compatibility date, logging level.
+ */
+export interface FastnodeGeneralOptions {
   /**
    * Opt-in date for deployment provider and runtime compatibility features.
    *
@@ -135,9 +144,12 @@ export interface FastnodeOptions extends PresetOptions {
    * @see https://fastnode.khulnasoft.com/config/general#runtimeconfig
    */
   runtimeConfig: FastnodeRuntimeConfig;
+}
 
-  // Dirs
-
+/**
+ * Directory and output path configuration.
+ */
+export interface FastnodeDirOptions {
   /**
    * Project workspace root directory.
    *
@@ -224,9 +236,176 @@ export interface FastnodeOptions extends PresetOptions {
 
   /** @deprecated Migrate to `serverDir`. */
   srcDir: string;
+}
 
-  // Features
+/**
+ * Development-mode configuration: dev server, watcher, proxy.
+ */
+export interface FastnodeDevOptions {
+  /**
+   * Whether the current build targets development mode.
+   *
+   * Defaults to `true` during development and `false` for production.
+   *
+   * @see https://fastnode.khulnasoft.com/config/advanced#dev
+   */
+  dev: boolean;
 
+  /**
+   * Environment name used to apply `$env.<envName>` (or `$<envName>`) config overrides.
+   *
+   * Defaults to `"development"` in development and `"production"` otherwise. A custom
+   * name (for example `"staging"`) can be set with the `--envName` CLI flag or the
+   * `c12.envName` load option of `createFastnode()`. Available in server code as
+   * `import.meta.envName`.
+   *
+   * @see https://fastnode.khulnasoft.com/docs/configuration#environment-specific-config
+   */
+  envName: string;
+
+  /**
+   * Development server options.
+   *
+   * @see https://fastnode.khulnasoft.com/config/dev#devserver
+   */
+  devServer: {
+    /** Port number for the dev server. */
+    port?: number;
+    /** Hostname for the dev server. */
+    hostname?: string;
+    /** Additional paths to watch for dev server reloads. */
+    watch?: string[];
+    /** Runtime runner to use for the dev server. */
+    runner?: RunnerName;
+    /**
+     * Let the previous dev worker finish the requests and WebSockets it already accepted on
+     * reloads, and shut it down once they settle (or after `timeout` ms, default `60_000`).
+     *
+     * New requests go to the new worker right away.
+     *
+     * @default false
+     */
+    drain?: RunnerReloadOptions["drain"];
+    /**
+     * Serve `/.well-known/appspecific/com.chrome.devtools.json` so Chrome DevTools can connect
+     * the project folder as an automatic workspace.
+     *
+     * @default true
+     * @see https://chromium.googlesource.com/devtools/devtools-frontend/+/main/docs/ecosystem/automatic_workspace_folders.md
+     */
+    devtoolsJson?: boolean;
+  };
+
+  /**
+   * File watcher options for development mode.
+   *
+   * @see https://fastnode.khulnasoft.com/config/dev#watchoptions
+   * @see https://github.com/paulmillr/chokidar
+   */
+  watchOptions: ChokidarOptions;
+
+  /**
+   * Proxy configuration for the development server.
+   *
+   * A map of path prefixes to proxy target URLs or options.
+   *
+   * @example
+   * ```ts
+   * devProxy: {
+   *   "/proxy/test": "http://localhost:3001",
+   *   "/proxy/example": { target: "https://example.com", changeOrigin: true },
+   * }
+   * ```
+   *
+   * @see https://fastnode.khulnasoft.com/config/dev#devproxy
+   * @see https://github.com/unjs/httpxy
+   */
+  devProxy: Record<string, string | ProxyServerOptions>;
+}
+
+/**
+ * Build logging configuration.
+ */
+export interface FastnodeLoggingOptions {
+  /**
+   * Build logging behavior.
+   *
+   * @see https://fastnode.khulnasoft.com/config/general#logging
+   */
+  logging: {
+    /** Report compressed bundle sizes after build. */
+    compressedSizes?: boolean;
+    /** Show the build success message. */
+    buildSuccess?: boolean;
+  };
+}
+
+/**
+ * Advanced configuration: TypeScript, hooks, commands, framework metadata.
+ */
+export interface FastnodeAdvancedOptions {
+  /**
+   * TypeScript configuration options.
+   *
+   * @see https://fastnode.khulnasoft.com/config/advanced#typescript
+   */
+  typescript: {
+    /**
+     * TypeScript config used by the bundler (JSX options and path aliases).
+     *
+     * Defaults to the resolved `tsconfig.json` of the project root.
+     */
+    tsConfig?: Partial<TSConfig>;
+
+    /**
+     * Resolve path aliases (`compilerOptions.paths`) of `tsConfig` for the server sources.
+     *
+     * @default true
+     */
+    tsconfigPaths?: boolean;
+  };
+
+  /**
+   * Fastnode lifecycle hooks.
+   *
+   * @see https://fastnode.khulnasoft.com/config/advanced#hooks
+   * @see https://fastnode.khulnasoft.com/docs/lifecycle
+   * @see https://github.com/unjs/hookable
+   */
+  hooks: NestedHooks<FastnodeHooks>;
+
+  /**
+   * Preview and deploy command hints (usually filled by deployment presets).
+   *
+   * @see https://fastnode.khulnasoft.com/config/advanced#commands
+   */
+  commands: {
+    /** Command to preview the production build locally. */
+    preview?: string;
+    /**
+     * Command to deploy the production build.
+     *
+     * Can be a shell command (`./` paths are resolved relative to the output directory)
+     * or a function (used by presets that deploy programmatically).
+     */
+    deploy?: string | ((fastnode: Fastnode, opts: DeployOptions) => void | Promise<void>);
+  };
+
+  /**
+   * Metadata about the higher-level framework using Fastnode (e.g. Nuxt).
+   *
+   * Used by presets and included in build info output.
+   *
+   * @see https://fastnode.khulnasoft.com/config/advanced#framework
+   */
+  framework: FastnodeFrameworkInfo;
+}
+
+/**
+ * Feature flag and optional subsystem configuration: KV, cache, database,
+ * renderer, assets, plugins, modules, tasks, virtual modules, prerendering.
+ */
+export interface FastnodeFeatureOptions {
   /**
    * KV storage mount configuration.
    *
@@ -564,105 +743,12 @@ export interface FastnodeOptions extends PresetOptions {
    * @see https://fastnode.khulnasoft.com/config/directories#scansuffixes
    */
   scanSuffixes: string[];
+}
 
-  // Dev
-
-  /**
-   * Whether the current build targets development mode.
-   *
-   * Defaults to `true` during development and `false` for production.
-   *
-   * @see https://fastnode.khulnasoft.com/config/advanced#dev
-   */
-  dev: boolean;
-
-  /**
-   * Environment name used to apply `$env.<envName>` (or `$<envName>`) config overrides.
-   *
-   * Defaults to `"development"` in development and `"production"` otherwise. A custom
-   * name (for example `"staging"`) can be set with the `--envName` CLI flag or the
-   * `c12.envName` load option of `createFastnode()`. Available in server code as
-   * `import.meta.envName`.
-   *
-   * @see https://fastnode.khulnasoft.com/docs/configuration#environment-specific-config
-   */
-  envName: string;
-
-  /**
-   * Development server options.
-   *
-   * @see https://fastnode.khulnasoft.com/config/dev#devserver
-   */
-  devServer: {
-    /** Port number for the dev server. */
-    port?: number;
-    /** Hostname for the dev server. */
-    hostname?: string;
-    /** Additional paths to watch for dev server reloads. */
-    watch?: string[];
-    /** Runtime runner to use for the dev server. */
-    runner?: RunnerName;
-    /**
-     * Let the previous dev worker finish the requests and WebSockets it already accepted on
-     * reloads, and shut it down once they settle (or after `timeout` ms, default `60_000`).
-     *
-     * New requests go to the new worker right away.
-     *
-     * @default false
-     */
-    drain?: RunnerReloadOptions["drain"];
-    /**
-     * Serve `/.well-known/appspecific/com.chrome.devtools.json` so Chrome DevTools can connect
-     * the project folder as an automatic workspace.
-     *
-     * @default true
-     * @see https://chromium.googlesource.com/devtools/devtools-frontend/+/main/docs/ecosystem/automatic_workspace_folders.md
-     */
-    devtoolsJson?: boolean;
-  };
-
-  /**
-   * File watcher options for development mode.
-   *
-   * @see https://fastnode.khulnasoft.com/config/dev#watchoptions
-   * @see https://github.com/paulmillr/chokidar
-   */
-  watchOptions: ChokidarOptions;
-
-  /**
-   * Proxy configuration for the development server.
-   *
-   * A map of path prefixes to proxy target URLs or options.
-   *
-   * @example
-   * ```ts
-   * devProxy: {
-   *   "/proxy/test": "http://localhost:3001",
-   *   "/proxy/example": { target: "https://example.com", changeOrigin: true },
-   * }
-   * ```
-   *
-   * @see https://fastnode.khulnasoft.com/config/dev#devproxy
-   * @see https://github.com/unjs/httpxy
-   */
-  devProxy: Record<string, string | ProxyServerOptions>;
-
-  // Logging
-
-  /**
-   * Build logging behavior.
-   *
-   * @see https://fastnode.khulnasoft.com/config/general#logging
-   */
-  logging: {
-    /** Report compressed bundle sizes after build. */
-    compressedSizes?: boolean;
-    /** Show the build success message. */
-    buildSuccess?: boolean;
-  };
-
-  // Routing
-
+/**
+ * Routing configuration: base URL, API routes, handlers, route rules, prerendering.
+ */
+export interface FastnodeRoutingOptions {
   /**
    * Server's main base URL prefix.
    *
@@ -784,9 +870,12 @@ export interface FastnodeOptions extends PresetOptions {
     /** Explicit list of routes to prerender. */
     routes?: string[];
   };
+}
 
-  // Build
-
+/**
+ * Build configuration: bundler, Vite, Rollup/Rolldown, aliases, polyfills, tracing.
+ */
+export interface FastnodeBuildOptions {
   /**
    * Bundler to use for production builds.
    *
@@ -1034,65 +1123,20 @@ export interface FastnodeOptions extends PresetOptions {
    * @see https://github.com/unjs/nf3
    */
   traceOpts?: Pick<ExternalsTraceOptions, "nft" | "traceAlias" | "chmod" | "transform" | "hooks">;
-
-  // Advanced
-
-  /**
-   * TypeScript configuration options.
-   *
-   * @see https://fastnode.khulnasoft.com/config/advanced#typescript
-   */
-  typescript: {
-    /**
-     * TypeScript config used by the bundler (JSX options and path aliases).
-     *
-     * Defaults to the resolved `tsconfig.json` of the project root.
-     */
-    tsConfig?: Partial<TSConfig>;
-
-    /**
-     * Resolve path aliases (`compilerOptions.paths`) of `tsConfig` for the server sources.
-     *
-     * @default true
-     */
-    tsconfigPaths?: boolean;
-  };
-
-  /**
-   * Fastnode lifecycle hooks.
-   *
-   * @see https://fastnode.khulnasoft.com/config/advanced#hooks
-   * @see https://fastnode.khulnasoft.com/docs/lifecycle
-   * @see https://github.com/unjs/hookable
-   */
-  hooks: NestedHooks<FastnodeHooks>;
-
-  /**
-   * Preview and deploy command hints (usually filled by deployment presets).
-   *
-   * @see https://fastnode.khulnasoft.com/config/advanced#commands
-   */
-  commands: {
-    /** Command to preview the production build locally. */
-    preview?: string;
-    /**
-     * Command to deploy the production build.
-     *
-     * Can be a shell command (`./` paths are resolved relative to the output directory)
-     * or a function (used by presets that deploy programmatically).
-     */
-    deploy?: string | ((fastnode: Fastnode, opts: DeployOptions) => void | Promise<void>);
-  };
-
-  /**
-   * Metadata about the higher-level framework using Fastnode (e.g. Nuxt).
-   *
-   * Used by presets and included in build info output.
-   *
-   * @see https://fastnode.khulnasoft.com/config/advanced#framework
-   */
-  framework: FastnodeFrameworkInfo;
 }
+
+export interface FastnodeOptions
+  extends
+    PresetOptions,
+    FastnodeInternalOptions,
+    FastnodeGeneralOptions,
+    FastnodeDirOptions,
+    FastnodeFeatureOptions,
+    FastnodeDevOptions,
+    FastnodeLoggingOptions,
+    FastnodeRoutingOptions,
+    FastnodeBuildOptions,
+    FastnodeAdvancedOptions {}
 
 /**
  * User-facing Fastnode configuration used in `fastnode.config.ts` or

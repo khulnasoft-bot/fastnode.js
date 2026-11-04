@@ -124,7 +124,8 @@ export default function app(fastnode: Fastnode) {
       if (hasPlugins) {
         imports.push(
           `import { plugins } from "#fastnode/virtual/plugins";`,
-          `import { initAsyncPlugins } from "#fastnode/runtime/async-plugins";`
+          `import { initAsyncPlugins } from "#fastnode/runtime/async-plugins";`,
+          `import { h3ResetDispatcher } from "#fastnode/runtime/compatibility/h3";`
         );
         code.push(
           `  for (let i = 0; i < plugins.length; i++) {`,
@@ -142,7 +143,7 @@ export default function app(fastnode: Fastnode) {
           // h3 composes `~middleware` into a dispatcher on first dispatch and
           // never re-reads it. A plugin may have dispatched already (warm-up
           // fetch) before a later plugin (e.g. tracing) touched the chain.
-          `  app.h3["~dispatch"] = app.h3["~composed"] = undefined;`
+          `  h3ResetDispatcher(app.h3);`
         );
       }
       code.push(`  return app;`, `}`);
@@ -196,22 +197,25 @@ export default function app(fastnode: Fastnode) {
       if (runtimeAppImports.length) {
         imports.push(`import { ${runtimeAppImports.join(", ")} } from "#fastnode/runtime/app";`);
       }
+      if (hasRouteRules || hasGlobalMiddleware || hasRoutedMiddleware) {
+        imports.push(`import { h3PushMiddleware } from "#fastnode/runtime/compatibility/h3";`);
+      }
       if (hasMethodRoutes) {
         code.push(
           `  const findMethodNotAllowed = createMethodNotAllowedMatcher(findRoute, ${JSON.stringify(routeMethods)});`
         );
       }
       if (hasRouteRules) {
-        code.push(`  h3App["~middleware"].push(createRouteRulesMiddleware());`);
+        code.push(`  h3PushMiddleware(h3App, [createRouteRulesMiddleware()]);`);
       }
       if (hasGlobalMiddleware) {
-        code.push(`  h3App["~middleware"].push(...globalMiddleware);`);
+        code.push(`  h3PushMiddleware(h3App, globalMiddleware);`);
       }
       if (hasRoutedMiddleware) {
-        code.push(`  h3App["~middleware"].push(createRoutedMiddleware(findRoutedMiddleware));`);
+        code.push(`  h3PushMiddleware(h3App, [createRoutedMiddleware(findRoutedMiddleware)]);`);
       }
       if (hasRouteRules) {
-        code.push(`  h3App["~middleware"].push(createCacheRuleMiddleware());`);
+        code.push(`  h3PushMiddleware(h3App, [createCacheRuleMiddleware()]);`);
       }
       code.push(`  return h3App;`, `}`);
 

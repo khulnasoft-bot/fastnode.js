@@ -174,6 +174,7 @@ async function _loadUserConfig(
           config: klona(preset),
         };
       }
+      return undefined;
     },
     ...opts.c12,
     envName,
@@ -222,6 +223,7 @@ const mergeEnvConfig = createDefu((obj, key, value, namespace) => {
     obj[key] = value;
     return true;
   }
+  return false;
 }) as (...sources: any[]) => any;
 
 // c12 layers also include overrides, rc, package.json and preset layers, which have no `cwd`

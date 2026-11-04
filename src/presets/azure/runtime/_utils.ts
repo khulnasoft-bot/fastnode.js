@@ -12,7 +12,8 @@ export function getAzureParsedCookiesFromHeaders(headers: Headers): Cookie[] {
     if (setCookie.length === 0) {
       continue;
     }
-    const [[key, value], ..._setCookieOptions] = setCookie;
+    const [first, ..._setCookieOptions] = setCookie;
+    const [key, value] = first!;
     const setCookieOptions = Object.fromEntries(
       _setCookieOptions.map(([k, v]) => [k.toLowerCase(), v])
     );
@@ -77,6 +78,7 @@ function parseNumberOrDate(expires: string) {
   if (!Number.isNaN(expiresAsDate.getTime())) {
     return expiresAsDate;
   }
+  return undefined;
 }
 
 function parseNumber(maxAge: string) {
@@ -88,4 +90,5 @@ function parseNumber(maxAge: string) {
   if (!Number.isNaN(maxAgeAsNumber)) {
     return maxAgeAsNumber;
   }
+  return undefined;
 }

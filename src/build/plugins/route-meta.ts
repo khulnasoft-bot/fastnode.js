@@ -31,6 +31,7 @@ export async function routeMeta(fastnode: Fastnode) {
             resolved ? PREFIX + resolved.id : undefined
           );
         }
+        return undefined;
       },
     },
     load: {
@@ -47,6 +48,7 @@ export async function routeMeta(fastnode: Fastnode) {
             return "export default undefined;";
           }
         }
+        return undefined;
       },
     },
     transform: {
