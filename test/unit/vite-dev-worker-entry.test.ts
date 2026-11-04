@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { join } from "pathe";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { writeDevWorkerEntry } from "../../src/build/vite/_dev-worker.ts";
+import { writeDevWorkerEntry } from "../../src/build/builders/vite/_dev-worker.ts";
 
 describe("vite dev worker entry", () => {
   let buildDir: string;

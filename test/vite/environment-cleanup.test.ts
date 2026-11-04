@@ -1,7 +1,7 @@
 import { RunnerManager } from "env-runner";
 import { describe, expect, test } from "vitest";
 import { resolveConfig } from "vite";
-import { createFetchableDevEnvironment } from "../../src/build/vite/dev.ts";
+import { createFetchableDevEnvironment } from "../../src/build/builders/vite/dev.ts";
 
 describe("vite: environment cleanup", () => {
   test("closes the env runner when the environment is closed", async () => {

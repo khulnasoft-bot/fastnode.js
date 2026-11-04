@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "pathe";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { loadOptions } from "../../src/config/loader.ts";
-import { createFastnode } from "../../src/fastnode.ts";
+import { createFastnode } from "../../src/core/application/fastnode.ts";
 
 const tempDirs: string[] = [];
 

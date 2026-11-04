@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { FastnodeOptions } from "fastnode/types";
-import { resolveAssetsOptions } from "../../src/config/resolvers/assets.ts";
+import { resolveAssetsOptions } from "../../src/config/resolver/assets.ts";
 
 // `rootDir` intentionally has no `public/` directory, so only the configured
 // public assets are resolved.

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { H3, mockEvent } from "h3";
 
-import { Router } from "../../src/routing.ts";
+import { Router } from "../../src/core/routing/routing.ts";
 
 // A pattern that reaches a handler in a plain h3 app must reach one through
 // Fastnode's compiled rou3 router too.

@@ -506,7 +506,7 @@ describe("explicit dependency paths (`deps.paths`)", () => {
   });
 
   it("checks the version of an explicit `rolldown` path", async () => {
-    const { importRolldown } = await import("../../src/build/rolldown/_import.ts");
+    const { importRolldown } = await import("../../src/build/builders/rolldown/_import.ts");
     const frameworkDir = createProject();
     installStub("rolldown", frameworkDir, "0.1.0");
     await importRolldown(createProject(), {

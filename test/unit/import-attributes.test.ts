@@ -3,10 +3,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import type { FastnodeConfig } from "fastnode/types";
-import { createFastnode } from "../../src/fastnode.ts";
-import { getRollupConfig } from "../../src/build/rollup/config.ts";
-import { getBundlerConfig } from "../../src/build/vite/bundler.ts";
-import type { FastnodePluginContext } from "../../src/build/vite/types.ts";
+import { createFastnode } from "../../src/core/application/fastnode.ts";
+import { getRollupConfig } from "../../src/build/builders/rollup/config.ts";
+import { getBundlerConfig } from "../../src/build/builders/vite/bundler.ts";
+import type { FastnodePluginContext } from "../../src/build/builders/vite/types.ts";
 
 const fastnodeFor = (config?: FastnodeConfig) =>
   createFastnode({

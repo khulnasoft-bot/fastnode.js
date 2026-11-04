@@ -1,3 +1,3 @@
-export { fastnode } from "./build/vite/plugin.ts";
+export { fastnode } from "./build/builders/vite/plugin.ts";
 
-export type { FastnodePluginConfig, ViteServiceConfig } from "./build/vite/types.ts";
+export type { FastnodePluginConfig, ViteServiceConfig } from "./build/builders/vite/types.ts";

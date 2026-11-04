@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "pathe";
 import { describe, expect, it, vi } from "vitest";
 import type { Fastnode, FastnodeOptions } from "fastnode/types";
-import { resolveCacheOptions } from "../../src/config/resolvers/cache.ts";
+import { resolveCacheOptions } from "../../src/config/resolver/cache.ts";
 import cache from "../../src/build/virtual/cache.ts";
 import { createFSCacheStorage } from "../../src/runtime/internal/cache-fs.ts";
 import { defineCachedFunction } from "ocache";

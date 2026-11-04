@@ -2,7 +2,12 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { scanMiddleware, scanPlugins, scanServerRoutes, scanTasks } from "../../src/scan.ts";
+import {
+  scanMiddleware,
+  scanPlugins,
+  scanServerRoutes,
+  scanTasks,
+} from "../../src/core/application/scan.ts";
 import type { Fastnode } from "fastnode/types";
 
 let dir: string;

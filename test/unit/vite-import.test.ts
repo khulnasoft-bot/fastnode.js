@@ -22,7 +22,7 @@ vi.mock("consola", () => ({
 }));
 
 const { importVite, setRunningVite, viteDepPaths, viteImportOptions } =
-  await import("../../src/build/vite/_import.ts");
+  await import("../../src/build/builders/vite/_import.ts");
 
 describe("importVite", () => {
   let rootDir: string;

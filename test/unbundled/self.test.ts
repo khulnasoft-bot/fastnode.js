@@ -5,10 +5,10 @@ import { pkgDir } from "#fastnode/meta";
 import { fileURLToPath } from "node:url";
 import { join } from "pathe";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { createFastnode } from "../../src/fastnode.ts";
-import { scanHandlers } from "../../src/scan.ts";
-import { prepareUnbundledApp } from "../../src/build/unbundled/entry.ts";
-import { unbundledPlugins } from "../../src/build/unbundled/plugins.ts";
+import { createFastnode } from "../../src/core/application/fastnode.ts";
+import { scanHandlers } from "../../src/core/application/scan.ts";
+import { prepareUnbundledApp } from "../../src/build/builders/unbundled/entry.ts";
+import { unbundledPlugins } from "../../src/build/builders/unbundled/plugins.ts";
 
 const missingDeps = new Set<string>();
 

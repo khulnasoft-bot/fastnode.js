@@ -34,7 +34,7 @@ Project source is centralized under `src/`:
 
 - `src/build` — Build logic (Vite | Rolldown | Rollup config, virtual templates in `src/build/virtual/`, plugins in `src/build/plugins/`).
 - `src/cli` — `fastnode` CLI subcommands (each file in `src/cli/commands` is a command).
-- `src/config/` — Config defaults (`src/config/defaults.ts`) and resolvers/normalizers (`src/config/resolvers`).
+- `src/config/` — Config defaults (`src/config/defaults.ts`) and resolvers/normalizers (`src/config/resolver`).
 - `src/dev` — Development server logic (`app.ts`, `server.ts`, `vfs.ts`).
 - `src/prerender` — Prerender logic.
 - `src/presets` — Deployment presets and runtime entry.
@@ -77,8 +77,8 @@ resolves from `fastnode.options.rootDir` and offers to install what is missing.
   `dist/`. Those are not in the manifest: they get a bundle-time alias to a shim in `src/shims/`
   (one file per package), with a range within the one of the bundled library (`shims` in `deps.json`).
 - Fastnode has no peer dependencies at all: `vite` is imported from the user project too
-  (`src/build/vite/_import.ts`). Its `DevEnvironment` subclass is therefore defined lazily, against
-  the class of the resolved instance (see `src/build/vite/dev.ts`).
+  (`src/build/builders/vite/_import.ts`). Its `DevEnvironment` subclass is therefore defined lazily, against
+  the class of the resolved instance (see `src/build/builders/vite/dev.ts`).
 
 ### Runtime Constraints
 

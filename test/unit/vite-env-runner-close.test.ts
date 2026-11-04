@@ -1,6 +1,6 @@
-import type { FastnodePluginContext } from "../../src/build/vite/types.ts";
+import type { FastnodePluginContext } from "../../src/build/builders/vite/types.ts";
 import { describe, expect, it } from "vitest";
-import { closeEnvRunner, initEnvRunner } from "../../src/build/vite/env.ts";
+import { closeEnvRunner, initEnvRunner } from "../../src/build/builders/vite/env.ts";
 
 describe("vite: closeEnvRunner", () => {
   it("does not throw when the runner failed to start", async () => {

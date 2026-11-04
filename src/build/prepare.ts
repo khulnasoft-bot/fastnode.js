@@ -9,7 +9,7 @@ export interface PrepareOptions {
 
 export async function prepare(fastnode: Fastnode, opts: PrepareOptions = {}) {
   if (fastnode.options.builder === false) {
-    const { assertUnbundledSupport } = await import("./unbundled/build.ts");
+    const { assertUnbundledSupport } = await import("./builders/unbundled/build.ts");
     assertUnbundledSupport(fastnode);
   }
   const dirsToClean = [

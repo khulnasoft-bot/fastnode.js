@@ -149,13 +149,17 @@ export default defineBuildConfig({
         if (chunk.moduleIds.every((id) => /src[/\\]cli[/\\]/.test(id))) {
           return `cli/_chunks/[name].mjs`;
         }
-        if (chunk.moduleIds.every((id) => /build[/\\]vite[/\\]/.test(id))) {
+        if (chunk.moduleIds.every((id) => /build[/\\]builders[/\\]vite[/\\]/.test(id))) {
           return `_build/vite.[name].mjs`;
         }
-        if (chunk.moduleIds.every((id) => /build[/\\]rolldown[/\\]/.test(id))) {
+        if (chunk.moduleIds.every((id) => /build[/\\]builders[/\\]rolldown[/\\]/.test(id))) {
           return `_build/rolldown.mjs`;
         }
-        if (chunk.moduleIds.every((id) => /build[/\\]rollup[/\\]|build[/\\]plugins/.test(id))) {
+        if (
+          chunk.moduleIds.every((id) =>
+            /build[/\\]builders[/\\]rollup[/\\]|build[/\\]plugins/.test(id)
+          )
+        ) {
           return `_build/rollup.mjs`;
         }
         if (chunk.moduleIds.every((id) => /src[/\\]dev[/\\]|src[/\\]runtime/.test(id))) {

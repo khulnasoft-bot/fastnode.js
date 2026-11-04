@@ -22,13 +22,13 @@
 ## Entry Points
 
 - `src/builder.ts` — Main public API: `createFastnode()`, `build()`, `createDevServer()`, `prerender()`, `copyPublicAssets()`, `prepare()`, `runTask()`, `listTasks()`
-- `src/vite.ts` — Vite plugin export from `src/build/vite/plugin.ts`
+- `src/vite.ts` — Vite plugin export from `src/build/builders/vite/plugin.ts`
 
 ## Build System (`src/build/`)
 
 **Builder dispatch** (`build/build.ts`): delegates to `rollup`, `rolldown`, or `vite` based on `fastnode.options.builder`.
 
-**Builder selection** (resolved in `config/resolvers/builder.ts`):
+**Builder selection** (resolved in `config/resolver/builder.ts`):
 - Check `FASTNODE_BUILDER` env var
 - Auto-detect: `vite` when a `vite.config` uses `fastnode()`, otherwise `rolldown`
 - No builder package is a dependency of Fastnode: they are imported from the user project and installed on demand (`rolldown` via `build/rolldown/_import.ts`)
@@ -78,7 +78,7 @@ All prefixed `#fastnode/virtual/<name>`:
 3. Resolve preset
 4. Run config resolvers sequentially
 
-**Resolvers** (`config/resolvers/`):
+**Resolvers** (`config/resolver/`):
 `compatibility`, `tsconfig`, `paths`, `imports`, `route-rules`, `database`, `export-conditions`, `runtime-config`, `open-api`, `url`, `assets`, `storage`, `error`, `unenv`, `builder`
 
 **Defaults** (`config/defaults.ts`): All FastnodeConfig defaults.

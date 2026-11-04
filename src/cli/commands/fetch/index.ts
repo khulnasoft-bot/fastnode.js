@@ -5,7 +5,7 @@ import { finished, pipeline } from "node:stream/promises";
 import { defineCommand } from "citty";
 import { LogLevels, consola } from "consola";
 import { resolve } from "pathe";
-import { startUnbundledServer } from "../../../build/unbundled/serve.ts";
+import { startUnbundledServer } from "../../../build/builders/unbundled/serve.ts";
 import { fetchDevServer, findDevServer } from "./_dev.ts";
 import { type FetchOptions, createFetchRequest, fetchArgs, parseFetchArgs } from "./_request.ts";
 

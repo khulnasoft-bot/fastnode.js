@@ -3,8 +3,8 @@ import { join } from "node:path";
 import { rm, mkdir } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { createFastnode, build, prepare } from "fastnode/builder";
-import { getBundlerConfig } from "../../src/build/vite/bundler.ts";
-import type { FastnodePluginContext } from "../../src/build/vite/types.ts";
+import { getBundlerConfig } from "../../src/build/builders/vite/bundler.ts";
+import type { FastnodePluginContext } from "../../src/build/builders/vite/types.ts";
 
 const fixtureDir = fileURLToPath(new URL("./build-plugins-fixture", import.meta.url));
 const tmpDir = fileURLToPath(new URL("./build-plugins-fixture/.tmp", import.meta.url));

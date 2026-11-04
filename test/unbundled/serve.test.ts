@@ -4,7 +4,7 @@ import { NodeWorkerEnvRunner } from "env-runner/runners/node-worker";
 import { SelfEnvRunner } from "env-runner/runners/self";
 import { join } from "pathe";
 import { describe, expect, it } from "vitest";
-import { startUnbundledServer } from "../../src/build/unbundled/serve.ts";
+import { startUnbundledServer } from "../../src/build/builders/unbundled/serve.ts";
 
 // In order: only the first server of the process can run on the self runner
 describe("fastnode serve runner", () => {

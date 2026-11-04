@@ -2,7 +2,7 @@
 
 ## Overview
 
-`src/build/vite/` is Fastnode's Vite-based build system using Vite 6+ multi-environment API. It integrates as a Vite plugin (`fastnode()`) that manages server builds, service environments, dev server, and production output.
+`src/build/builders/vite/` is Fastnode's Vite-based build system using Vite 6+ multi-environment API. It integrates as a Vite plugin (`fastnode()`) that manages server builds, service environments, dev server, and production output.
 
 ## File Map
 

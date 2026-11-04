@@ -3,7 +3,7 @@ import type { Plugin } from "rollup";
 import type { Plugin as VitePlugin } from "vite";
 import type * as ESTree from "oxbox";
 import MagicString from "magic-string";
-import { viteDepPaths } from "../vite/_import.ts";
+import { viteDepPaths } from "../builders/vite/_import.ts";
 import { importOXC, walkAST } from "../../utils/oxc.ts";
 import { RESOLVED_RE as RAW_RE } from "./raw.ts";
 

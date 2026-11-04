@@ -4,7 +4,7 @@ import type { Expression, Literal } from "estree";
 import type { Fastnode, FastnodeEventHandler } from "fastnode/types";
 import type { Plugin } from "rollup";
 import type { Plugin as VitePlugin } from "vite";
-import { viteDepPaths } from "../vite/_import.ts";
+import { viteDepPaths } from "../builders/vite/_import.ts";
 import { importOXC } from "../../utils/oxc.ts";
 import { escapeRegExp } from "../../utils/regex.ts";
 import { chain } from "../../utils/sync.ts";

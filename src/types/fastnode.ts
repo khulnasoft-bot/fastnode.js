@@ -5,7 +5,7 @@ import type { FastnodeConfig, FastnodeOptions } from "./config.ts";
 import type { FastnodeEventHandler } from "./handler.ts";
 import type { FastnodeHooks } from "./hooks.ts";
 import type { PrerenderRoute } from "./prerender.ts";
-import type { Router } from "../routing.ts";
+import type { Router } from "../core/routing/routing.ts";
 import type { NormalizedRouteRules } from "./route-rules.ts";
 import type { WorkerAddress } from "./runner.ts";
 

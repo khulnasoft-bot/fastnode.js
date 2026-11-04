@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { normalizeRuntimeConfig } from "../../src/config/resolvers/runtime-config.ts";
+import { normalizeRuntimeConfig } from "../../src/config/resolver/runtime-config.ts";
 import type { FastnodeConfig } from "fastnode/types";
 
 const defaultRuntimeConfig = {

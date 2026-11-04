@@ -3,8 +3,8 @@ import { tmpdir } from "node:os";
 import { join } from "pathe";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { rolldown } from "rolldown";
-import { createFastnode } from "../../src/fastnode.ts";
-import { getRolldownConfig } from "../../src/build/rolldown/config.ts";
+import { createFastnode } from "../../src/core/application/fastnode.ts";
+import { getRolldownConfig } from "../../src/build/builders/rolldown/config.ts";
 import { builtinExternals } from "../../src/build/plugins/builtins.ts";
 
 // Bun lists `bun:*` ids, and Node some ids only with their `node:` prefix (e.g. `node:sqlite`)

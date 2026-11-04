@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { fastnodeAssetsImport } from "../../src/build/vite/_assets.ts";
-import type { FastnodePluginContext } from "../../src/build/vite/types.ts";
+import { fastnodeAssetsImport } from "../../src/build/builders/vite/_assets.ts";
+import type { FastnodePluginContext } from "../../src/build/builders/vite/types.ts";
 
 vi.mock("@hiogawa/vite-plugin-fullstack/assets", () => ({
   default: () => [null, { name: "fullstack:test", transform: () => "export const value = 1" }],

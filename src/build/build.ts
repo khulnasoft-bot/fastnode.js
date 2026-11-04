@@ -12,19 +12,19 @@ export async function build(fastnode: Fastnode) {
   }
   switch (fastnode.options.builder) {
     case "rollup": {
-      const { rollupBuild } = await import("./rollup/build.ts");
+      const { rollupBuild } = await import("./builders/rollup/build.ts");
       return rollupBuild(fastnode);
     }
     case "rolldown": {
-      const { rolldownBuild } = await import("./rolldown/build.ts");
+      const { rolldownBuild } = await import("./builders/rolldown/build.ts");
       return rolldownBuild(fastnode);
     }
     case "vite": {
-      const { viteBuild } = await import("./vite/build.ts");
+      const { viteBuild } = await import("./builders/vite/build.ts");
       return viteBuild(fastnode);
     }
     case false: {
-      const { unbundledBuild } = await import("./unbundled/build.ts");
+      const { unbundledBuild } = await import("./builders/unbundled/build.ts");
       return unbundledBuild(fastnode);
     }
     default: {

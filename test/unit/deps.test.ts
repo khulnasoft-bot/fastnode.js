@@ -5,7 +5,7 @@ import { readPackageJSON } from "pkg-types";
 import { minVersion, satisfies, subset } from "semver";
 import { describe, expect, expectTypeOf, it, vi } from "vitest";
 import type { FastnodeOptions } from "fastnode/types";
-import { resolveDepsOptions } from "../../src/config/resolvers/deps.ts";
+import { resolveDepsOptions } from "../../src/config/resolver/deps.ts";
 import { deps, shims } from "../../src/utils/_deps.ts";
 import type { DepId, DepMeta } from "../../src/utils/_deps.ts";
 import * as dep from "../../src/utils/dep.ts";

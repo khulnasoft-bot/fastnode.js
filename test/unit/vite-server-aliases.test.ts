@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { fastnodeServerAliases } from "../../src/build/vite/_server-aliases.ts";
-import type { FastnodePluginContext } from "../../src/build/vite/types.ts";
+import { fastnodeServerAliases } from "../../src/build/builders/vite/_server-aliases.ts";
+import type { FastnodePluginContext } from "../../src/build/builders/vite/types.ts";
 
 function setup(aliases: Record<string, string>) {
   const ctx = { bundlerConfig: { base: { aliases } } } as unknown as FastnodePluginContext;

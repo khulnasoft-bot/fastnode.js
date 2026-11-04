@@ -3,11 +3,11 @@ import { tmpdir } from "node:os";
 import { join } from "pathe";
 import { describe, expect, it } from "vitest";
 import type { FastnodeConfig } from "fastnode/types";
-import { createFastnode } from "../../src/fastnode.ts";
+import { createFastnode } from "../../src/core/application/fastnode.ts";
 import { sourcemap } from "../../src/build/plugins/sourcemap.ts";
-import { getRolldownConfig } from "../../src/build/rolldown/config.ts";
-import { getBundlerConfig } from "../../src/build/vite/bundler.ts";
-import type { FastnodePluginContext } from "../../src/build/vite/types.ts";
+import { getRolldownConfig } from "../../src/build/builders/rolldown/config.ts";
+import { getBundlerConfig } from "../../src/build/builders/vite/bundler.ts";
+import type { FastnodePluginContext } from "../../src/build/builders/vite/types.ts";
 
 type BundleAsset = { type: "asset"; source: string };
 

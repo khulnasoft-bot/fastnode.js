@@ -6,8 +6,8 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vites
 
 const state = vi.hoisted(() => ({ rolldown: undefined as string | undefined, vite: false }));
 
-vi.mock("../../src/build/rolldown/_import.ts", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("../../src/build/rolldown/_import.ts")>()),
+vi.mock("../../src/build/builders/rolldown/_import.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../src/build/builders/rolldown/_import.ts")>()),
   resolveRolldown: () => state.rolldown,
 }));
 
@@ -22,7 +22,7 @@ vi.mock("../../src/utils/dep.ts", async (importOriginal) => {
   };
 });
 
-const { resolveBuilder } = await import("../../src/config/resolvers/builder.ts");
+const { resolveBuilder } = await import("../../src/config/resolver/builder.ts");
 
 describe("resolveBuilder", () => {
   let rootDir: string;
@@ -67,7 +67,7 @@ describe("resolveBuilder", () => {
     vi.resetModules();
     const { consola } = await import("consola");
     const { resolveBuilder: freshResolveBuilder } =
-      await import("../../src/config/resolvers/builder.ts");
+      await import("../../src/config/resolver/builder.ts");
     const info = vi.spyOn(consola, "info").mockImplementation(() => {});
     try {
       for (let i = 0; i < 2; i++) {
@@ -125,7 +125,7 @@ describe("resolveBuilder", () => {
       vi.resetModules();
       const { consola } = await import("consola");
       const { resolveBuilder: freshResolveBuilder } =
-        await import("../../src/config/resolvers/builder.ts");
+        await import("../../src/config/resolver/builder.ts");
       const warn = vi.spyOn(consola, "warn").mockImplementation(() => {});
       try {
         state.vite = true;

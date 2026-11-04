@@ -11,7 +11,7 @@ const { importEntry, evaluatedModules } = vi.hoisted(() => ({
 }));
 
 // `vite` is resolved from the app: the generated entry injects the module runner (see
-// `src/build/vite/_dev-worker.ts`).
+// `src/build/builders/vite/_dev-worker.ts`).
 const moduleRunner = {
   ESModulesEvaluator: class {},
   ModuleRunner: class {

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { FastnodeOptions } from "fastnode/types";
-import { resolveKVOptions } from "../../src/config/resolvers/kv.ts";
+import { resolveKVOptions } from "../../src/config/resolver/kv.ts";
 import { resolveKVMounts } from "../../src/utils/storage.ts";
 
 const warn = vi.hoisted(() => vi.fn());

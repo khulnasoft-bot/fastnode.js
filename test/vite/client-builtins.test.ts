@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fastnode } from "../../src/build/vite/plugin.ts";
+import { fastnode } from "../../src/build/builders/vite/plugin.ts";
 import { createServer, resolveConfig } from "vite";
 
 describe("vite: client builtin aliases (#4853)", () => {

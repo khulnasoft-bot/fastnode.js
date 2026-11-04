@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Fastnode, FastnodeConfig, PublicAssetDir } from "fastnode/types";
-import { normalizeRouteRules } from "../../src/config/resolvers/route-rules.ts";
+import { normalizeRouteRules } from "../../src/config/resolver/route-rules.ts";
 import { getPublicAssetCorsHeaders } from "../../src/presets/_utils/cors.ts";
 
 const CORS = { "access-control-allow-origin": "*", "access-control-expose-headers": "*" };

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Fastnode } from "fastnode/types";
 
-import { initFastnodeRouting } from "../../src/routing.ts";
+import { initFastnodeRouting } from "../../src/core/routing/routing.ts";
 import routing from "../../src/build/virtual/routing.ts";
 import routingMeta from "../../src/build/virtual/routing-meta.ts";
 

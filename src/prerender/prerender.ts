@@ -13,9 +13,9 @@ import { join, relative, resolve } from "pathe";
 import { createRouter, addRoute, findAllRoutes } from "rou3";
 import { joinURL, withBase, withoutBase, withTrailingSlash } from "ufo";
 import { build } from "../build/build.ts";
-import { resolveRolldown } from "../build/rolldown/_import.ts";
-import { viteDepPaths } from "../build/vite/_import.ts";
-import { createFastnode } from "../fastnode.ts";
+import { resolveRolldown } from "../build/builders/rolldown/_import.ts";
+import { viteDepPaths } from "../build/builders/vite/_import.ts";
+import { createFastnode } from "../core/application/fastnode.ts";
 import { compressPublicAssets } from "../utils/compress.ts";
 import { runParallel } from "../utils/parallel.ts";
 import { extractLinks, formatPrerenderRoute, matchesIgnorePattern } from "./utils.ts";
@@ -445,7 +445,7 @@ async function startPrerenderer(fastnodeRenderer: Fastnode): Promise<EnvServer> 
 
 async function createPrerenderer(fastnodeRenderer: Fastnode): Promise<EnvServer> {
   if (fastnodeRenderer.options.builder === false) {
-    const { startUnbundledPrerenderer } = await import("../build/unbundled/prerender.ts");
+    const { startUnbundledPrerenderer } = await import("../build/builders/unbundled/prerender.ts");
     return startUnbundledPrerenderer(fastnodeRenderer);
   }
 

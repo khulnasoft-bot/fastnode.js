@@ -1,7 +1,7 @@
 import consola from "consola";
 import type { Fastnode, FastnodeDynamicConfig } from "fastnode/types";
-import { normalizeRouteRules } from "./resolvers/route-rules.ts";
-import { normalizeRuntimeConfig } from "./resolvers/runtime-config.ts";
+import { normalizeRouteRules } from "./resolver/route-rules.ts";
+import { normalizeRuntimeConfig } from "./resolver/runtime-config.ts";
 
 export async function updateFastnodeConfig(fastnode: Fastnode, config: FastnodeDynamicConfig) {
   fastnode.options.routeRules = normalizeRouteRules(config.routeRules ? config : fastnode.options);

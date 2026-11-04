@@ -5,7 +5,7 @@ import { resolveModulePath } from "exsolve";
 import { join } from "pathe";
 import { normalizeAliases, resolveAlias } from "pathe/utils";
 import { pkgDir } from "#fastnode/meta";
-import { legacyUnenvLayers } from "../config/resolvers/unenv.ts";
+import { legacyUnenvLayers } from "../config/resolver/unenv.ts";
 import { nodeCompatEnv } from "./_node-compat.ts";
 import { isUnenvId } from "./plugins/unenv.ts";
 

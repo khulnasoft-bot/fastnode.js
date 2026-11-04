@@ -1,5 +1,5 @@
 // Core
-export { createFastnode } from "./fastnode.ts";
+export { createFastnode } from "./core/application/fastnode.ts";
 
 // Config loader
 export { loadOptions } from "./config/loader.ts";

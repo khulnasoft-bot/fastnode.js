@@ -3,8 +3,8 @@ import { tmpdir } from "node:os";
 import { pathToFileURL } from "node:url";
 import { join } from "pathe";
 import { describe, expect, it } from "vitest";
-import type { FastnodePluginContext } from "../../src/build/vite/types.ts";
-import { viteServicesTemplate } from "../../src/build/vite/services.ts";
+import type { FastnodePluginContext } from "../../src/build/builders/vite/types.ts";
+import { viteServicesTemplate } from "../../src/build/builders/vite/services.ts";
 
 const entries = {
   default: `export default { prefix: "default", fetch(req) { return this.prefix + ":" + req } }`,

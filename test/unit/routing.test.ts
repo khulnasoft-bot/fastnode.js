@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { Router } from "../../src/routing.ts";
+import { Router } from "../../src/core/routing/routing.ts";
 
 type Match = { data: unknown; params?: Record<string, string> } | undefined;
 

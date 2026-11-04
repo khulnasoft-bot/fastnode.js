@@ -4,7 +4,7 @@ import type { Fastnode } from "fastnode/types";
 import { afterEach, describe, expect, test } from "vitest";
 import { fastnode } from "../../src/vite.ts";
 import type { FastnodePluginConfig } from "../../src/vite.ts";
-import { createFastnode } from "../../src/fastnode.ts";
+import { createFastnode } from "../../src/core/application/fastnode.ts";
 
 const { resolveConfig } = (await import(
   process.env.FASTNODE_VITE_PKG || "vite"

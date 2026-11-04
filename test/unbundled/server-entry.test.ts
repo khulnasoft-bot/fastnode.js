@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "pathe";
 import { describe, expect, it } from "vitest";
-import { startUnbundledServer } from "../../src/build/unbundled/serve.ts";
+import { startUnbundledServer } from "../../src/build/builders/unbundled/serve.ts";
 
 // Native ESM fails to link a default import of a module without one, so it must not be emitted
 describe("fastnode serve: server entry", () => {

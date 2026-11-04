@@ -1,0 +1,293 @@
+import type { Fastnode, FastnodeEventHandler, NormalizedRouteRules } from "fastnode/types";
+import type { RouterContext } from "rou3";
+import type { CompileRouterToStringOptions } from "rou3/compiler";
+
+import { join } from "pathe";
+import { runtimeDir } from "#fastnode/meta";
+import { normalizeRoute } from "h3";
+import { addRoute, createRouter, findRoute, findAllRoutes } from "rou3";
+import { compileRouterToString } from "rou3/compiler";
+import { joinURL } from "ufo";
+import { hash } from "../../utils/hash.ts";
+
+const isGlobalMiddleware = (h: FastnodeEventHandler) =>
+  !h.method && (!h.route || h.route === "/**");
+
+export function initFastnodeRouting(fastnode: Fastnode) {
+  const envConditions = new Set(
+    [
+      fastnode.options.dev ? "dev" : "prod",
+      fastnode.options.preset,
+      fastnode.options.preset === "fastnode-prerender" ? "prerender" : undefined,
+    ].filter(Boolean) as string[]
+  );
+  const matchesEnv = (h: FastnodeEventHandler) => {
+    const hEnv = Array.isArray(h.env) ? h.env : [h.env];
+    const envs = hEnv.filter(Boolean) as string[];
+    return envs.length === 0 || envs.some((env) => envConditions.has(env));
+  };
+
+  type MaybeArray<T> = T | T[];
+  const routes = new Router<MaybeArray<FastnodeEventHandler & { _importHash: string }>>(
+    fastnode.options.baseURL
+  );
+
+  // Matched with route *patterns* at build time (presets), never with a request
+  // path — the runtime rules matcher is compiled from `options.routeRules` by
+  // `h3/rules` itself.
+  const routeRules = new Router<NormalizedRouteRules & { _route: string }>(
+    fastnode.options.baseURL,
+    {
+      normalize: false,
+    }
+  );
+
+  const globalMiddleware: (FastnodeEventHandler & { _importHash: string })[] = [];
+
+  const routedMiddleware = new Router<FastnodeEventHandler & { _importHash: string }>(
+    fastnode.options.baseURL
+  );
+
+  const sync = () => {
+    // Update route rules
+    routeRules._update(
+      Object.entries(fastnode.options.routeRules).map(([route, data]) => ({
+        route,
+        method: "",
+        data: {
+          ...data,
+          _route: route,
+        },
+      }))
+    );
+
+    // Update routes
+    const _routes = [
+      ...Object.entries(fastnode.options.routes).flatMap(([route, handler]) => {
+        if (typeof handler === "string") {
+          handler = { handler };
+        }
+        return { ...handler, route, middleware: false };
+      }),
+      ...fastnode.options.handlers,
+      ...fastnode.scannedHandlers,
+    ].filter((h) => h && !h.middleware && matchesEnv(h));
+    if (fastnode.options.serverEntry && fastnode.options.serverEntry.handler) {
+      _routes.push({
+        route: "/**",
+        lazy: false,
+        format: fastnode.options.serverEntry.format,
+        handler: fastnode.options.serverEntry.handler,
+      });
+    }
+    if (fastnode.options.renderer?.handler) {
+      _routes.push({
+        route: "/**",
+        lazy: true,
+        handler: fastnode.options.renderer?.handler,
+      });
+    }
+    routes._update(
+      _routes.map((h) => ({
+        ...h,
+        method: h.method || "",
+        data: handlerWithImportHash(h),
+      })),
+      { merge: true }
+    );
+
+    // Update middleware
+    const _middleware = [...fastnode.scannedHandlers, ...fastnode.options.handlers].filter(
+      (h) => h && h.middleware && matchesEnv(h)
+    );
+    if (fastnode.options.serveStatic) {
+      _middleware.unshift({
+        route: "/**",
+        middleware: true,
+        handler: join(runtimeDir, "internal/static"),
+      });
+    } else {
+      for (const asset of fastnode.options.publicAssets) {
+        if (asset.fallthrough || !asset.baseURL || asset.baseURL === "/") {
+          continue;
+        }
+        _middleware.unshift({
+          route: joinURL(asset.baseURL, ":path+"),
+          method: "GET",
+          middleware: true,
+          handler: join(runtimeDir, "internal/static-missing"),
+        });
+      }
+    }
+    globalMiddleware.splice(
+      0,
+      globalMiddleware.length,
+      ..._middleware.filter((h) => isGlobalMiddleware(h)).map((m) => handlerWithImportHash(m))
+    );
+    routedMiddleware._update(
+      _middleware
+        .filter((h) => !isGlobalMiddleware(h))
+        .flatMap((h) => {
+          const route = { ...h, method: h.method || "", data: handlerWithImportHash(h) };
+          // `HEAD` requests are served by `GET` routes, so they run `GET` middleware too
+          return route.method.toUpperCase() === "GET"
+            ? [route, { ...route, method: "HEAD" }]
+            : [route];
+        })
+    );
+  };
+
+  fastnode.routing = Object.freeze({
+    sync,
+    routes,
+    routeRules,
+    globalMiddleware,
+    routedMiddleware,
+  });
+}
+
+function handlerWithImportHash(h: FastnodeEventHandler) {
+  // Handlers registered after options are resolved may still use windows separators
+  const handler = h.handler.replace(/\\/g, "/");
+  const id = (h.lazy ? "_lazy_" : "_") + hash(handler);
+  return { ...h, handler, _importHash: id };
+}
+
+// --- Router ---
+
+export interface Route<T = unknown> {
+  route: string;
+  method: string;
+  data: T;
+}
+
+export interface RouterOptions {
+  /**
+   * Normalize each pattern into the shape of the `event.url.pathname` it will be
+   * matched against (percent-encoding, needless-escape decoding, dot segments),
+   * mirroring what h3 does in its own `on()`.
+   *
+   * Turn this off for a router that is matched with another *pattern* rather
+   * than with a request path — the two sides would otherwise normalize
+   * differently and stop matching.
+   *
+   * @default true
+   */
+  normalize?: boolean;
+}
+
+export class Router<T> {
+  _routes?: Route<T>[];
+  _router?: RouterContext<T>;
+  /**
+   * Cached output of {@link compileToString}, invalidated by {@link _update}.
+   *
+   * Only one result is cached: each Router instance must always be compiled with
+   * the same `opts`. Compiling one instance with differing `opts` would silently
+   * return the first result, since `opts` holds a `serialize` closure and is
+   * therefore not hashable into a cache key.
+   */
+  _compiled?: string;
+  _baseURL: string;
+  _normalize: boolean;
+
+  constructor(baseURL?: string, opts?: RouterOptions) {
+    this._normalize = opts?.normalize !== false;
+    this._update([]);
+    this._baseURL = baseURL ? (this._normalize ? normalizeRoute(baseURL) : baseURL) : "";
+    if (this._baseURL.endsWith("/")) {
+      this._baseURL = this._baseURL.slice(0, -1);
+    }
+  }
+
+  get routes() {
+    return this._routes!;
+  }
+
+  _update(routes: Route<T>[], opts?: { merge?: boolean }) {
+    this._routes = routes;
+    this._router = createRouter<T>();
+    this._compiled = undefined;
+    for (const route of routes) {
+      const pattern = this._normalize ? normalizeRoute(route.route) : route.route;
+      addRoute(this._router, route.method, this._baseURL + pattern, route.data);
+    }
+    if (opts?.merge) {
+      mergeCatchAll(this._router, this._baseURL);
+    }
+  }
+
+  hasRoutes() {
+    return this._routes!.length > 0;
+  }
+
+  compileToString(opts?: CompileRouterToStringOptions<T>) {
+    if (this._compiled) {
+      return this._compiled;
+    }
+    this._compiled = compileRouterToString(this._router!, opts);
+
+    // TODO: Upstream to rou3 compiler
+    const onlyWildcard =
+      this.routes.length === 1 && this.routes[0]!.route === "/**" && this.routes[0]!.method === "";
+    if (onlyWildcard) {
+      // Optimize for single wildcard route
+      const data = (opts?.serialize || JSON.stringify)(this.routes[0]!.data);
+      const base = this._baseURL;
+      let retCode = `{data,params:w?{"0":w,_:w}:{}}`;
+      if (opts?.matchAll) {
+        retCode = `[${retCode}]`;
+      }
+      const guardCode = base
+        ? `if(p!==${JSON.stringify(base)}&&!p.startsWith(${JSON.stringify(base + "/")})){return ${opts?.matchAll ? "[]" : "undefined"};}`
+        : "";
+      this._compiled = /* js */ `/* @__PURE__ */ (() => {const data=${data};return ((_m, p)=>{${guardCode}if(p.charCodeAt(p.length-1)===47)p=p.slice(0,-1);const w=p.slice(${base.length + 1});return ${retCode};})})()`;
+    }
+
+    return this._compiled;
+  }
+
+  match(method: string, path: string): undefined | T {
+    return findRoute(this._router!, method, this._lookupPath(path))?.data;
+  }
+
+  matchAll(method: string, path: string): T[] {
+    // Returns from less specific to more specific matches
+    return findAllRoutes(this._router!, method, this._lookupPath(path)).map((route) => route.data);
+  }
+
+  _lookupPath(path: string) {
+    // rou3 percent-encodes the literal text of registered patterns, so a pattern
+    // used as a lookup path needs the same encoding as a request pathname.
+    return this._normalize ? path : encodePattern(path);
+  }
+}
+
+function mergeCatchAll(router: RouterContext<unknown>, baseURL: string) {
+  let node: RouterContext<unknown>["root"] | undefined = router.root;
+  for (const segment of baseURL.split("/")) {
+    if (!segment) {
+      continue;
+    }
+    node = node?.static?.[segment];
+    if (!node) {
+      return;
+    }
+  }
+  const handlers = node?.wildcard?.methods?.[""];
+  if (!handlers || handlers.length < 2) {
+    return;
+  }
+  handlers.splice(0, handlers.length, {
+    ...handlers[0]!,
+    data: handlers.map((h) => h.data),
+  });
+}
+
+function encodePattern(pattern: string) {
+  // Mirrors rou3's literal encoding, leaving its `?`, `{` and `}` syntax as is.
+  // eslint-disable-next-line no-control-regex
+  return pattern.replace(/[\0- "#<>^`\x7F-\uFFFC]+/g, (run) =>
+    encodeURIComponent(run.replace(/[\uD800-\uDFFF]/gu, "\uFFFD"))
+  );
+}

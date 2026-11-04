@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "pathe";
 import { describe, expect, it, vi } from "vitest";
 import type { Fastnode, FastnodeOptions } from "fastnode/types";
-import { legacyUnenvLayers, resolveUnenv } from "../../src/config/resolvers/unenv.ts";
+import { legacyUnenvLayers, resolveUnenv } from "../../src/config/resolver/unenv.ts";
 import { resolveBuildEnv } from "../../src/build/env.ts";
 
 const warn = vi.hoisted(() => vi.fn());

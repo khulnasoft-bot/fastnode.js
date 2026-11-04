@@ -17,8 +17,8 @@ import { pkgDir } from "#fastnode/meta";
 import { getRandomPort } from "get-port-please";
 import { join } from "pathe";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { unbundledPlugins } from "../../src/build/unbundled/plugins.ts";
-import { startUnbundledServer } from "../../src/build/unbundled/serve.ts";
+import { unbundledPlugins } from "../../src/build/builders/unbundled/plugins.ts";
+import { startUnbundledServer } from "../../src/build/builders/unbundled/serve.ts";
 
 const rootDir = fileURLToPath(new URL("fixture", import.meta.url));
 

@@ -18,23 +18,23 @@ import { FastnodeDefaults } from "./defaults.ts";
 import { mergeConfig, mergeConfigHooks } from "./_merge.ts";
 
 // Resolvers
-import { resolveAssetsOptions } from "./resolvers/assets.ts";
-import { resolveCompatibilityOptions } from "./resolvers/compatibility.ts";
-import { resolveDatabaseOptions } from "./resolvers/database.ts";
-import { resolveDepsOptions } from "./resolvers/deps.ts";
-import { resolveExportConditionsOptions } from "./resolvers/export-conditions.ts";
-import { resolveOpenAPIOptions } from "./resolvers/open-api.ts";
-import { resolveTsconfig } from "./resolvers/tsconfig.ts";
-import { resolvePathOptions } from "./resolvers/paths.ts";
-import { resolveRouteRulesOptions } from "./resolvers/route-rules.ts";
-import { resolveRuntimeConfigOptions } from "./resolvers/runtime-config.ts";
-import { resolveKVOptions } from "./resolvers/kv.ts";
-import { resolveCacheOptions } from "./resolvers/cache.ts";
-import { resolveURLOptions } from "./resolvers/url.ts";
-import { resolveErrorOptions } from "./resolvers/error.ts";
-import { resolveUnenv } from "./resolvers/unenv.ts";
-import { resolveBuilder } from "./resolvers/builder.ts";
-import { resolveTracingChannelOptions } from "./resolvers/tracing.ts";
+import { resolveAssetsOptions } from "./resolver/assets.ts";
+import { resolveCompatibilityOptions } from "./resolver/compatibility.ts";
+import { resolveDatabaseOptions } from "./resolver/database.ts";
+import { resolveDepsOptions } from "./resolver/deps.ts";
+import { resolveExportConditionsOptions } from "./resolver/export-conditions.ts";
+import { resolveOpenAPIOptions } from "./resolver/open-api.ts";
+import { resolveTsconfig } from "./resolver/tsconfig.ts";
+import { resolvePathOptions } from "./resolver/paths.ts";
+import { resolveRouteRulesOptions } from "./resolver/route-rules.ts";
+import { resolveRuntimeConfigOptions } from "./resolver/runtime-config.ts";
+import { resolveKVOptions } from "./resolver/kv.ts";
+import { resolveCacheOptions } from "./resolver/cache.ts";
+import { resolveURLOptions } from "./resolver/url.ts";
+import { resolveErrorOptions } from "./resolver/error.ts";
+import { resolveUnenv } from "./resolver/unenv.ts";
+import { resolveBuilder } from "./resolver/builder.ts";
+import { resolveTracingChannelOptions } from "./resolver/tracing.ts";
 
 const configResolvers = [
   resolveCompatibilityOptions,

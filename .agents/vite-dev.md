@@ -1,13 +1,13 @@
 # Vite Dev Middleware — Request Routing
 
-> Scope: the request-routing logic in `src/build/vite/dev.ts` — the two
+> Scope: the request-routing logic in `src/build/builders/vite/dev.ts` — the two
 > `server.middlewares.use(...)` registrations (`fastnodeDevMiddlewarePre` and the
 > catch-all `fastnodeDevMiddleware`): why the current design looks the way it does.
 
 ## 1. Where it lives & how it is wired
 
-- Logic: `src/build/vite/dev.ts` → `configureViteDevServer(ctx, server)`.
-- Entry: `src/build/vite/plugin.ts:266` — the plugin's `configureServer` hook
+- Logic: `src/build/builders/vite/dev.ts` → `configureViteDevServer(ctx, server)`.
+- Entry: `src/build/builders/vite/plugin.ts:266` — the plugin's `configureServer` hook
   `return`s the result of `configureViteDevServer`.
 
 Vite's `configureServer` contract: middleware registered **synchronously**
